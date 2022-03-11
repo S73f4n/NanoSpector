@@ -11,4 +11,4 @@ for line in lines:
     if line == "DATA\n":
         dataline = count
 
-data = pd.read_csv('test.VERT', delimiter='\t', skiprows=dataline+1, encoding='unicode_escape', error_bad_lines=False)
+data = pd.read_csv('test.VERT', delimiter='\t', skiprows=dataline+1, encoding='unicode_escape', encoding_errors='ignore')
