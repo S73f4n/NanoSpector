@@ -15,6 +15,6 @@ for line in lines:
     if line == "DATA\n":
         dataline = count
 
-data = pd.read_csv('test.VERT', delimiter='\t', skiprows=dataline+1, encoding='unicode_escape', encoding_errors='ignore')
+data = pd.read_csv('test.VERT', delimiter='\t', skiprows=dataline+1, encoding='unicode_escape', encoding_errors='ignore', header=None)
 fig = px.line(data)
 fig.show()
