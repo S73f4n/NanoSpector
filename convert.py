@@ -24,7 +24,29 @@ for line in lines:
     if line == "DATA\n":
         dataline = count
 
+# In the STMAFM-VERT files the first row has 3 numbers (+ 1 above Vers3)
+# with statistical data of the spectrum:
+# #1 Number of Points taken during Vertical Manipulation
+# #2 X Position of the Spectrum
+# #3 Y Position of the Spectrum
+# (above Vers3: #4 Number of custom DataColumns)
+
 param = re.findall('([^-_\s]+)', lines[dataline])
+
+# In Version 3, the Channel-List has to be decoded:
+# Current = 1
+# dI/dV   = 2
+# d2I/dV2 = 4
+# ADC0    = 8
+# ADC1    = 16
+# ADC2    = 32
+# ADC3    = 64
+#         = 128
+#         = 256
+#         = 512
+# di_q    = 1024
+# di2_q   = 2048
+# Top DAC0= 4096
 
 data = pd.read_csv('test.VERT', delimiter='\t', skiprows=dataline+1, encoding='unicode_escape', encoding_errors='ignore', header=None)
 fig = px.line(data)
