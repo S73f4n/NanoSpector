@@ -5,7 +5,6 @@ import re
 
 pio.renderers.default = "vscode"
 
-
 with open('test.VERT', 'r', errors="ignore") as f:
     lines = f.read().splitlines()
 
@@ -23,8 +22,6 @@ for line in lines:
         preampgain = int(line.split("=")[1])
     if "ZPiezoconst" in line:
         zpiezoconst = float(line.split("=")[1])
-        print(zpiezoconst)
-
     if line == "DATA":
         dataline = count
 
@@ -37,7 +34,6 @@ for line in lines:
 
 version = lines[0]
 param = re.findall('([^-_\s]+)', lines[dataline])
-# param = list(map(float, param))
 
 # In Version 3, the Channel-List has to be decoded:
 channellist = {
@@ -65,6 +61,7 @@ for channel in channellist:
     if int(param[3]) & channellist[channel] > 0:
         columnnames.append(channel)
 columnnames.append("NaN")
+
 ADCtoV = 20.0 / 2 ** dacdepth
 ADCtoI = 20.0 / 2 ** dacdepth / 10 ** (preampgain - 12) * 10 ** (-12)
 
