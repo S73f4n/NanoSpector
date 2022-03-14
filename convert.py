@@ -1,10 +1,7 @@
 import sys
 import pandas as pd
-import plotly.express as px
-import plotly.io as pio
+import matplotlib.pyplot as plt
 import re
-
-# pio.renderers.default = "svg"
 
 
 if len(sys.argv) == 2:
@@ -93,8 +90,8 @@ try:
 except KeyError:
     pass
 
-fig = px.line(data, x="bias", y=["current", "ADC1"])
-fig.show()
+plt.close("all")
+data.plot()
 
 exportlist = ["bias", "current", "zpos", "ADC1"]
 outfilename = filename.replace(filename.split(".")[-1], "itx")
