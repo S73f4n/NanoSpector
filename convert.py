@@ -1,11 +1,21 @@
+import sys
 import pandas as pd
 import plotly.express as px
 import plotly.io as pio
 import re
 
-pio.renderers.default = "vscode"
+# pio.renderers.default = "svg"
 
-with open('test.VERT', 'r', errors="ignore") as f:
+print(len(sys.argv))
+print(sys.argv)
+
+if len(sys.argv) == 2:
+    print(sys.argv[1])
+    filename = sys.argv[1]
+else:
+    filename = "A220303.154416.VERT"
+
+with open(filename, 'r', errors="ignore") as f:
     lines = f.read().splitlines()
 
 dataline = 0
@@ -13,6 +23,8 @@ count = 0
 dacdepth = 0
 preampgain = 0
 zpiezoconst = 0
+setpoint = 0
+biasvolt = 0
 
 for line in lines:
     count += 1
@@ -22,6 +34,10 @@ for line in lines:
         preampgain = int(line.split("=")[1])
     if "ZPiezoconst" in line:
         zpiezoconst = float(line.split("=")[1])
+    if "setpoint" in line:
+        setpoint = float(line.split("=")[1])
+    if "Biasvolt" in line:
+        biasvolt = float(line.split("=")[1]) * 1e-3
     if line == "DATA":
         dataline = count
 
@@ -53,9 +69,9 @@ channellist = {
 }
 
 if version == "[ParVERT32]":
-    columnnames = ["bias", "z", "unknown"]
+    columnnames = ["bias", "zpos", "unknown"]
 else:
-    columnnames = ["bias", "z"]
+    columnnames = ["bias", "zpos"]
 
 for channel in channellist:
     if int(param[3]) & channellist[channel] > 0:
@@ -65,15 +81,32 @@ columnnames.append("NaN")
 ADCtoV = 20.0 / 2 ** dacdepth
 ADCtoI = 20.0 / 2 ** dacdepth / 10 ** (preampgain - 12) * 10 ** (-12)
 
-data = pd.read_csv('test.VERT', delimiter='\t', skiprows=dataline+1, encoding='unicode_escape', encoding_errors='ignore',index_col=0,names=columnnames)
+data = pd.read_csv(filename, delimiter='\t', skiprows=dataline+1, encoding='unicode_escape', encoding_errors='ignore',index_col=0,names=columnnames)
 data = data.iloc[: , :-1]
 data["current"] *= ADCtoI
 data["bias"] *= 1e-3
-data["ADC1"] *= ADCtoV
-data["ADC2"] *= ADCtoV
-data["z"] *= zpiezoconst / 1000 * 0.0000000001
-
+data["zpos"] *= zpiezoconst / 1000 * 0.0000000001
+try:
+    data["ADC2"] *= ADCtoV
+except KeyError:
+    pass
+try:
+    data["ADC1"] *= ADCtoV
+except KeyError:
+    pass
 
 print(data)
-fig = px.line(data, x="bias", y=["current", "ADC1", "ADC2"])
+fig = px.line(data, x="bias", y=["current", "ADC1"])
 fig.show()
+
+exportlist = ["bias", "current", "zpos", "ADC1"]
+outfilename = filename.replace(filename.split(".")[-1], "itx")
+
+with open(outfilename, 'w') as outfile:
+    outfile.write("IGOR\nX NewDataFolder/S "+filename.replace(filename.split(".")[-1], "").replace(".","_")[:-1]+"\nWAVES/D "+' '.join(exportlist)+ "\nBEGIN\n")
+    data.to_csv(outfile,sep="\t",columns=exportlist,index=False,header=False)
+    outfile.write(
+        "END\n"+
+        "X Setscale d, 0,0, \"V\", bias\n"+
+        "X Setscale d, 0,0, \"A\", current\n"
+        )
