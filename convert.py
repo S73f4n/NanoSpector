@@ -91,7 +91,8 @@ except KeyError:
     pass
 
 plt.close("all")
-data.plot()
+data.plot(x="bias", y="current")
+data.plot(x="bias", y="ADC1")
 
 exportlist = ["bias", "current", "zpos", "ADC1"]
 outfilename = filename.replace(filename.split(".")[-1], "itx")
