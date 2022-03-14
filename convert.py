@@ -6,8 +6,6 @@ import re
 
 # pio.renderers.default = "svg"
 
-print(len(sys.argv))
-print(sys.argv)
 
 if len(sys.argv) == 2:
     print(sys.argv[1])
@@ -95,7 +93,6 @@ try:
 except KeyError:
     pass
 
-print(data)
 fig = px.line(data, x="bias", y=["current", "ADC1"])
 fig.show()
 
