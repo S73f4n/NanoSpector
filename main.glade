@@ -2,7 +2,12 @@
 <!-- Generated with glade 3.22.2 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
-  <object class="GtkTreeStore" id="treestore1"/>
+  <object class="GtkListStore" id="file_list">
+    <columns>
+      <!-- column-name gint1 -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkWindow" id="mainwindow">
     <property name="can_focus">False</property>
     <signal name="destroy" handler="on_mainwindow_destroy" swapped="no"/>
@@ -13,11 +18,12 @@
         <property name="title" translatable="yes">Createc Viewer</property>
         <property name="show_close_button">True</property>
         <child>
-          <object class="GtkFileChooserButton">
+          <object class="GtkFileChooserButton" id="folder_chooser">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="action">select-folder</property>
             <property name="title" translatable="yes"/>
+            <signal name="selection-changed" handler="on_selection_changed" swapped="no"/>
           </object>
         </child>
       </object>
@@ -27,13 +33,12 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <child>
-          <object class="GtkTreeView">
+          <object class="GtkButton" id="button1">
+            <property name="label" translatable="yes">button</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="model">treestore1</property>
-            <child internal-child="selection">
-              <object class="GtkTreeSelection"/>
-            </child>
+            <property name="receives_default">True</property>
+            <signal name="clicked" handler="on_button1_clicked" swapped="no"/>
           </object>
           <packing>
             <property name="left_attach">0</property>
@@ -41,28 +46,29 @@
           </packing>
         </child>
         <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
+          <object class="GtkTreeView" id="file_list_view">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="model">file_list</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn">
+                <property name="title" translatable="yes">column</property>
+                <child>
+                  <object class="GtkCellRendererText"/>
+                  <attributes>
+                    <attribute name="text">0</attribute>
+                  </attributes>
+                </child>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">0</property>
+          </packing>
         </child>
       </object>
     </child>
