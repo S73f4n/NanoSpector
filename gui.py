@@ -20,7 +20,7 @@ class Handler:
         # treeiter = store.append(glob.glob(folder_chooser.get_filename() + "/*.VERT"))
         for filename in glob.glob(folder_chooser.get_filename() + "/*.VERT"):
             print(filename)
-            treeiter = store.append([filename])
+            treeiter = store.append([filename.split("/")[-1]])
 
 
 builder = Gtk.Builder()
