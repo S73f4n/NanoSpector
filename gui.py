@@ -17,10 +17,16 @@ class Handler:
 
     def on_selection_changed(self, folder_chooser):
         print("Folder:" + folder_chooser.get_filename())
+        header = Gtk.Builder.get_object(builder, "header_bar")
+        header.set_subtitle(folder_chooser.get_filename())
         # treeiter = store.append(glob.glob(folder_chooser.get_filename() + "/*.VERT"))
         for filename in glob.glob(folder_chooser.get_filename() + "/*.VERT"):
-            print(filename)
             treeiter = store.append([filename.split("/")[-1]])
+
+    def on_file_selected(self, selection):
+        model, treeiter = selection.get_selected_rows()
+        if treeiter is not None:
+            print("You selected", model[treeiter][0])
 
 
 builder = Gtk.Builder()
