@@ -6,11 +6,13 @@ import re
 
 if len(sys.argv) == 2:
     print(sys.argv[1])
-    filename = sys.argv[1]
+    fullpath = sys.argv[1]
 else:
-    filename = "A220303.154416.VERT"
+    fullpath = "/home/stefan/fzj-cloud/DN/STM/Diamond_Needle_LN2_DNF3_02/A220303.165637.VERT"
 
-with open(filename, 'r', errors="ignore") as f:
+[folder, filename] = fullpath.rsplit('/',1)
+
+with open(fullpath, 'r', errors="ignore") as f:
     lines = f.read().splitlines()
 
 dataline = 0
@@ -76,7 +78,7 @@ columnnames.append("NaN")
 ADCtoV = 20.0 / 2 ** dacdepth
 ADCtoI = 20.0 / 2 ** dacdepth / 10 ** (preampgain - 12) * 10 ** (-12)
 
-data = pd.read_csv(filename, delimiter='\t', skiprows=dataline+1, encoding='unicode_escape', encoding_errors='ignore',index_col=0,names=columnnames)
+data = pd.read_csv(fullpath, delimiter='\t', skiprows=dataline+1, encoding='unicode_escape', encoding_errors='ignore',index_col=0,names=columnnames)
 data = data.iloc[: , :-1]
 data["current"] *= ADCtoI
 data["bias"] *= 1e-3
@@ -94,10 +96,11 @@ plt.close("all")
 data.plot(x="bias", y="current")
 data.plot(x="bias", y="ADC1")
 
-exportlist = ["bias", "current", "zpos", "ADC1"]
+exportlist = ["bias", "current", "ADC1"]
 outfilename = filename.replace(filename.split(".")[-1], "itx")
+outpath = folder + "/export/" + outfilename
 
-with open(outfilename, 'w') as outfile:
+with open(outpath, 'w') as outfile:
     outfile.write("IGOR\nX NewDataFolder/S "+filename.replace(filename.split(".")[-1], "").replace(".","_")[:-1]+"\nWAVES/D "+' '.join(exportlist)+ "\nBEGIN\n")
     data.to_csv(outfile,sep="\t",columns=exportlist,index=False,header=False)
     outfile.write(
