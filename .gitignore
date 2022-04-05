@@ -1,4 +1,5 @@
 *.VERT
+*.pyc
 *.itx
 output.png
 main.glade~
