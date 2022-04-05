@@ -5,10 +5,10 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
 
-from matplotlib.backends.backend_gtk3agg import (
-    FigureCanvasGTK3Agg as FigureCanvas)
 from matplotlib.figure import Figure
-import numpy as np
+from numpy import arange, pi, random, linspace
+import matplotlib.cm as cm
+from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
 
 class Handler:
     def on_mainwindow_destroy(self, *args):
@@ -33,18 +33,32 @@ class Handler:
         if treeiter is not None:
             print("You selected", model[treeiter][0])
 
-fig = Figure(figsize=(5, 4), dpi=100)
-ax = fig.add_subplot()
-t = np.arange(0.0, 3.0, 0.01)
-s = np.sin(2*np.pi*t)
-ax.plot(t, s)
-
 builder = Gtk.Builder()
 builder.add_from_file("main.glade")
 builder.connect_signals(Handler())
 
 window = builder.get_object("mainwindow")
 store=builder.get_object('file_list')
+sw = builder.get_object('scrolledwindow1')
+
+fig = Figure(figsize=(5,5), dpi=100)
+ax = fig.add_subplot(111, projection='polar')
+
+N = 20
+theta = linspace(0.0, 2 * pi, N, endpoint=False)
+radii = 10 * random.rand(N)
+width = pi / 4 * random.rand(N)
+
+bars = ax.bar(theta, radii, width=width, bottom=0.0)
+
+for r, bar in zip(radii, bars):
+    bar.set_facecolor(cm.jet(r / 10.))
+    bar.set_alpha(0.5)
+
+ax.plot()
+
+canvas = FigureCanvas(fig)
+sw.add_with_viewport(canvas)
 window.show_all()
 
 Gtk.main()

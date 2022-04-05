@@ -8,7 +8,7 @@ if len(sys.argv) == 2:
     print(sys.argv[1])
     fullpath = sys.argv[1]
 else:
-    fullpath = "/home/stefan/fzj-cloud/DN/STM/Diamond_Needle_LN2_DNF3_02/A220303.165637.VERT"
+    fullpath = "/home/stefan/fzj-cloud/DN/STM/Diamond_Needle_LN2_DNF3_02/A220303.135651.VERT"
 
 [folder, filename] = fullpath.rsplit('/',1)
 
