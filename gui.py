@@ -36,9 +36,11 @@ class Handler:
             filename = model[treeiter][0]
             current_file[1] = filename
             print("You selected", filename)
-            createc.read_file(current_file[0],current_file[1])
+            data = createc.read_file(current_file[0],current_file[1])
 
 current_file = ["", ""]
+
+date = None
 
 builder = Gtk.Builder()
 builder.add_from_file("main.glade")
