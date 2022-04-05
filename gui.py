@@ -1,5 +1,6 @@
 import gi
 import glob
+import createc
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
@@ -9,7 +10,6 @@ from matplotlib.figure import Figure
 from numpy import arange, pi, random, linspace
 import matplotlib.cm as cm
 from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
-
 class Handler:
     def on_mainwindow_destroy(self, *args):
         Gtk.main_quit()
@@ -21,17 +21,24 @@ class Handler:
         print("Folder:" + folder_chooser.get_filename())
 
     def on_selection_changed(self, folder_chooser):
-        print("Folder:" + folder_chooser.get_filename())
+        filepath = folder_chooser.get_filename()
+        print("Folder:" + filepath)
         header = Gtk.Builder.get_object(builder, "header_bar")
-        header.set_subtitle(folder_chooser.get_filename())
-        # treeiter = store.append(glob.glob(folder_chooser.get_filename() + "/*.VERT"))
-        for filename in glob.glob(folder_chooser.get_filename() + "/*.VERT"):
+        header.set_subtitle(filepath)
+        # treeiter = store.append(glob.glob(filepath + "/*.VERT"))
+        for filename in glob.glob(filepath + "/*.VERT"):
             treeiter = store.append([filename.split("/")[-1]])
+        current_file[0] = filepath
 
     def on_file_selected(self, selection):
         model, treeiter = selection.get_selected_rows()
         if treeiter is not None:
-            print("You selected", model[treeiter][0])
+            filename = model[treeiter][0]
+            current_file[1] = filename
+            print("You selected", filename)
+            createc.read_file(current_file[0],current_file[1])
+
+current_file = ["", ""]
 
 builder = Gtk.Builder()
 builder.add_from_file("main.glade")
@@ -58,7 +65,7 @@ for r, bar in zip(radii, bars):
 ax.plot()
 
 canvas = FigureCanvas(fig)
-sw.add_with_viewport(canvas)
+sw.add(canvas)
 window.show_all()
 
 Gtk.main()
