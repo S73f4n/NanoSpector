@@ -7,15 +7,24 @@ from gi.repository import Gtk
 
 
 from matplotlib.figure import Figure
-from numpy import arange, pi, random, linspace
+import numpy as np
 import matplotlib.cm as cm
 from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
+
+current_file = ["", ""]
+data = None
+
+def plot_data():
+    data.plot(x="bias", y="current",ax=ax)
+    fig.canvas.draw()
 class Handler:
     def on_mainwindow_destroy(self, *args):
         Gtk.main_quit()
 
     def on_button1_clicked(self, button):
         print("Hello World!")
+        data.plot(x="bias", y="current",ax=ax)
+        fig.canvas.draw()
     
     def on_current_folder_changed(self, folder_chooser):
         print("Folder:" + folder_chooser.get_filename())
@@ -36,11 +45,10 @@ class Handler:
             filename = model[treeiter][0]
             current_file[1] = filename
             print("You selected", filename)
+            global data
             data = createc.read_file(current_file[0],current_file[1])
+            plot_data()
 
-current_file = ["", ""]
-
-date = None
 
 builder = Gtk.Builder()
 builder.add_from_file("main.glade")
@@ -50,24 +58,10 @@ window = builder.get_object("mainwindow")
 store=builder.get_object('file_list')
 sw = builder.get_object('scrolledwindow1')
 
-fig = Figure(figsize=(5,5), dpi=100)
-ax = fig.add_subplot(111, projection='polar')
-
-N = 20
-theta = linspace(0.0, 2 * pi, N, endpoint=False)
-radii = 10 * random.rand(N)
-width = pi / 4 * random.rand(N)
-
-bars = ax.bar(theta, radii, width=width, bottom=0.0)
-
-for r, bar in zip(radii, bars):
-    bar.set_facecolor(cm.jet(r / 10.))
-    bar.set_alpha(0.5)
-
-ax.plot()
-
+fig = Figure(figsize=(5,4), dpi=100)
+ax = fig.add_subplot()
 canvas = FigureCanvas(fig)
 sw.add(canvas)
-window.show_all()
 
+window.show_all()
 Gtk.main()
