@@ -56,6 +56,37 @@
     <property name="margin_right">1</property>
     <property name="icon_name">applications-system</property>
   </object>
+  <object class="GtkListStore" id="xaxis_list">
+    <columns>
+      <!-- column-name xaxis -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0">Bias</col>
+      </row>
+      <row>
+        <col id="0">z-Position</col>
+      </row>
+    </data>
+  </object>
+  <object class="GtkListStore" id="yaxis_list">
+    <columns>
+      <!-- column-name yaxis -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">Current</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">ADC1</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">ADC2</col>
+      </row>
+    </data>
+  </object>
   <object class="GtkWindow" id="mainwindow">
     <property name="can_focus">False</property>
     <signal name="destroy" handler="on_mainwindow_destroy" swapped="no"/>
@@ -132,7 +163,7 @@
                 </child>
                 <child>
                   <object class="GtkTreeViewColumn">
-                    <property name="title" translatable="yes">column</property>
+                    <property name="title" translatable="yes">Files</property>
                     <property name="clickable">True</property>
                     <child>
                       <object class="GtkCellRendererText"/>
@@ -181,6 +212,10 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="margin_left">20</property>
+                    <property name="margin_right">10</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -194,6 +229,10 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="margin_left">10</property>
+                    <property name="margin_right">20</property>
                     <signal name="clicked" handler="on_button_clear_clicked" swapped="no"/>
                   </object>
                   <packing>
@@ -203,10 +242,74 @@
                   </packing>
                 </child>
                 <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
+                  <object class="GtkBox">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkTreeView">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="hexpand">True</property>
+                        <property name="model">xaxis_list</property>
+                        <child internal-child="selection">
+                          <object class="GtkTreeSelection">
+                            <property name="mode">multiple</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn">
+                            <property name="title" translatable="yes">x-axis</property>
+                            <property name="clickable">True</property>
+                            <child>
+                              <object class="GtkCellRendererText"/>
+                              <attributes>
+                                <attribute name="text">0</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkTreeView">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="hexpand">True</property>
+                        <property name="model">yaxis_list</property>
+                        <child internal-child="selection">
+                          <object class="GtkTreeSelection">
+                            <property name="mode">multiple</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn">
+                            <property name="title" translatable="yes">y-axis</property>
+                            <child>
+                              <object class="GtkCellRendererText"/>
+                              <attributes>
+                                <attribute name="text">0</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">2</property>
+                  </packing>
                 </child>
               </object>
               <packing>
@@ -224,7 +327,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="hexpand">True</property>
-                    <property name="label" translatable="yes">label</property>
+                    <property name="label" translatable="yes">I = 0 A</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -237,7 +340,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="hexpand">True</property>
-                    <property name="label" translatable="yes">label</property>
+                    <property name="label" translatable="yes">V = 0 V</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
