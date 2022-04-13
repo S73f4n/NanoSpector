@@ -15,15 +15,29 @@ from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as Figur
 current_file = ["", ""]
 data = None
 
-def plot_data():
-    xaxis, xaxisIter = Gtk.Builder.get_object(builder, "selection_xaxis").get_selected_rows()
-    yaxis, yaxisIter = Gtk.Builder.get_object(builder, "selection_yaxis").get_selected_rows()
+def plot_data(plotname):
+    channel_units = {
+        "bias": "V",
+        "zpos": "m",
+        "current": "A",
+        "ADC0": "V",
+        "ADC1": "V",
+        "ADC2": "V",
+        "ADC3": "V",
+        "dI/dV": "V/A",
+    }
+    xaxisModel, xaxisIter = Gtk.Builder.get_object(builder, "selection_xaxis").get_selected_rows()
+    yaxisModel, yaxisIter = Gtk.Builder.get_object(builder, "selection_yaxis").get_selected_rows()
     if xaxisIter and yaxisIter:
         plot_multiple = Gtk.Builder.get_object(builder, "button_multiple").get_active()
         if not plot_multiple:
             ax.cla()
         try:
-            data.plot(x=xaxis[xaxisIter][0], y=yaxis[yaxisIter][0],ax=ax)
+            xaxis = xaxisModel[xaxisIter][0]
+            yaxis = yaxisModel[yaxisIter][0]
+            xaxislabel = xaxis + " (" + channel_units[xaxis] + ")"
+            yaxislabel = yaxis + " (" + channel_units[yaxis] + ")"
+            data.plot(x=xaxis, y=yaxis,ax=ax,label=plotname,xlabel=xaxislabel,ylabel=yaxislabel)
         except KeyError:
             pass
         fig.canvas.draw()
@@ -59,7 +73,7 @@ class Handler:
                 current_file[1] = filename
                 global data
                 data = createc.read_file(current_file[0],filename)
-                plot_data()
+                plot_data(filename)
                 fileheader = createc.get_header(current_file[0],filename)
                 self.set_header_label(fileheader)
 
@@ -94,7 +108,7 @@ window = builder.get_object("mainwindow")
 store=builder.get_object('file_list')
 sw = builder.get_object('scrolledwindow1')
 
-fig = Figure(figsize=(5,4), dpi=100)
+fig = Figure(figsize=(4,3), dpi=100)
 ax = fig.add_subplot()
 canvas = FigureCanvas(fig)
 sw.add(canvas)
