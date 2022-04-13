@@ -193,8 +193,8 @@
                 <property name="hexpand">True</property>
                 <property name="vexpand">True</property>
                 <property name="shadow_type">in</property>
-                <property name="min_content_width">400</property>
-                <property name="min_content_height">300</property>
+                <property name="min_content_width">533</property>
+                <property name="min_content_height">400</property>
               </object>
               <packing>
                 <property name="expand">False</property>
