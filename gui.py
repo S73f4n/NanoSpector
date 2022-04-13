@@ -11,6 +11,7 @@ from matplotlib.figure import Figure
 import numpy as np
 import matplotlib.cm as cm
 from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
+from matplotlib.ticker import EngFormatter
 
 current_file = ["", ""]
 data = None
@@ -38,6 +39,8 @@ def plot_data(plotname):
             xaxislabel = xaxis + " (" + channel_units[xaxis] + ")"
             yaxislabel = yaxis + " (" + channel_units[yaxis] + ")"
             data.plot(x=xaxis, y=yaxis,ax=ax,label=plotname,xlabel=xaxislabel,ylabel=yaxislabel)
+            ax.xaxis.set_major_formatter(formatter1)
+            ax.yaxis.set_major_formatter(formatter1)
         except KeyError:
             pass
         fig.canvas.draw()
@@ -110,6 +113,7 @@ sw = builder.get_object('scrolledwindow1')
 
 fig = Figure(figsize=(4,3), dpi=100)
 ax = fig.add_subplot()
+formatter1 = EngFormatter(places=0, sep="\u2009")
 canvas = FigureCanvas(fig)
 sw.add(canvas)
 
