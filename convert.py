@@ -8,7 +8,7 @@ if len(sys.argv) == 2:
     print(sys.argv[1])
     fullpath = sys.argv[1]
 else:
-    fullpath = "/home/stefan/fzj-cloud/DN/STM/Diamond_Needle_LN2_DNF3_02/A220303.135651.VERT"
+    fullpath = "/home/stefan/fzj-cloud/DN/STM/Diamond_Needle_LN2_DNF3_02/A220303.185923.VERT"
 
 [folder, filename] = fullpath.rsplit('/',1)
 
@@ -96,7 +96,7 @@ plt.close("all")
 data.plot(x="bias", y="current")
 data.plot(x="bias", y="ADC1")
 
-exportlist = ["bias", "current", "ADC1"]
+exportlist = ["zpos", "current"]
 outfilename = filename.replace(filename.split(".")[-1], "itx")
 outpath = folder + "/export/" + outfilename
 

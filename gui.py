@@ -1,6 +1,7 @@
 import gi
 import glob
 import createc
+from si_prefix import si_format
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
@@ -35,7 +36,7 @@ class Handler:
         header = Gtk.Builder.get_object(builder, "header_bar")
         header.set_subtitle(filepath)
         # treeiter = store.append(glob.glob(filepath + "/*.VERT"))
-        for filename in glob.glob(filepath + "/*.VERT"):
+        for filename in sorted(glob.glob(filepath + "/*.VERT")):
             treeiter = store.append([filename.split("/")[-1]])
         current_file[0] = filepath
 
@@ -48,7 +49,19 @@ class Handler:
             global data
             data = createc.read_file(current_file[0],current_file[1])
             plot_data()
+            fileheader = createc.get_header(current_file[0],current_file[1])
+            self.set_header_label(fileheader)
 
+    def on_button_clear_clicked(self, button):
+        ax.cla()
+        fig.canvas.draw()
+        print("cleared")
+
+    def set_header_label(self,fileheader):
+        label_current = Gtk.Builder.get_object(builder, "label_current")
+        label_voltage = Gtk.Builder.get_object(builder, "label_voltage")
+        label_current.set_text("I = "+si_format(fileheader["setpoint"])+"A")
+        label_voltage.set_text("V = "+si_format(fileheader["biasvolt"])+"V")
 
 builder = Gtk.Builder()
 builder.add_from_file("main.glade")
