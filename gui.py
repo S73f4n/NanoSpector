@@ -93,7 +93,6 @@ class Handler:
     def on_button_clear_clicked(self, button):
         ax.cla()
         fig.canvas.draw()
-        
 
     def set_header_label(self,fileheader):
         label_current = Gtk.Builder.get_object(builder, "label_current")
