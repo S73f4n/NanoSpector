@@ -16,8 +16,14 @@ current_file = ["", ""]
 data = None
 
 def plot_data():
-    data.plot(x="bias", y="current",ax=ax)
-    fig.canvas.draw()
+    xaxis, xaxisIter = Gtk.Builder.get_object(builder, "selection_xaxis").get_selected_rows()
+    yaxis, yaxisIter = Gtk.Builder.get_object(builder, "selection_yaxis").get_selected_rows()
+    if xaxisIter and yaxisIter:
+        plot_multiple = Gtk.Builder.get_object(builder, "button_multiple").get_active()
+        if not plot_multiple:
+            ax.cla()
+        data.plot(x=xaxis[xaxisIter][0], y=yaxis[yaxisIter][0],ax=ax)
+        fig.canvas.draw()
 class Handler:
     def on_mainwindow_destroy(self, *args):
         Gtk.main_quit()
