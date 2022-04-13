@@ -58,7 +58,6 @@ class Handler:
 
     def on_selection_changed(self, folder_chooser):
         filepath = folder_chooser.get_filename()
-        print("Folder:" + filepath)
         header = Gtk.Builder.get_object(builder, "header_bar")
         header.set_subtitle(filepath)
         # treeiter = store.append(glob.glob(filepath + "/*.VERT"))
@@ -66,7 +65,7 @@ class Handler:
             treeiter = store.append([filename.split("/")[-1]])
         current_file[0] = filepath
 
-    def on_file_selected(self, selection):
+    def plot_all_files(self, selection):
         model, treeiter = selection.get_selected_rows()
         if treeiter:
             if len(treeiter) > 1:
@@ -79,6 +78,17 @@ class Handler:
                 plot_data(filename)
                 fileheader = createc.get_header(current_file[0],filename)
                 self.set_header_label(fileheader)
+
+    def on_selection_xaxis_changed(self, selection):
+        ax.cla()
+        self.plot_all_files(Gtk.Builder.get_object(builder, "selection_file"))
+
+    def on_selection_yaxis_changed(self, selection):
+        ax.cla()
+        self.plot_all_files(Gtk.Builder.get_object(builder, "selection_file"))
+
+    def on_file_selected(self, selection):
+        self.plot_all_files(selection)
 
     def on_button_clear_clicked(self, button):
         ax.cla()
