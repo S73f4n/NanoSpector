@@ -70,7 +70,15 @@ class Handler:
         label_voltage.set_text("V = "+si_format(fileheader["biasvolt"])+"V")
     
     def on_button_export_clicked(self,button):
-        createc.export(current_file[0],current_file[1],["bias","current","didv"])
+        columns = []
+        xaxis, xaxisIter = Gtk.Builder.get_object(builder, "selection_xaxis").get_selected_rows()
+        yaxis, yaxisIter = Gtk.Builder.get_object(builder, "selection_yaxis").get_selected_rows()
+        for treeiter in xaxisIter:
+            columns.append(xaxis[treeiter][0])
+        for treeiter in yaxisIter:
+            columns.append(yaxis[treeiter][0])
+        print(columns)
+        createc.export(current_file[0],current_file[1],columns)
 
 builder = Gtk.Builder()
 builder.add_from_file("main.glade")
