@@ -156,7 +156,7 @@
                 <property name="model">file_list</property>
                 <property name="activate_on_single_click">True</property>
                 <child internal-child="selection">
-                  <object class="GtkTreeSelection">
+                  <object class="GtkTreeSelection" id="selection_file">
                     <property name="mode">multiple</property>
                     <signal name="changed" handler="on_file_selected" swapped="no"/>
                   </object>

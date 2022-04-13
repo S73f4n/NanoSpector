@@ -51,20 +51,21 @@ class Handler:
 
     def on_file_selected(self, selection):
         model, treeiter = selection.get_selected_rows()
-        if treeiter is not None:
-            filename = model[treeiter][0]
-            current_file[1] = filename
-            print("You selected", filename)
-            global data
-            data = createc.read_file(current_file[0],current_file[1])
-            plot_data()
-            fileheader = createc.get_header(current_file[0],current_file[1])
-            self.set_header_label(fileheader)
+        if treeiter:
+            if len(treeiter) > 1:
+                ax.cla()
+            for thisiter in treeiter:
+                filename = model[thisiter][0]
+                current_file[1] = filename
+                global data
+                data = createc.read_file(current_file[0],filename)
+                plot_data()
+                fileheader = createc.get_header(current_file[0],filename)
+                self.set_header_label(fileheader)
 
     def on_button_clear_clicked(self, button):
         ax.cla()
         fig.canvas.draw()
-        print("cleared")
 
     def set_header_label(self,fileheader):
         label_current = Gtk.Builder.get_object(builder, "label_current")
@@ -73,14 +74,17 @@ class Handler:
         label_voltage.set_text("V = "+si_format(fileheader["biasvolt"])+"V")
     
     def on_button_export_clicked(self,button):
-        columns = []
-        xaxis, xaxisIter = Gtk.Builder.get_object(builder, "selection_xaxis").get_selected_rows()
-        yaxis, yaxisIter = Gtk.Builder.get_object(builder, "selection_yaxis").get_selected_rows()
-        for treeiter in xaxisIter:
-            columns.append(xaxis[treeiter][0])
-        for treeiter in yaxisIter:
-            columns.append(yaxis[treeiter][0])
-        createc.export(current_file[0],current_file[1],columns)
+        filemodel, fileiter = Gtk.Builder.get_object(builder, "selection_file").get_selected_rows()
+        if fileiter:
+            for filei in fileiter:
+                columns = []
+                xaxis, xaxisIter = Gtk.Builder.get_object(builder, "selection_xaxis").get_selected_rows()
+                yaxis, yaxisIter = Gtk.Builder.get_object(builder, "selection_yaxis").get_selected_rows()
+                for treeiter in xaxisIter:
+                    columns.append(xaxis[treeiter][0])
+                for treeiter in yaxisIter:
+                    columns.append(yaxis[treeiter][0])
+                createc.export(current_file[0],filemodel[filei][0],columns)
 
 builder = Gtk.Builder()
 builder.add_from_file("main.glade")
