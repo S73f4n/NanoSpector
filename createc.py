@@ -94,5 +94,21 @@ def read_file(filepath, filename):
         data["ADC1"] *= ADCtoV
     except KeyError:
         pass
-    
     return data
+
+def export(filepath,filename,columns):
+    data = read_file(filepath,filename)
+    exportcolumns = set(data.columns.values.tolist()).intersection(columns)
+    print(exportcolumns)
+
+    outfilename = filename.replace(filename.split(".")[-1], "itx")
+    outpath = filepath + "/export/" + outfilename
+
+    with open(outpath, 'w') as outfile:
+        outfile.write("IGOR\nX NewDataFolder/S "+filename.replace(filename.split(".")[-1], "").replace(".","_")[:-1]+"\nWAVES/D "+' '.join(exportcolumns)+ "\nBEGIN\n")
+        data.to_csv(outfile,sep="\t",columns=exportcolumns,index=False,header=False)
+        outfile.write(
+            "END\n"+
+            "X Setscale d, 0,0, \"V\", bias\n"+
+            "X Setscale d, 0,0, \"A\", current\n"
+            )

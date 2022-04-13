@@ -68,6 +68,9 @@ class Handler:
         label_voltage = Gtk.Builder.get_object(builder, "label_voltage")
         label_current.set_text("I = "+si_format(fileheader["setpoint"])+"A")
         label_voltage.set_text("V = "+si_format(fileheader["biasvolt"])+"V")
+    
+    def on_button_export_clicked(self,button):
+        createc.export(current_file[0],current_file[1],["bias","current","didv"])
 
 builder = Gtk.Builder()
 builder.add_from_file("main.glade")
