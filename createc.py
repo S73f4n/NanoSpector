@@ -1,5 +1,6 @@
 from itertools import count
 from venv import create
+from zipapp import create_archive
 import pandas as pd
 import re
 
@@ -10,6 +11,8 @@ def get_header(filepath,filename):
 
     lineCount = 0
     createcHeader = {
+        "version": "",
+        "param": "",
         "DAC-Type": 0,
         "gainpreamp": 0,
         "zpiezoconst": 0,
@@ -24,43 +27,10 @@ def get_header(filepath,filename):
             createcHeader["dataline"] = lineCount
         else:
             for param in createcHeader:
-                if param in line.casefold():
-                    if param == "DAC-Type":
-                        createcHeader[param] = int(line.split("=")[1].replace("bit",""))
-                    else:
-                        createcHeader[param] = float(line.split("=")[1])
+                if param.casefold() in line.casefold():
+                    createcHeader[param] = float(line.split("=")[1].replace("bit",""))
 
     createcHeader["biasvolt"] *= 1e-3
-    return createcHeader
-
-
-def read_file(filepath, filename):
-    fullpath = filepath + "/" + filename
-    with open(fullpath, 'r', errors="ignore") as f:
-        lines = f.read().splitlines()
-
-    dataline = 0
-    count = 0
-    dacdepth = 0
-    preampgain = 0
-    zpiezoconst = 0
-    setpoint = 0
-    biasvolt = 0
-
-    for line in lines:
-        count += 1
-        if "DAC-Type" in line:
-            dacdepth = int(line.split("=")[1].replace("bit",""))
-        if "Gainpreamp" in line:
-            preampgain = int(line.split("=")[1])
-        if "ZPiezoconst" in line:
-            zpiezoconst = float(line.split("=")[1])
-        if "setpoint" in line:
-            setpoint = float(line.split("=")[1])
-        if "Biasvolt" in line:
-            biasvolt = float(line.split("=")[1]) * 1e-3
-        if line == "DATA":
-            dataline = count
 
     # In the STMAFM-VERT files the first row has 3 numbers (+ 1 above Vers3)
     # with statistical data of the spectrum:
@@ -69,9 +39,18 @@ def read_file(filepath, filename):
     # #3 Y Position of the Spectrum
     # (above Vers3: #4 Number of custom DataColumns)
 
-    version = lines[0]
-    param = re.findall('([^-_\s]+)', lines[dataline])
+    createcHeader["version"] = lines[0]
+    createcHeader["param"] = re.findall('([^-_\s]+)', lines[createcHeader["dataline"]])
 
+    return createcHeader
+
+
+def read_file(filepath, filename):
+    fullpath = filepath + "/" + filename
+    with open(fullpath, 'r', errors="ignore") as f:
+        lines = f.read().splitlines()
+
+    header = get_header(filepath, filename)
     # In Version 3, the Channel-List has to be decoded:
     channellist = {
         "current" : 1, 
@@ -89,24 +68,24 @@ def read_file(filepath, filename):
         "Top DAC0": 4096,
     }
 
-    if version == "[ParVERT32]":
+    if header["version"] == "[ParVERT32]":
         columnnames = ["bias", "zpos", "unknown"]
     else:
         columnnames = ["bias", "zpos"]
 
     for channel in channellist:
-        if int(param[3]) & channellist[channel] > 0:
+        if int(header["param"][3]) & channellist[channel] > 0:
             columnnames.append(channel)
     columnnames.append("NaN")
 
-    ADCtoV = 20.0 / 2 ** dacdepth
-    ADCtoI = 20.0 / 2 ** dacdepth / 10 ** (preampgain - 12) * 10 ** (-12)
+    ADCtoV = 20.0 / 2 ** header["DAC-Type"]
+    ADCtoI = 20.0 / 2 ** header["DAC-Type"] / 10 ** (header["gainpreamp"] - 12) * 10 ** (-12)
 
-    data = pd.read_csv(fullpath, delimiter='\t', skiprows=dataline+1, encoding='unicode_escape', encoding_errors='ignore',index_col=0,names=columnnames)
+    data = pd.read_csv(fullpath, delimiter='\t', skiprows=header["dataline"]+1, encoding='unicode_escape', encoding_errors='ignore',index_col=0,names=columnnames)
     data = data.iloc[: , :-1]
     data["current"] *= ADCtoI
     data["bias"] *= 1e-3
-    data["zpos"] *= zpiezoconst / 1000 * 0.0000000001
+    data["zpos"] *= header["zpiezoconst"] / 1000 * 0.0000000001
     try:
         data["ADC2"] *= ADCtoV
     except KeyError:
