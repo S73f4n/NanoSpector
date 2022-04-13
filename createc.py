@@ -1,5 +1,38 @@
+from itertools import count
+from venv import create
 import pandas as pd
 import re
+
+def get_header(filepath,filename):
+    fullpath = filepath + "/" + filename
+    with open(fullpath, 'r', errors="ignore") as f:
+        lines = f.read().splitlines()
+
+    lineCount = 0
+    createcHeader = {
+        "DAC-Type": 0,
+        "gainpreamp": 0,
+        "zpiezoconst": 0,
+        "setpoint": 0,
+        "biasvolt": 0,
+        "dataline": 0
+    }
+
+    for line in lines:
+        lineCount += 1
+        if line == "DATA":
+            createcHeader["dataline"] = lineCount
+        else:
+            for param in createcHeader:
+                if param in line.casefold():
+                    if param == "DAC-Type":
+                        createcHeader[param] = int(line.split("=")[1].replace("bit",""))
+                    else:
+                        createcHeader[param] = float(line.split("=")[1])
+
+    createcHeader["biasvolt"] *= 1e-3
+    return createcHeader
+
 
 def read_file(filepath, filename):
     fullpath = filepath + "/" + filename
