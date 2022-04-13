@@ -22,7 +22,10 @@ def plot_data():
         plot_multiple = Gtk.Builder.get_object(builder, "button_multiple").get_active()
         if not plot_multiple:
             ax.cla()
-        data.plot(x=xaxis[xaxisIter][0], y=yaxis[yaxisIter][0],ax=ax)
+        try:
+            data.plot(x=xaxis[xaxisIter][0], y=yaxis[yaxisIter][0],ax=ax)
+        except KeyError:
+            pass
         fig.canvas.draw()
 class Handler:
     def on_mainwindow_destroy(self, *args):
@@ -77,7 +80,6 @@ class Handler:
             columns.append(xaxis[treeiter][0])
         for treeiter in yaxisIter:
             columns.append(yaxis[treeiter][0])
-        print(columns)
         createc.export(current_file[0],current_file[1],columns)
 
 builder = Gtk.Builder()
