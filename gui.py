@@ -57,6 +57,7 @@ class Handler:
         print("Folder:" + folder_chooser.get_filename())
 
     def on_selection_changed(self, folder_chooser):
+        store.clear()
         filepath = folder_chooser.get_filename()
         header = Gtk.Builder.get_object(builder, "header_bar")
         header.set_subtitle(filepath)
