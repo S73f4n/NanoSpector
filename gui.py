@@ -113,6 +113,13 @@ class Handler:
                     columns.append(yaxis[treeiter][0])
                 createc.export(current_file[0],filemodel[filei][0],columns)
 
+    def on_button_savefig_clicked(self,button):
+        filemodel, fileiter = Gtk.Builder.get_object(builder, "selection_file").get_selected_rows()
+        if fileiter:
+            savefig_name = current_file[0] + "/export/" + filemodel[fileiter][0].replace(filemodel[fileiter][0].split(".")[-1], "png")
+            print(savefig_name)
+            fig.savefig(savefig_name, dpi=300)
+
 builder = Gtk.Builder()
 builder.add_from_file("main.glade")
 builder.connect_signals(Handler())
