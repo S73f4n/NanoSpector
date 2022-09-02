@@ -93,6 +93,7 @@
   <object class="GtkWindow" id="mainwindow">
     <property name="can-focus">False</property>
     <signal name="destroy" handler="on_mainwindow_destroy" swapped="no"/>
+    <signal name="show" handler="on_mainwindow_show" swapped="no"/>
     <child>
       <!-- n-columns=3 n-rows=3 -->
       <object class="GtkGrid">

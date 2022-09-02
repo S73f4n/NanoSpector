@@ -1,6 +1,7 @@
 import gi
 import glob
 import createc
+import yaml
 from si_prefix import si_format
 
 gi.require_version("Gtk", "3.0")
@@ -45,18 +46,26 @@ def plot_data(plotname):
             pass
         fig.canvas.draw()
 class Handler:
+    def on_mainwindow_show(self, *args):
+        self.read_settings()
+        self.open_folder()
+
     def on_mainwindow_destroy(self, *args):
+        self.write_settings()
         Gtk.main_quit()
 
     def on_selection_changed(self, folder_chooser):
         store.clear()
-        filepath = folder_chooser.get_filename()
+        settings['file']['path'] = folder_chooser.get_filename()
+        self.open_folder()
+
+    def open_folder(self):
+        store.clear()   
         header = Gtk.Builder.get_object(builder, "header_bar")
-        header.set_subtitle(filepath)
+        header.set_subtitle(settings['file']['path'])
         # treeiter = store.append(glob.glob(filepath + "/*.VERT"))
-        for filename in sorted(glob.glob(filepath + "/*.VERT")):
+        for filename in sorted(glob.glob(settings['file']['path'] + "/*.VERT")):
             treeiter = store.append([filename.split("/")[-1]])
-        current_file[0] = filepath
 
     def plot_all_files(self, selection):
         model, treeiter = selection.get_selected_rows()
@@ -64,12 +73,11 @@ class Handler:
             if len(treeiter) > 1:
                 ax.cla()
             for thisiter in treeiter:
-                filename = model[thisiter][0]
-                current_file[1] = filename
+                settings['file']['name'] = model[thisiter][0]
                 global data
-                data = createc.read_file(current_file[0],filename)
-                plot_data(filename)
-                fileheader = createc.get_header(current_file[0],filename)
+                data = createc.read_file(settings['file']['path'],settings['file']['name'])
+                plot_data(settings['file']['name'])
+                fileheader = createc.get_header(settings['file']['path'],settings['file']['name'])
                 self.set_header_label(fileheader)
 
     def on_selection_xaxis_changed(self, selection):
@@ -82,6 +90,15 @@ class Handler:
 
     def on_file_selected(self, selection):
         self.plot_all_files(selection)
+
+    def read_settings(self):
+        with open("settings.yaml", "r") as settingsFile:
+            global settings
+            settings = yaml.safe_load(settingsFile)   
+    
+    def write_settings(self):
+        with open('settings.yaml', 'w') as file:
+            yaml.dump(settings, file)
 
     def on_button_clear_clicked(self, button):
         ax.cla()
@@ -104,12 +121,12 @@ class Handler:
                     columns.append(xaxis[treeiter][0])
                 for treeiter in yaxisIter:
                     columns.append(yaxis[treeiter][0])
-                createc.export(current_file[0],filemodel[filei][0],columns)
+                createc.export(settings['file']['path'],filemodel[filei][0],columns)
 
     def on_button_savefig_clicked(self,button):
         filemodel, fileiter = Gtk.Builder.get_object(builder, "selection_file").get_selected_rows()
         if fileiter:
-            savefig_name = current_file[0] + "/export/" + filemodel[fileiter][0].replace(filemodel[fileiter][0].split(".")[-1], "png")
+            savefig_name = settings['file']['path'] + "/export/" + filemodel[fileiter][0].replace(filemodel[fileiter][0].split(".")[-1], "png")
             print(savefig_name)
             fig.savefig(savefig_name, dpi=300)
 
