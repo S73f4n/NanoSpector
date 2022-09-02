@@ -55,7 +55,6 @@ class Handler:
         Gtk.main_quit()
 
     def on_selection_changed(self, folder_chooser):
-        store.clear()
         settings['file']['path'] = folder_chooser.get_filename()
         self.open_folder()
 
