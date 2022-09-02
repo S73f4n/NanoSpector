@@ -48,14 +48,6 @@ class Handler:
     def on_mainwindow_destroy(self, *args):
         Gtk.main_quit()
 
-    def on_button1_clicked(self, button):
-        print("Hello World!")
-        data.plot(x="bias", y="current",ax=ax)
-        fig.canvas.draw()
-    
-    def on_current_folder_changed(self, folder_chooser):
-        print("Folder:" + folder_chooser.get_filename())
-
     def on_selection_changed(self, folder_chooser):
         store.clear()
         filepath = folder_chooser.get_filename()
