@@ -858,7 +858,7 @@ class plot():
 
     def __init__(self, sxm_data : sxm, channel : str, direction : int=0, 
                 flatten : bool=False, subtract_plane : bool=True,
-                cmap=util.get_w_cmap(), rasterized=True, imshow_interpolation='antialiased'):
+                cmap=util.get_w_cmap(), rasterized=True, imshow_interpolation='antialiased', axes =None):
 
         self.data = sxm_data
 
@@ -878,8 +878,12 @@ class plot():
         # if direction:
         #     image_data=np.fliplr(image_data)
 
-        self.fig = plt.figure()
-        self.ax = self.fig.add_subplot(111)
+        if axes is not None:
+            self.ax = axes
+            self.fig = self.ax.figure
+        else:
+            self.fig = plt.figure()
+            self.ax = self.fig.add_subplot(111)
         x_range = sxm_data.x_range
         y_range = sxm_data.y_range
         x_pixels = sxm_data.x_pixels
@@ -893,7 +897,7 @@ class plot():
         self.im_plot = self.ax.imshow(image_data, origin='lower', extent=(0, sxm_data.x_range, 0, sxm_data.y_range), 
                                         cmap=cmap, rasterized=rasterized, interpolation=imshow_interpolation)
         self.ax.set_aspect('equal')
-        self.fig.colorbar(self.im_plot, ax = self.ax)
+        # self.fig.colorbar(self.im_plot, ax = self.ax)
         self.image_data = image_data
 
     def xlim(self, x_min, x_max):

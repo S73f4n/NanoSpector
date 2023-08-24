@@ -1,6 +1,6 @@
 import gi
 import glob
-from nanonis_load import didv
+from nanonis_load import didv, sxm
 import yaml
 import os
 import tempfile
@@ -41,6 +41,12 @@ class Handler:
         settings['file']['path'] = folder_chooser.get_filename()
         self.open_folder()
 
+    def setChannelList(self, channelList):
+        yaxisList.clear()
+        Gtk.Builder.get_object(builder, "selection_xaxis").unselect_all()
+        for ch in channelList:
+            model = yaxisList.append([ch])
+
     def open_folder(self):
         store.clear()   
         header = Gtk.Builder.get_object(builder, "header_bar")
@@ -48,45 +54,58 @@ class Handler:
         files = []
         # treeiter = store.append(glob.glob(filepath + "/*.VERT"))
         subDir = settings['file']['path']
-        files += [os.path.join(subDir, file) for file in os.listdir(subDir) if os.path.isfile(os.path.join(subDir, file)) and file.endswith(settings['file']['extension'])]
+        files += [os.path.join(subDir, file) for file in os.listdir(subDir) if os.path.isfile(os.path.join(subDir, file)) and (file.endswith(settings['spec']['extension']) or file.endswith(settings['image']['extension']))]
         for filename in sorted(files, key=os.path.getmtime, reverse=True):
             treeiter = store.append([filename.split("/")[-1]])
     
     def plot_data(self,plotname):
-        xaxisModel, xaxisIter = Gtk.Builder.get_object(builder, "selection_xaxis").get_selected_rows()
+        # xaxisModel, xaxisIter = Gtk.Builder.get_object(builder, "selection_xaxis").get_selected_rows()
         yaxisModel, yaxisIter = Gtk.Builder.get_object(builder, "selection_yaxis").get_selected_rows()
-        if xaxisIter and yaxisIter:
-            plot_multiple = Gtk.Builder.get_object(builder, "button_multiple").get_active()
-            plot_log = Gtk.Builder.get_object(builder, "button_logplot").get_active()
-            if not plot_multiple:
-                ax.cla()
-            try:
-                xaxis = xaxisModel[xaxisIter][0]
+        plot_multiple = Gtk.Builder.get_object(builder, "button_multiple").get_active()
+        plot_log = Gtk.Builder.get_object(builder, "button_logplot").get_active()
+        if not plot_multiple:
+            ax.cla()
+        try:
+            # xaxis = xaxisModel[xaxisIter][0]
+            if yaxisIter:
                 yaxis = yaxisModel[yaxisIter][0]
-                xaxislabel = xaxis 
-                yaxislabel = yaxis 
-                # didv.plot(x=xaxis, y=yaxis,ax=ax,label=plotname,xlabel=xaxislabel,ylabel=yaxislabel)
+            else:
+                yaxis = settings['spec']['defaultch']
+            yaxislabel = yaxis 
+            if plotname.endswith('.dat'):
                 didv.plot(data, channel=yaxis, axes=ax,legend=False)
+                ax.autoscale(enable=True,axis='both')
                 if plot_log:
                     ax.set_yscale('log')
                 else:
                     ax.set_yscale('linear')
                 ax.set_ylabel(yaxislabel)
+                ax.set_aspect('auto')
                 ax.xaxis.set_major_formatter(formatter1)
                 ax.yaxis.set_major_formatter(formatter1)
-                legendLabels = self.getHeaderLabels(data) 
-                handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", 
-                                                lw=0, alpha=0)] * len(legendLabels)
-                # create the legend, supressing the blank space of the empty line symbol and the
-                # padding between symbol and label by setting handlelenght and handletextpad
-                ax.legend(handles, legendLabels, loc='best', fontsize='small', 
-                        fancybox=True, framealpha=1, 
-                        handlelength=0, handletextpad=0)
-                fig.axes[0].set_title(plotname + "\n" + data.header['Saved Date'],
-                            fontsize='medium')
-            except KeyError:
-                pass
-            fig.canvas.draw()
+                fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header['Saved Date'], fontsize='medium')
+                alpha = 1
+                loc = 'best'
+            if plotname.endswith('.sxm'):
+                sxm.plot(data, channel=yaxis,flatten=True,subtract_plane=False,axes=ax)
+                # fig.delaxes(fig.axes[1])
+                # fig.axes[1].remove()
+                xmax=fig.axes[0].get_xticks()[-1]
+                ymax=fig.axes[0].get_yticks()[-1]
+                alpha = 0.4
+                loc = 'lower right'
+                fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n{:g} x {:g} nm'.format(xmax,ymax),
+                            fontsize='small')
+                fig.axes[0].axis('off')            
+                # fig.set_figwidth(8)
+            legendLabels = self.getHeaderLabels(data) 
+            handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
+            # create the legend, supressing the blank space of the empty line symbol and the
+            # padding between symbol and label by setting handlelenght and handletextpad
+            ax.legend(handles, legendLabels, loc=loc, fontsize='small', fancybox=True, framealpha=alpha, handlelength=0, handletextpad=0)
+        except KeyError:
+            pass
+        fig.canvas.draw()
 
     def plot_all_files(self, selection):
         model, treeiter = selection.get_selected_rows()
@@ -97,8 +116,12 @@ class Handler:
                 settings['file']['name'] = model[thisiter][0]
                 global data
                 filename = settings['file']['path']+'/'+settings['file']['name']
-                data = didv.spectrum(filename)
-                self.plot_data(settings['file']['name'])
+                if filename.endswith('.dat'):
+                    data = didv.spectrum(filename)
+                if filename.endswith('.sxm'):
+                    data = sxm.sxm(filename)
+                self.setChannelList(data.data.keys())
+                self.plot_data(filename)
                 # fileheader = createc.get_header(settings['file']['path'],settings['file']['name'])
                 # self.set_header_label(fileheader)
 
@@ -108,7 +131,7 @@ class Handler:
 
     def on_selection_yaxis_changed(self, selection):
         ax.cla()
-        self.plot_all_files(Gtk.Builder.get_object(builder, "selection_file"))
+        self.plot_data(settings['file']['path']+'/'+settings['file']['name'])
 
     def on_file_selected(self, selection):
         self.plot_all_files(selection)
@@ -238,6 +261,7 @@ builder.connect_signals(Handler())
 
 window = builder.get_object("mainwindow")
 store=builder.get_object('file_list')
+yaxisList = builder.get_object("yaxis_list")
 sw = builder.get_object('scrolledwindow1')
 swtoolbar = builder.get_object('scrolledwindow2')
 
@@ -249,8 +273,8 @@ fig, ax = plt.subplots()
 formatter1 = EngFormatter(places=2, sep="\u2009")
 canvas = FigureCanvas(fig)
 toolbar = NavigationToolbar(canvas, window)
-sw.add_with_viewport(canvas)
-swtoolbar.add_with_viewport(toolbar)
+sw.add(canvas)
+swtoolbar.add(toolbar)
 
 window.show_all()
 Gtk.main()
