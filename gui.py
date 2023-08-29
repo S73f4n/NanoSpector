@@ -189,12 +189,14 @@ class Handler:
     def on_button_savefig_clicked(self,button):
         filemodel, fileiter = Gtk.Builder.get_object(builder, "selection_file").get_selected_rows()
         savefig = io.BytesIO()
+        os.makedirs(os.path.join(settings['file']['path'],"export"), exist_ok=True)
         if fileiter:
             savefig.name = settings['file']['path'] + "/export/" + filemodel[fileiter][0].replace(filemodel[fileiter][0].split(".")[-1], "png")
             fig.savefig(savefig.name, dpi=300,format='png',bbox_inches='tight')
             savefig.seek(0)
             piximage = Gtk.Image.new_from_file(savefig.name)
             self.clipboard.set_image(piximage.get_pixbuf())
+            fig.canvas.draw()
 
     def getHeaderLabels(self, data):
             labels = [] 
