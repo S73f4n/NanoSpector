@@ -260,8 +260,6 @@
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="receives-default">False</property>
-                        <property name="margin-left">10</property>
-                        <property name="margin-right">10</property>
                         <property name="margin-top">5</property>
                         <property name="margin-bottom">5</property>
                         <property name="draw-indicator">True</property>
@@ -278,7 +276,6 @@
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="receives-default">False</property>
-                        <property name="double-buffered">False</property>
                         <property name="draw-indicator">True</property>
                         <signal name="toggled" handler="on_logplot_changed" swapped="no"/>
                       </object>
@@ -289,17 +286,33 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkCheckButton">
+                      <object class="GtkCheckButton" id="button_flatten">
                         <property name="label" translatable="yes">flatten</property>
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="receives-default">False</property>
                         <property name="draw-indicator">True</property>
+                        <signal name="toggled" handler="on_logplot_changed" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
                         <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkCheckButton" id="button_plane">
+                        <property name="label" translatable="yes">plane</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">False</property>
+                        <property name="draw-indicator">True</property>
+                        <signal name="toggled" handler="on_logplot_changed" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">3</property>
                       </packing>
                     </child>
                   </object>
@@ -314,61 +327,33 @@
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <child>
-                      <object class="GtkTreeView">
+                      <object class="GtkScrolledWindow">
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="hexpand">True</property>
-                        <property name="model">xaxis_list</property>
-                        <child internal-child="selection">
-                          <object class="GtkTreeSelection" id="selection_xaxis">
-                            <property name="mode">multiple</property>
-                            <signal name="changed" handler="on_selection_xaxis_changed" swapped="no"/>
-                          </object>
-                        </child>
+                        <property name="shadow-type">in</property>
                         <child>
-                          <object class="GtkTreeViewColumn">
-                            <property name="title" translatable="yes">x-axis</property>
-                            <property name="clickable">True</property>
-                            <child>
-                              <object class="GtkCellRendererText"/>
-                              <attributes>
-                                <attribute name="text">0</attribute>
-                              </attributes>
+                          <object class="GtkTreeView">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="model">yaxis_list</property>
+                            <child internal-child="selection">
+                              <object class="GtkTreeSelection" id="selection_yaxis">
+                                <property name="mode">multiple</property>
+                                <signal name="changed" handler="on_selection_yaxis_changed" swapped="no"/>
+                              </object>
                             </child>
-                          </object>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkTreeView">
-                        <property name="visible">True</property>
-                        <property name="can-focus">True</property>
-                        <property name="valign">start</property>
-                        <property name="hexpand">True</property>
-                        <property name="vexpand">False</property>
-                        <property name="model">yaxis_list</property>
-                        <property name="enable-search">False</property>
-                        <property name="fixed-height-mode">True</property>
-                        <property name="show-expanders">False</property>
-                        <child internal-child="selection">
-                          <object class="GtkTreeSelection" id="selection_yaxis">
-                            <signal name="changed" handler="on_selection_yaxis_changed" swapped="no"/>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn">
-                            <property name="title" translatable="yes">y-axis</property>
-                            <property name="clickable">True</property>
                             <child>
-                              <object class="GtkCellRendererText"/>
-                              <attributes>
-                                <attribute name="text">0</attribute>
-                              </attributes>
+                              <object class="GtkTreeViewColumn">
+                                <property name="title" translatable="yes">y-axis</property>
+                                <property name="clickable">True</property>
+                                <child>
+                                  <object class="GtkCellRendererText"/>
+                                  <attributes>
+                                    <attribute name="text">0</attribute>
+                                  </attributes>
+                                </child>
+                              </object>
                             </child>
                           </object>
                         </child>
@@ -474,6 +459,27 @@
                 <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="refresh">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="always-show-image">True</property>
+                <signal name="clicked" handler="on_refresh_clicked" swapped="no"/>
+                <child>
+                  <object class="GtkImage">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="stock">gtk-refresh</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
               </packing>
             </child>
           </object>

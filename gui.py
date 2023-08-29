@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import gi
 import glob
 from nanonis_load import didv, sxm
@@ -43,9 +44,12 @@ class Handler:
 
     def setChannelList(self, channelList):
         yaxisList.clear()
-        Gtk.Builder.get_object(builder, "selection_xaxis").unselect_all()
+        Gtk.Builder.get_object(builder, "selection_yaxis").unselect_all()
         for ch in channelList:
             model = yaxisList.append([ch])
+
+    def on_refresh_clicked(self, button):
+        self.open_folder()
 
     def open_folder(self):
         store.clear()   
@@ -63,17 +67,22 @@ class Handler:
         yaxisModel, yaxisIter = Gtk.Builder.get_object(builder, "selection_yaxis").get_selected_rows()
         plot_multiple = Gtk.Builder.get_object(builder, "button_multiple").get_active()
         plot_log = Gtk.Builder.get_object(builder, "button_logplot").get_active()
+        flatten = Gtk.Builder.get_object(builder, "button_flatten").get_active()
+        plane = Gtk.Builder.get_object(builder, "button_plane").get_active()
         if not plot_multiple:
             ax.cla()
         try:
-            # xaxis = xaxisModel[xaxisIter][0]
-            if yaxisIter:
-                yaxis = yaxisModel[yaxisIter][0]
-            else:
-                yaxis = settings['spec']['defaultch']
-            yaxislabel = yaxis 
+            # xaxis = xaxisModel[xaxisIter][0]#
+            selected_rows = []
             if plotname.endswith('.dat'):
-                didv.plot(data, channel=yaxis, axes=ax,legend=False)
+                if yaxisIter:
+                    for yiter in yaxisIter:
+                        selected_rows.append(yaxisModel[yiter][0])
+                else:
+                    selected_rows.append(settings['spec']['defaultch'])
+                yaxislabel = selected_rows[0]
+                for ch in selected_rows:
+                    didv.plot(data, channel=ch, axes=ax,legend=False)
                 ax.autoscale(enable=True,axis='both')
                 if plot_log:
                     ax.set_yscale('log')
@@ -87,7 +96,12 @@ class Handler:
                 alpha = 1
                 loc = 'best'
             if plotname.endswith('.sxm'):
-                sxm.plot(data, channel=yaxis,flatten=True,subtract_plane=False,axes=ax)
+                if yaxisIter:
+                    selected_rows.append(yaxisModel[yaxisIter][0])
+                else:
+                    selected_rows.append(settings['image']['defaultch'])
+                yaxislabel = selected_rows[0]
+                sxm.plot(data, channel=selected_rows[0],flatten=flatten,subtract_plane=plane,axes=ax)
                 # fig.delaxes(fig.axes[1])
                 # fig.axes[1].remove()
                 xmax=fig.axes[0].get_xticks()[-1]
@@ -141,12 +155,12 @@ class Handler:
         self.plot_all_files(Gtk.Builder.get_object(builder, "selection_file"))
 
     def read_settings(self):
-        with open("settings.yaml", "r") as settingsFile:
+        with open(os.path.join(os.path.dirname(__file__),"settings.yaml"), "r") as settingsFile:
             global settings
             settings = yaml.safe_load(settingsFile)   
     
     def write_settings(self):
-        with open('settings.yaml', 'w') as file:
+        with open(os.path.join(os.path.dirname(__file__), "settings.yaml"), 'w') as file:
             yaml.dump(settings, file)
 
     def on_button_clear_clicked(self, button):
@@ -256,7 +270,7 @@ class Handler:
 
 
 builder = Gtk.Builder()
-builder.add_from_file("main.glade")
+builder.add_from_file(os.path.join(os.path.dirname(__file__),"main.glade"))
 builder.connect_signals(Handler())
 
 window = builder.get_object("mainwindow")
