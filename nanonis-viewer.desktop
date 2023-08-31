@@ -2,7 +2,7 @@
 Name=Nanonis Viewer
 Version=1.0
 Exec=/home/stefan/nanonis-viewer/gui.py
-Icon=/usr/share/pixmaps/python3.xpm
+Icon=/home/stefan/nanonis-viewer/nanonis-viewer.png
 Type=Application
 Terminal=false
 StartupNotify=true
