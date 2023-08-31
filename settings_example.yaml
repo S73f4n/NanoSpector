@@ -1,0 +1,9 @@
+file:
+  name: Bias-Spectroscopy00001.dat
+  path: C:/
+image:
+  defaultch: Z (m)
+  extension: .sxm
+spec:
+  defaultch: Current (A)
+  extension: .dat
