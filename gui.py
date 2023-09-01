@@ -60,7 +60,7 @@ class Handler:
         subDir = settings['file']['path']
         files += [os.path.join(subDir, file) for file in os.listdir(subDir) if os.path.isfile(os.path.join(subDir, file)) and (file.endswith(settings['spec']['extension']) or file.endswith(settings['image']['extension']))]
         for filename in sorted(files, key=os.path.getmtime, reverse=True):
-            treeiter = store.append([filename.split("/")[-1]])
+            treeiter = store.append([os.path.basename(filename)])
     
     def plot_data(self,plotname):
         # xaxisModel, xaxisIter = Gtk.Builder.get_object(builder, "selection_xaxis").get_selected_rows()
@@ -129,7 +129,7 @@ class Handler:
             for thisiter in treeiter:
                 settings['file']['name'] = model[thisiter][0]
                 global data
-                filename = settings['file']['path']+'/'+settings['file']['name']
+                filename = os.path.join(settings['file']['path'],settings['file']['name'])
                 if filename.endswith('.dat'):
                     data = didv.spectrum(filename)
                 if filename.endswith('.sxm'):
@@ -145,7 +145,7 @@ class Handler:
 
     def on_selection_yaxis_changed(self, selection):
         ax.cla()
-        self.plot_data(settings['file']['path']+'/'+settings['file']['name'])
+        self.plot_data(os.path.join(settings['file']['path'],settings['file']['name']))
 
     def on_file_selected(self, selection):
         self.plot_all_files(selection)
@@ -191,7 +191,7 @@ class Handler:
         savefig = io.BytesIO()
         os.makedirs(os.path.join(settings['file']['path'],"export"), exist_ok=True)
         if fileiter:
-            savefig.name = settings['file']['path'] + "/export/" + filemodel[fileiter][0].replace(filemodel[fileiter][0].split(".")[-1], "png")
+            savefig.name = os.path.join(settings['file']['path'], "export", filemodel[fileiter][0].replace(os.path.splitext(filemodel[fileiter][0])[1],".png"))
             fig.savefig(savefig.name, dpi=300,format='png',bbox_inches='tight')
             savefig.seek(0)
             piximage = Gtk.Image.new_from_file(savefig.name)
