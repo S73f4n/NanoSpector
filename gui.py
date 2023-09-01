@@ -6,7 +6,6 @@ import yaml
 import os
 import tempfile
 import io
-import clipboard
 from si_prefix import si_format
 
 gi.require_version("Gtk", "3.0")
