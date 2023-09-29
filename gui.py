@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 import gi
-import glob
 import nanonis_load
 from nanonis_load import didv, sxm
 import yaml
 import os
 import io
 from si_prefix import si_format
+import warnings
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
@@ -88,7 +88,10 @@ class Handler:
                         didv.plot(data, channel=ch, axes=ax,legend=False)
                     ax.autoscale(enable=True,axis='both')
                     if plot_log:
-                        ax.set_yscale('log')
+                        try: 
+                            ax.set_yscale('log')
+                        except UserWarning:
+                            ax.set_yscale('linear')
                     else:
                         ax.set_yscale('linear')
                     ax.set_ylabel(yaxislabel)
@@ -307,6 +310,8 @@ canvas = FigureCanvas(fig)
 toolbar = NavigationToolbar(canvas, window)
 sw.add(canvas)
 swtoolbar.add(toolbar)
+
+warnings.filterwarnings("error")
 
 window.show_all()
 Gtk.main()
