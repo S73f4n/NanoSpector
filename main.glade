@@ -83,7 +83,7 @@
   </object>
   <object class="GtkWindow" id="mainwindow">
     <property name="can-focus">False</property>
-    <property name="icon">nanonis-viewer.png</property>
+    <property name="icon">/home/stefan/.local/share/icons/nanonis-viewer.png</property>
     <signal name="destroy" handler="on_mainwindow_destroy" swapped="no"/>
     <signal name="show" handler="on_mainwindow_show" swapped="no"/>
     <child>
