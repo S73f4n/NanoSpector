@@ -12,7 +12,6 @@ from si_prefix import si_format
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
 
-
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.cm as cm
@@ -21,8 +20,6 @@ from matplotlib.backends.backend_gtk3 import NavigationToolbar2GTK3 as Navigatio
 from matplotlib.ticker import EngFormatter
 from matplotlib import style
 import matplotlib.patches as mpl_patches
-
-
 
 class Handler:
     def __init__(self):
@@ -43,6 +40,9 @@ class Handler:
         self.open_folder()
 
     def setChannelList(self, channelList):
+        selection = Gtk.Builder.get_object(builder, "selection_yaxis")
+        selection.handler_block_by_func(self.on_selection_yaxis_changed)
+        # selection.unselect_all()
         ylistData = [list(row)[0] for row in yaxisList]
         if len(ylistData) == len(channelList):
             refreshList = not all(row in ylistData for row in channelList) 
@@ -50,10 +50,10 @@ class Handler:
             refreshList = True
         if refreshList:
             yaxisList.clear()
-            Gtk.Builder.get_object(builder, "selection_yaxis").unselect_all()
             for ch in channelList:
                 model = yaxisList.append([ch])
             self.selectedRows = []
+        selection.handler_unblock_by_func(self.on_selection_yaxis_changed)
 
     def on_refresh_clicked(self, button):
         self.open_folder()
@@ -138,8 +138,6 @@ class Handler:
 
     def on_selection_yaxis_changed(self,selection):
         yaxisModel, yaxisIter = selection.get_selected_rows()
-        # FIXME: when an element is selected this function is called everytim the yaxis list is changed by self.setChannelList
-        # print(yaxisIter)
         if yaxisIter:
             ax.cla()
             self.selectedRows = []
