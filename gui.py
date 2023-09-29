@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import gi
 import glob
+import nanonis_load
 from nanonis_load import didv, sxm
 import yaml
 import os
@@ -21,13 +22,12 @@ from matplotlib.ticker import EngFormatter
 from matplotlib import style
 import matplotlib.patches as mpl_patches
 
-current_file = ["", ""]
-data = None
 
 
 class Handler:
     def __init__(self):
          self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+         self.datastore = []
 
     def on_mainwindow_show(self, *args):
         self.read_settings()
@@ -61,97 +61,92 @@ class Handler:
         for filename in sorted(files, key=os.path.getmtime, reverse=True):
             treeiter = store.append([os.path.basename(filename)])
     
-    def plot_data(self,plotname):
-        # xaxisModel, xaxisIter = Gtk.Builder.get_object(builder, "selection_xaxis").get_selected_rows()
+    def plot_data(self):
         yaxisModel, yaxisIter = Gtk.Builder.get_object(builder, "selection_yaxis").get_selected_rows()
-        plot_multiple = Gtk.Builder.get_object(builder, "button_multiple").get_active()
         plot_log = Gtk.Builder.get_object(builder, "button_logplot").get_active()
         flatten = Gtk.Builder.get_object(builder, "button_flatten").get_active()
         plane = Gtk.Builder.get_object(builder, "button_plane").get_active()
-        if not plot_multiple:
-            ax.cla()
+        ax.cla()
         try:
             # xaxis = xaxisModel[xaxisIter][0]#
             selected_rows = []
-            if plotname.endswith('.dat'):
-                if yaxisIter:
-                    for yiter in yaxisIter:
-                        selected_rows.append(yaxisModel[yiter][0])
-                else:
-                    selected_rows.append(settings['spec']['defaultch'])
-                yaxislabel = selected_rows[0]
-                for ch in selected_rows:
-                    didv.plot(data, channel=ch, axes=ax,legend=False)
-                ax.autoscale(enable=True,axis='both')
-                if plot_log:
-                    ax.set_yscale('log')
-                else:
-                    ax.set_yscale('linear')
-                ax.set_ylabel(yaxislabel)
-                ax.set_aspect('auto')
-                ax.xaxis.set_major_formatter(formatter1)
-                ax.yaxis.set_major_formatter(formatter1)
-                fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header['Saved Date'], fontsize='medium')
-                alpha = 1
-                loc = 'best'
-            if plotname.endswith('.sxm'):
-                if yaxisIter:
-                    selected_rows.append(yaxisModel[yaxisIter][0])
-                else:
-                    selected_rows.append(settings['image']['defaultch'])
-                yaxislabel = selected_rows[0]
-                sxm.plot(data, channel=selected_rows[0],flatten=flatten,subtract_plane=plane,axes=ax)
-                # fig.delaxes(fig.axes[1])
-                # fig.axes[1].remove()
-                xmax=fig.axes[0].get_xticks()[-1]
-                ymax=fig.axes[0].get_yticks()[-1]
-                alpha = 0.4
-                loc = 'lower right'
-                fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n{:g} x {:g} nm'.format(xmax,ymax),
-                            fontsize='small')
-                fig.axes[0].axis('off')            
-                # fig.set_figwidth(8)
-            legendLabels = self.getHeaderLabels(data) 
-            handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
-            # create the legend, supressing the blank space of the empty line symbol and the
-            # padding between symbol and label by setting handlelenght and handletextpad
-            ax.legend(handles, legendLabels, loc=loc, fontsize='small', fancybox=True, framealpha=alpha, handlelength=0, handletextpad=0)
+            for data in self.datastore:
+
+                if isinstance(data,nanonis_load.didv.spectrum):
+                    if yaxisIter:
+                        for yiter in yaxisIter:
+                            selected_rows.append(yaxisModel[yiter][0])
+                    else:
+                        selected_rows.append(settings['spec']['defaultch'])
+                    yaxislabel = selected_rows[0]
+                    for ch in selected_rows:
+                        didv.plot(data, channel=ch, axes=ax,legend=False)
+                    ax.autoscale(enable=True,axis='both')
+                    if plot_log:
+                        ax.set_yscale('log')
+                    else:
+                        ax.set_yscale('linear')
+                    ax.set_ylabel(yaxislabel)
+                    ax.set_aspect('auto')
+                    ax.xaxis.set_major_formatter(formatter1)
+                    ax.yaxis.set_major_formatter(formatter1)
+                    plotname = data._filename
+                    fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header['Saved Date'], fontsize='medium')
+                    alpha = 1
+                    loc = 'best'
+                if isinstance(data,nanonis_load.sxm.sxm):
+                    if yaxisIter:
+                        selected_rows.append(yaxisModel[yaxisIter][0])
+                    else:
+                        selected_rows.append(settings['image']['defaultch'])
+                    yaxislabel = selected_rows[0]
+                    sxm.plot(data, channel=selected_rows[0],flatten=flatten,subtract_plane=plane,axes=ax)
+                    # fig.delaxes(fig.axes[1])
+                    # fig.axes[1].remove()
+                    xmax=fig.axes[0].get_xticks()[-1]
+                    ymax=fig.axes[0].get_yticks()[-1]
+                    alpha = 0.4
+                    loc = 'lower right'
+                    plotname = data.filename
+                    fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n{:g} x {:g} nm'.format(xmax,ymax),
+                                fontsize='small')
+                    fig.axes[0].axis('off')            
+                    # fig.set_figwidth(8)
+                legendLabels = self.getHeaderLabels(data) 
+                handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
+                # create the legend, supressing the blank space of the empty line symbol and the
+                # padding between symbol and label by setting handlelenght and handletextpad
+                ax.legend(handles, legendLabels, loc=loc, fontsize='small', fancybox=True, framealpha=alpha, handlelength=0, handletextpad=0)
         except KeyError:
             pass
         fig.canvas.draw()
 
-    def plot_all_files(self, selection):
-        model, treeiter = selection.get_selected_rows()
-        if treeiter:
-            if len(treeiter) > 1:
-                ax.cla()
-            for thisiter in treeiter:
-                settings['file']['name'] = model[thisiter][0]
-                global data
-                filename = os.path.join(settings['file']['path'],settings['file']['name'])
-                if filename.endswith('.dat'):
-                    data = didv.spectrum(filename)
-                if filename.endswith('.sxm'):
-                    data = sxm.sxm(filename)
-                self.setChannelList(data.data.keys())
-                self.plot_data(filename)
-                # fileheader = createc.get_header(settings['file']['path'],settings['file']['name'])
-                # self.set_header_label(fileheader)
-
-    def on_selection_xaxis_changed(self, selection):
-        ax.cla()
-        self.plot_all_files(Gtk.Builder.get_object(builder, "selection_file"))
+    def getDataFromFiles(self, files):
+        self.datastore = []
+        for thisFile in files:
+            filename = os.path.join(settings['file']['path'],thisFile)
+            if filename.endswith('.dat'):
+                self.datastore.append(didv.spectrum(filename))
+            if filename.endswith('.sxm'):
+                self.datastore.append(sxm.sxm(filename))
+            self.setChannelList(self.datastore[-1].data.keys())
 
     def on_selection_yaxis_changed(self, selection):
         ax.cla()
-        self.plot_data(os.path.join(settings['file']['path'],settings['file']['name']))
+        self.plot_data()
 
     def on_file_selected(self, selection):
-        self.plot_all_files(selection)
+        model, treeiter = selection.get_selected_rows()
+        files = []
+        if treeiter:
+            for thisiter in treeiter:
+                files.append(model[thisiter][0])
+        self.getDataFromFiles(files)
+        self.plot_data()
 
     def on_logplot_changed(self,button):
         ax.cla()
-        self.plot_all_files(Gtk.Builder.get_object(builder, "selection_file"))
+        self.plot_data()
 
     def read_settings(self):
         with open(os.path.join(os.path.dirname(__file__),"settings.yaml"), "r") as settingsFile:
