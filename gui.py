@@ -28,6 +28,7 @@ class Handler:
     def __init__(self):
          self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
          self.datastore = []
+         self.selectedRows = []
 
     def on_mainwindow_show(self, *args):
         self.read_settings()
@@ -42,10 +43,17 @@ class Handler:
         self.open_folder()
 
     def setChannelList(self, channelList):
-        yaxisList.clear()
-        Gtk.Builder.get_object(builder, "selection_yaxis").unselect_all()
-        for ch in channelList:
-            model = yaxisList.append([ch])
+        ylistData = [list(row)[0] for row in yaxisList]
+        if len(ylistData) == len(channelList):
+            refreshList = not all(row in ylistData for row in channelList) 
+        else:
+            refreshList = True
+        if refreshList:
+            yaxisList.clear()
+            Gtk.Builder.get_object(builder, "selection_yaxis").unselect_all()
+            for ch in channelList:
+                model = yaxisList.append([ch])
+            self.selectedRows = []
 
     def on_refresh_clicked(self, button):
         self.open_folder()
@@ -62,7 +70,6 @@ class Handler:
             treeiter = store.append([os.path.basename(filename)])
     
     def plot_data(self):
-        yaxisModel, yaxisIter = Gtk.Builder.get_object(builder, "selection_yaxis").get_selected_rows()
         plot_log = Gtk.Builder.get_object(builder, "button_logplot").get_active()
         flatten = Gtk.Builder.get_object(builder, "button_flatten").get_active()
         plane = Gtk.Builder.get_object(builder, "button_plane").get_active()
@@ -71,13 +78,11 @@ class Handler:
             # xaxis = xaxisModel[xaxisIter][0]#
             selected_rows = []
             for data in self.datastore:
-
                 if isinstance(data,nanonis_load.didv.spectrum):
-                    if yaxisIter:
-                        for yiter in yaxisIter:
-                            selected_rows.append(yaxisModel[yiter][0])
-                    else:
+                    if self.selectedRows == []:
                         selected_rows.append(settings['spec']['defaultch'])
+                    else:
+                        selected_rows = self.selectedRows
                     yaxislabel = selected_rows[0]
                     for ch in selected_rows:
                         didv.plot(data, channel=ch, axes=ax,legend=False)
@@ -95,10 +100,10 @@ class Handler:
                     alpha = 1
                     loc = 'best'
                 if isinstance(data,nanonis_load.sxm.sxm):
-                    if yaxisIter:
-                        selected_rows.append(yaxisModel[yaxisIter][0])
-                    else:
+                    if self.selectedRows == []:
                         selected_rows.append(settings['image']['defaultch'])
+                    else:
+                        selected_rows = self.selectedRows
                     yaxislabel = selected_rows[0]
                     sxm.plot(data, channel=selected_rows[0],flatten=flatten,subtract_plane=plane,axes=ax)
                     # fig.delaxes(fig.axes[1])
@@ -131,8 +136,15 @@ class Handler:
                 self.datastore.append(sxm.sxm(filename))
             self.setChannelList(self.datastore[-1].data.keys())
 
-    def on_selection_yaxis_changed(self, selection):
-        ax.cla()
+    def on_selection_yaxis_changed(self,selection):
+        yaxisModel, yaxisIter = selection.get_selected_rows()
+        # FIXME: when an element is selected this function is called everytim the yaxis list is changed by self.setChannelList
+        # print(yaxisIter)
+        if yaxisIter:
+            ax.cla()
+            self.selectedRows = []
+            for yiter in yaxisIter:
+                self.selectedRows.append(yaxisModel[yiter][0])
         self.plot_data()
 
     def on_file_selected(self, selection):
