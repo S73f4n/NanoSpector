@@ -5,7 +5,6 @@ import nanonis_load
 from nanonis_load import didv, sxm
 import yaml
 import os
-import tempfile
 import io
 from si_prefix import si_format
 
@@ -77,6 +76,7 @@ class Handler:
         try:
             # xaxis = xaxisModel[xaxisIter][0]#
             selected_rows = []
+            legendLabels = []
             for data in self.datastore:
                 if isinstance(data,nanonis_load.didv.spectrum):
                     if self.selectedRows == []:
@@ -96,9 +96,20 @@ class Handler:
                     ax.xaxis.set_major_formatter(formatter1)
                     ax.yaxis.set_major_formatter(formatter1)
                     plotname = data._filename
-                    fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header['Saved Date'], fontsize='medium')
                     alpha = 1
                     loc = 'best'
+                    if len(self.datastore) > 1:
+                        legendLabels.append(os.path.basename(plotname))
+                        handles = None
+                    elif len(selected_rows) > 1:
+                        legendLabels = selected_rows.copy() 
+                        handles = None
+                        fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header['Saved Date'], fontsize='medium')
+                        ax.annotate('\n'.join(self.getHeaderLabels(data)),xy=(0.015,0.8),fontsize='small',xycoords='axes fraction',bbox=dict(alpha=0.7, facecolor='#eeeeee', edgecolor='#bcbcbc', linewidth=0.5,pad=3))
+                    else:
+                        fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header['Saved Date'], fontsize='medium')
+                        legendLabels = self.getHeaderLabels(data) 
+                        handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
                 if isinstance(data,nanonis_load.sxm.sxm):
                     if self.selectedRows == []:
                         selected_rows.append(settings['image']['defaultch'])
@@ -117,11 +128,12 @@ class Handler:
                                 fontsize='small')
                     fig.axes[0].axis('off')            
                     # fig.set_figwidth(8)
-                legendLabels = self.getHeaderLabels(data) 
-                handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
-                # create the legend, supressing the blank space of the empty line symbol and the
-                # padding between symbol and label by setting handlelenght and handletextpad
-                ax.legend(handles, legendLabels, loc=loc, fontsize='small', fancybox=True, framealpha=alpha, handlelength=0, handletextpad=0)
+                    legendLabels = self.getHeaderLabels(data) 
+                    handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
+                if handles == None:
+                    ax.legend(legendLabels,loc=loc,fontsize='small',fancybox=True,framealpha=alpha)
+                else:
+                    ax.legend(handles, legendLabels, loc=loc, fontsize='small', fancybox=True, framealpha=alpha, handlelength=0, handletextpad=0)
         except KeyError:
             pass
         fig.canvas.draw()
