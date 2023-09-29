@@ -203,7 +203,7 @@ class Handler:
                     columns.append(xaxis[treeiter][0])
                 for treeiter in yaxisIter:
                     columns.append(yaxis[treeiter][0])
-                createc.export(settings['file']['path'],filemodel[filei][0],columns)
+                # createc.export(settings['file']['path'],filemodel[filei][0],columns)
 
     def on_button_savefig_clicked(self,button):
         filemodel, fileiter = Gtk.Builder.get_object(builder, "selection_file").get_selected_rows()
