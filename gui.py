@@ -307,7 +307,10 @@ fig, ax = plt.subplots()
 # fig.tight_layout()
 formatter1 = EngFormatter(sep="\u2009")
 canvas = FigureCanvas(fig)
-toolbar = NavigationToolbar(canvas, window)
+try:
+    toolbar = NavigationToolbar(canvas, window)
+except TypeError:
+    toolbar = NavigationToolbar(canvas)
 sw.add(canvas)
 swtoolbar.add(toolbar)
 
