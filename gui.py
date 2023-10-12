@@ -5,7 +5,6 @@ from nanonis_load import didv, sxm
 import yaml
 import os
 import io
-from si_prefix import si_format
 import warnings
 
 gi.require_version("Gtk", "3.0")
@@ -186,12 +185,6 @@ class Handler:
         ax.cla()
         fig.canvas.draw()
 
-    def set_header_label(self,fileheader):
-        label_current = Gtk.Builder.get_object(builder, "label_current")
-        label_voltage = Gtk.Builder.get_object(builder, "label_voltage")
-        label_current.set_text("I = "+si_format(fileheader["setpoint"])+"A")
-        label_voltage.set_text("V = "+si_format(fileheader["biasvolt"])+"V")
-    
     def on_button_export_clicked(self,button):
         filemodel, fileiter = Gtk.Builder.get_object(builder, "selection_file").get_selected_rows()
         if fileiter:
