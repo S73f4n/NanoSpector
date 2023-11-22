@@ -57,6 +57,8 @@ class Handler:
         self.open_folder()
 
     def open_folder(self):
+        selection = Gtk.Builder.get_object(builder, "selection_file")
+        selection.handler_block_by_func(self.on_file_selected)
         store.clear()   
         header = Gtk.Builder.get_object(builder, "header_bar")
         header.set_subtitle(settings['file']['path'])
@@ -66,6 +68,7 @@ class Handler:
         files += [os.path.join(subDir, file) for file in os.listdir(subDir) if os.path.isfile(os.path.join(subDir, file)) and (file.endswith(settings['spec']['extension']) or file.endswith(settings['image']['extension']))]
         for filename in sorted(files, key=os.path.getmtime, reverse=True):
             treeiter = store.append([os.path.basename(filename)])
+        selection.handler_unblock_by_func(self.on_file_selected)
     
     def plot_data(self):
         plot_log = Gtk.Builder.get_object(builder, "button_logplot").get_active()
