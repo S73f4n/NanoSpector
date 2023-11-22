@@ -307,7 +307,7 @@ except TypeError:
 sw.add(canvas)
 swtoolbar.add(toolbar)
 
-warnings.filterwarnings("error")
+#warnings.filterwarnings("error")
 
 window.show_all()
 Gtk.main()
