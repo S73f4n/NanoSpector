@@ -87,6 +87,11 @@ class Handler:
                     if index:
                         if 'index' not in data.data:
                             data.data = data.data.reset_index()
+                    else:
+                        try:
+                            data.data = data.data.drop('index', axis=1)
+                        except:
+                            pass
                     for ch in selected_rows:
                         didv.plot(data, channel=ch, axes=ax,legend=False)
                     ax.autoscale(enable=True,axis='both')
