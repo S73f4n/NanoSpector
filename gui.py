@@ -57,6 +57,8 @@ class Handler:
         self.open_folder()
 
     def open_folder(self):
+        selection = Gtk.Builder.get_object(builder, "selection_file")
+        selection.handler_block_by_func(self.on_file_selected)
         store.clear()   
         header = Gtk.Builder.get_object(builder, "header_bar")
         header.set_subtitle(settings['file']['path'])
@@ -66,11 +68,13 @@ class Handler:
         files += [os.path.join(subDir, file) for file in os.listdir(subDir) if os.path.isfile(os.path.join(subDir, file)) and (file.endswith(settings['spec']['extension']) or file.endswith(settings['image']['extension']))]
         for filename in sorted(files, key=os.path.getmtime, reverse=True):
             treeiter = store.append([os.path.basename(filename)])
+        selection.handler_unblock_by_func(self.on_file_selected)
     
     def plot_data(self):
         plot_log = Gtk.Builder.get_object(builder, "button_logplot").get_active()
         flatten = Gtk.Builder.get_object(builder, "button_flatten").get_active()
         plane = Gtk.Builder.get_object(builder, "button_plane").get_active()
+        index = Gtk.Builder.get_object(builder, "button_index").get_active()
         ax.cla()
         try:
             # xaxis = xaxisModel[xaxisIter][0]#
@@ -83,6 +87,14 @@ class Handler:
                     else:
                         selected_rows = self.selectedRows
                     yaxislabel = selected_rows[0]
+                    if index:
+                        if 'index' not in data.data:
+                            data.data = data.data.reset_index()
+                    else:
+                        try:
+                            data.data = data.data.drop('index', axis=1)
+                        except:
+                            pass
                     for ch in selected_rows:
                         didv.plot(data, channel=ch, axes=ax,legend=False)
                     ax.autoscale(enable=True,axis='both')
@@ -172,6 +184,10 @@ class Handler:
         ax.cla()
         self.plot_data()
 
+    def on_index_changed(self,button):
+        ax.cla()
+        self.plot_data()
+
     def read_settings(self):
         with open(os.path.join(os.path.dirname(__file__),"settings.yaml"), "r") as settingsFile:
             global settings
@@ -216,8 +232,16 @@ class Handler:
                 labels.append("V = " + self.formatSI(data.header['Bias>Bias (V)']) + "V")
             except KeyError:
                 pass
+            try:
+                labels.append("Sample period = " + str(data.header['Sample Period (ms)']) + " ms")
+            except KeyError:
+                pass
             try: 
                 labels.append("Z = " + self.formatSI(data.header['Z (m)']) + "m")
+            except KeyError:
+                pass
+            try: 
+                labels.append("Z offset = " + self.formatSI(data.header['Z offset (m)']) + "m")
             except KeyError:
                 pass
             try: 
@@ -276,9 +300,13 @@ class Handler:
         }
         if type(value) == str:
             value = float(value.replace(',','.'))
-        exponent = int(np.floor(np.log10(np.abs(value))))
-        exponent = (exponent // 3) * 3  # Round to the nearest multiple of 3
-        scaled_value = value / 10**exponent
+        if value != 0:
+            exponent = int(np.floor(np.log10(np.abs(value))))
+            exponent = (exponent // 3) * 3  # Round to the nearest multiple of 3
+            scaled_value = value / 10**exponent
+        else:
+            scaled_value = value
+            exponent = 0
 
         return f"{scaled_value:.{precision}g} {prefixes[exponent]}"
 
