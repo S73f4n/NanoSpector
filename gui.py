@@ -221,6 +221,10 @@ class Handler:
             except KeyError:
                 pass
             try: 
+                labels.append("Z offset = " + self.formatSI(data.header['Z offset (m)']) + "m")
+            except KeyError:
+                pass
+            try: 
                 labels.append("$I$ = " + self.formatSI(data.header['Current>Current (A)']) + "A")
             except KeyError:
                 pass
@@ -276,9 +280,13 @@ class Handler:
         }
         if type(value) == str:
             value = float(value.replace(',','.'))
-        exponent = int(np.floor(np.log10(np.abs(value))))
-        exponent = (exponent // 3) * 3  # Round to the nearest multiple of 3
-        scaled_value = value / 10**exponent
+        if value != 0:
+            exponent = int(np.floor(np.log10(np.abs(value))))
+            exponent = (exponent // 3) * 3  # Round to the nearest multiple of 3
+            scaled_value = value / 10**exponent
+        else:
+            scaled_value = value
+            exponent = 0
 
         return f"{scaled_value:.{precision}g} {prefixes[exponent]}"
 
