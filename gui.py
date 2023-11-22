@@ -71,6 +71,7 @@ class Handler:
         plot_log = Gtk.Builder.get_object(builder, "button_logplot").get_active()
         flatten = Gtk.Builder.get_object(builder, "button_flatten").get_active()
         plane = Gtk.Builder.get_object(builder, "button_plane").get_active()
+        index = Gtk.Builder.get_object(builder, "button_index").get_active()
         ax.cla()
         try:
             # xaxis = xaxisModel[xaxisIter][0]#
@@ -83,6 +84,9 @@ class Handler:
                     else:
                         selected_rows = self.selectedRows
                     yaxislabel = selected_rows[0]
+                    if index:
+                        if 'index' not in data.data:
+                            data.data = data.data.reset_index()
                     for ch in selected_rows:
                         didv.plot(data, channel=ch, axes=ax,legend=False)
                     ax.autoscale(enable=True,axis='both')
@@ -169,6 +173,10 @@ class Handler:
         self.plot_data()
 
     def on_logplot_changed(self,button):
+        ax.cla()
+        self.plot_data()
+
+    def on_index_changed(self,button):
         ax.cla()
         self.plot_data()
 
