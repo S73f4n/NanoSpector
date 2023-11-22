@@ -224,6 +224,10 @@ class Handler:
                 labels.append("V = " + self.formatSI(data.header['Bias>Bias (V)']) + "V")
             except KeyError:
                 pass
+            try:
+                labels.append("Sample period = " + str(data.header['Sample Period (ms)']) + " ms")
+            except KeyError:
+                pass
             try: 
                 labels.append("Z = " + self.formatSI(data.header['Z (m)']) + "m")
             except KeyError:
