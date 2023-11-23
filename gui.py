@@ -92,7 +92,7 @@ class Handler:
                             data.data = data.data.reset_index()
                     else:
                         try:
-                            data.data = data.data.drop('index', axis=1)
+                            data.data.drop('index', axis=1, inplace=True)
                         except:
                             pass
                     for ch in selected_rows:
