@@ -75,6 +75,7 @@ class Handler:
         flatten = Gtk.Builder.get_object(builder, "button_flatten").get_active()
         plane = Gtk.Builder.get_object(builder, "button_plane").get_active()
         index = Gtk.Builder.get_object(builder, "button_index").get_active()
+        infobox = Gtk.Builder.get_object(builder, "button_infobox").get_active()
         ax.cla()
         try:
             # xaxis = xaxisModel[xaxisIter][0]#
@@ -146,7 +147,7 @@ class Handler:
                     handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
                 if handles == None:
                     ax.legend(legendLabels,loc=loc,fontsize='small',fancybox=True,framealpha=alpha)
-                else:
+                elif infobox:
                     ax.legend(handles, legendLabels, loc=loc, fontsize='small', fancybox=True, framealpha=alpha, handlelength=0, handletextpad=0)
         except KeyError:
             pass
@@ -188,6 +189,10 @@ class Handler:
         ax.cla()
         self.plot_data()
 
+    def on_button_infobox_toggled(self,button):
+        ax.cla()
+        self.plot_data()
+        
     def read_settings(self):
         with open(os.path.join(os.path.dirname(__file__),"settings.yaml"), "r") as settingsFile:
             global settings
