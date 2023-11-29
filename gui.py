@@ -315,7 +315,12 @@ class Handler:
                 labels.append("$v$ = " + self.formatSI(data.header[':Scan>speed forw. (m/s):'][0]) + "m/s")
             except KeyError:
                 pass
+            try:
+                labels.append("OC input = " + self.formatSI(data.header['Oscillation Control>Amplitude Setpoint (m)']) + "m")
+            except KeyError:
+                pass
             return labels
+                        
 
     def formatSI(self, value, precision=3):
         prefixes = {
