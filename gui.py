@@ -102,9 +102,7 @@ class Handler:
                         except:
                             pass
                     for ch in selected_rows:
-                        if plot_log:
-                            data.data[ch] = abs(data.data[ch])
-                        didv.plot(data, channel=ch, axes=ax,legend=False)
+                        didv.plot(data, channel=ch, axes=ax,legend=False,logabs=plot_log)
                     ax.autoscale(enable=True,axis='both')
                     if plot_log:
                         try: 

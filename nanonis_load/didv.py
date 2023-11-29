@@ -327,6 +327,7 @@ class plot():
                                 waterfall = 0.0, \
                                 dark = False, \
                                 multiply = None, \
+                                logabs = False, \
                                 plot_on_previous = False, \
                                 axes = None, \
                                 color = None, \
@@ -373,6 +374,8 @@ class plot():
             spec_data = spectrum_inst.data.copy()
             if multiply is not None:
                 spec_data[channel] = multiply * spec_data[channel]
+            if logabs:
+                spec_data[channel] = abs(spec_data[channel])
             plot_args = dict(x = spec_data.columns[0], y = channel, ax = self.ax, legend = False, label = spectrum_label)
             if waterfall != 0:
                 spec_data[channel] = spec_data[channel] + waterfall * idx * np.sign(increment) + 0.5 * (-np.sign(increment) + 1) * waterfall * (len(spectra) - 1)
