@@ -28,6 +28,11 @@ class Handler:
     def on_mainwindow_show(self, *args):
         self.read_settings()
         self.open_folder()
+        self.filter_text = ""
+        self.filter = yaxisList.filter_new()
+        self.filter.set_visible_func(self.filter_function)
+        treview = Gtk.Builder.get_object(builder, "yAxisTreeView")
+        treview.set_model(self.filter)
 
     def on_mainwindow_destroy(self, *args):
         self.write_settings()
@@ -193,6 +198,24 @@ class Handler:
     def on_button_infobox_toggled(self,button):
         ax.cla()
         self.plot_data()
+
+    def filter_function(self, model, iter, data):
+        if self.filter_text == "":
+            return True
+        else:
+            # Get the text to filter
+            # Get the text from the model
+            item = model[iter][0]
+            # Check if the filter text is present in the item
+            return self.filter_text.lower() in item.lower()
+
+    def on_filter_text_changed(self, entry):
+        self.filter_text = entry.get_text()
+        self.filter.refilter()
+
+    def on_filter_text_clear(self, entry, icon, event):
+        entry.set_text("")
+        self.on_filter_text_changed(entry)
         
     def read_settings(self):
         with open(os.path.join(os.path.dirname(__file__),"settings.yaml"), "r") as settingsFile:
