@@ -5,6 +5,7 @@ from nanonis_load import didv, sxm
 import yaml
 import os
 import io
+import re
 import warnings
 
 gi.require_version("Gtk", "3.0")
@@ -229,19 +230,46 @@ class Handler:
     def on_button_clear_clicked(self, button):
         ax.cla()
         fig.canvas.draw()
+    
+    def cleanIgorName(self, folder):
+        folder = folder.replace(folder.split(".")[-1], "")
+        folder = folder.replace(".","_").replace("-","").replace("+","p").replace(" ","")
+        return folder[:-1]
+
+    def cleanWaveName(self,rows,filename):
+        specno = re.search(r'\d+',filename).group()
+        units = [re.search(r"\((\w+)\)", wave).group(1) for wave in rows]
+        ch = [re.sub(r"\((\w+)\)", '', wave) for wave in rows]
+        ch = [wave.replace(".","_").replace("-","").replace("+","p").replace(" ","").replace("[","").replace("]","").replace("(","").replace(")","")+specno for wave in ch]
+        return dict(zip(ch, units))
+
+    def export(self,rows,data,filepath):
+        os.makedirs(os.path.join(settings['file']['path'],"export"), exist_ok=True)
+        filename = os.path.basename(filepath)
+        outpath = os.path.join(settings['file']['path'],"export",filename.replace(os.path.splitext(filename)[1],".itx")) 
+        igorFolder = self.cleanIgorName(filename)
+        waveNames = self.cleanWaveName(rows,igorFolder)
+        with open(outpath, 'w') as outfile:
+            outfile.write("IGOR\nX NewDataFolder/S "+igorFolder+"\nWAVES/D "+' '.join(waveNames.keys())+ "\nBEGIN\n")
+            data.to_csv(outfile,sep="\t",columns=rows,index=False,header=False)
+            outfile.write("END\n")
+            for wave in waveNames.keys():
+                outfile.write("X Setscale d, 0,0, \""+waveNames[wave]+"\", "+wave+"\n")
+            outfile.write("SetDataFolder ::")
 
     def on_button_export_clicked(self,button):
-        filemodel, fileiter = Gtk.Builder.get_object(builder, "selection_file").get_selected_rows()
-        if fileiter:
-            for filei in fileiter:
-                columns = []
-                xaxis, xaxisIter = Gtk.Builder.get_object(builder, "selection_xaxis").get_selected_rows()
-                yaxis, yaxisIter = Gtk.Builder.get_object(builder, "selection_yaxis").get_selected_rows()
-                for treeiter in xaxisIter:
-                    columns.append(xaxis[treeiter][0])
-                for treeiter in yaxisIter:
-                    columns.append(yaxis[treeiter][0])
-                # createc.export(settings['file']['path'],filemodel[filei][0],columns)
+        try:
+            selected_rows = []
+            for data in self.datastore:
+                if isinstance(data,nanonis_load.didv.spectrum):
+                    if self.selectedRows == []:
+                        selected_rows.append(settings['spec']['defaultch'])
+                    else:
+                        selected_rows = self.selectedRows
+                    plotname = data._filename
+                    self.export(selected_rows,data.data,plotname)
+        except KeyError:
+            pass
 
     def on_button_savefig_clicked(self,button):
         filemodel, fileiter = Gtk.Builder.get_object(builder, "selection_file").get_selected_rows()
