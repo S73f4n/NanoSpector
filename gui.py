@@ -255,7 +255,7 @@ class Handler:
             outfile.write("END\n")
             for wave in waveNames.keys():
                 outfile.write("X Setscale d, 0,0, \""+waveNames[wave]+"\", "+wave+"\n")
-            outfile.write("SetDataFolder ::")
+            outfile.write("X SetDataFolder ::")
 
     def on_button_export_clicked(self,button):
         try:
