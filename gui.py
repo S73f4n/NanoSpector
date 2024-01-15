@@ -20,6 +20,8 @@ from matplotlib.ticker import EngFormatter
 from matplotlib import style
 import matplotlib.patches as mpl_patches
 
+from dataheader import getHeaderLabels
+
 class Handler:
     def __init__(self):
          self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
@@ -129,10 +131,10 @@ class Handler:
                         handles = None
                         fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header['Saved Date'], fontsize='medium')
                         if infobox:
-                            ax.annotate('\n'.join(self.getHeaderLabels(data)),xy=(0.015,0.8),fontsize='small',xycoords='axes fraction',bbox=dict(alpha=0.7, facecolor='#eeeeee', edgecolor='#bcbcbc', linewidth=0.5,pad=3))
+                            ax.annotate('\n'.join(getHeaderLabels(data)),xy=(0.015,0.8),fontsize='small',xycoords='axes fraction',bbox=dict(alpha=0.7, facecolor='#eeeeee', edgecolor='#bcbcbc', linewidth=0.5,pad=3))
                     else:
                         fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header['Saved Date'], fontsize='medium')
-                        legendLabels = self.getHeaderLabels(data) 
+                        legendLabels = getHeaderLabels(data) 
                         handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
                 if isinstance(data,nanonis_load.sxm.sxm):
                     if self.selectedRows == []:
@@ -152,7 +154,7 @@ class Handler:
                                 fontsize='small')
                     fig.axes[0].axis('off')            
                     # fig.set_figwidth(8)
-                    legendLabels = self.getHeaderLabels(data) 
+                    legendLabels = getHeaderLabels(data) 
                     handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
                 if handles == None:
                     ax.legend(legendLabels,loc=loc,fontsize='small',fancybox=True,framealpha=alpha)
@@ -285,94 +287,6 @@ class Handler:
             self.clipboard.set_image(piximage.get_pixbuf())
             fig.canvas.draw()
 
-    def getHeaderLabels(self, data):
-            labels = [] 
-            try:
-                labels.append("V = " + self.formatSI(data.header['Bias>Bias (V)']) + "V")
-            except KeyError:
-                pass
-            try:
-                labels.append("Sample period = " + str(data.header['Sample Period (ms)']) + " ms")
-            except KeyError:
-                pass
-            try: 
-                labels.append("Z = " + self.formatSI(data.header['Z (m)']) + "m")
-            except KeyError:
-                pass
-            try: 
-                labels.append("Z offset = " + self.formatSI(data.header['Z offset (m)']) + "m")
-            except KeyError:
-                pass
-            try: 
-                labels.append("$I$ = " + self.formatSI(data.header['Current>Current (A)']) + "A")
-            except KeyError:
-                pass
-            try: 
-                labels.append("$V_{mod}$ = " + self.formatSI(data.header['Lock-in>Amplitude']) + "V")
-            except KeyError:
-                pass
-            try: 
-                labels.append("$f_0$ = " + self.formatSI(data.header['f_res (Hz)'],precision=10) + "Hz")
-            except KeyError:
-                pass
-            try: 
-                labels.append("$Q$ = " + str(data.header['Q']))
-            except KeyError:
-                pass
-            try: 
-                labels.append("$\Phi$ = " + self.formatSI(data.header['Phase (deg)']) + "°")
-            except KeyError:
-                pass
-            try:
-                labels.append("$V$ = " + self.formatSI(data.header[':Bias>Bias (V):'][0]) + "V")
-            except KeyError:
-                pass
-            try:
-                labels.append("$I$ =" + self.formatSI(data.header[':Current>Current (A):'][0]) + "A")
-            except KeyError:
-                pass
-            try:
-                labels.append("$Z$ = " + self.formatSI(data.header[':Z-Controller>Setpoint:'][0]) + data.header[':Z-Controller>Setpoint unit:'][0])
-            except KeyError:
-                pass
-            try:
-                labels.append("$I_{FB}$ = " + self.formatSI(data.header[':Z-Controller>I gain:'][0]) + 'm/s')
-            except KeyError:
-                pass
-            try:
-                labels.append("$v$ = " + self.formatSI(data.header[':Scan>speed forw. (m/s):'][0]) + "m/s")
-            except KeyError:
-                pass
-            try:
-                labels.append("OC input = " + self.formatSI(data.header['Oscillation Control>Amplitude Setpoint (m)']) + "m")
-            except KeyError:
-                pass
-            return labels
-                        
-
-    def formatSI(self, value, precision=3):
-        prefixes = {
-            9: "G",   # giga
-            6: "M",   # mega
-            3: "k",   # kilo
-            0: "",    # no prefix
-            -3: "m",  # milli
-            -6: "µ",  # micro
-            -9: "n",  # nano
-            -12: "p", # pico
-            -15: "f", # femto
-        }
-        if type(value) == str:
-            value = float(value.replace(',','.'))
-        if value != 0:
-            exponent = int(np.floor(np.log10(np.abs(value))))
-            exponent = (exponent // 3) * 3  # Round to the nearest multiple of 3
-            scaled_value = value / 10**exponent
-        else:
-            scaled_value = value
-            exponent = 0
-
-        return f"{scaled_value:.{precision}g} {prefixes[exponent]}"
 
 
 builder = Gtk.Builder()
