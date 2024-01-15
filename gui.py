@@ -87,6 +87,8 @@ class Handler:
             # xaxis = xaxisModel[xaxisIter][0]#
             selected_rows = []
             legendLabels = []
+            if len(self.datastore) > 1 and settings['spec']['cmap'] is not "default":
+                ax.set_prop_cycle('color',[getattr(plt.cm, settings['spec']['cmap'])(i) for i in np.linspace(0, 1, len(self.datastore))])
             for data in self.datastore:
                 if isinstance(data,nanonis_load.didv.spectrum):
                     if self.selectedRows == []:
