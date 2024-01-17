@@ -274,6 +274,11 @@ class Handler:
                     self.export(selected_rows,data.data,plotname)
         except KeyError:
             pass
+        
+    def on_button_filter_clicked(self,button):
+        entry = Gtk.Builder.get_object(builder, "entry_filter_text")
+        entry.set_text(button.get_label())
+        self.on_filter_text_changed(entry)
 
     def on_button_savefig_clicked(self,button):
         filemodel, fileiter = Gtk.Builder.get_object(builder, "selection_file").get_selected_rows()
