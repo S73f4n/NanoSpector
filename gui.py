@@ -121,6 +121,10 @@ class Handler:
                     ax.xaxis.set_major_formatter(formatter1)
                     ax.yaxis.set_major_formatter(formatter1)
                     plotname = data._filename
+                    try:
+                        Gtk.Builder.get_object(builder, 'label_comment').set_text("Comment: " + data.header['Comment01'])
+                    except KeyError:
+                        Gtk.Builder.get_object(builder, 'label_comment').set_text("Comment")
                     alpha = 1
                     loc = 'best'
                     if len(self.datastore) > 1:
