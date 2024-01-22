@@ -125,6 +125,7 @@ class Handler:
                         Gtk.Builder.get_object(builder, 'label_comment').set_text("Comment: " + data.header['Comment01'])
                     except KeyError:
                         Gtk.Builder.get_object(builder, 'label_comment').set_text("Comment")
+                    self.setHeaderText(data)
                     alpha = 1
                     loc = 'best'
                     if len(self.datastore) > 1:
@@ -147,6 +148,7 @@ class Handler:
                         selected_rows = self.selectedRows
                     yaxislabel = selected_rows[0]
                     sxm.plot(data, channel=selected_rows[0],flatten=flatten,subtract_plane=plane,axes=ax)
+                    self.setHeaderText(data)
                     # fig.delaxes(fig.axes[1])
                     # fig.axes[1].remove()
                     xmax=fig.axes[0].get_xticks()[-1]
@@ -167,6 +169,14 @@ class Handler:
         except KeyError:
             pass
         fig.canvas.draw()
+
+
+    def setHeaderText(self, data):
+        headerString = '\n'.join(key + ": " + str(value) for key, value in data.header.items())
+        textView = Gtk.Builder.get_object(builder, 'textViewHeader')
+        textViewBuffer = textView.get_buffer()
+        textViewBuffer.set_text(headerString)
+
 
     def getDataFromFiles(self, files):
         self.datastore = []
@@ -284,6 +294,9 @@ class Handler:
         entry.set_text(button.get_label())
         self.on_filter_text_changed(entry)
 
+    def on_button_header_clicked(self,button):
+       headerWindow.show()
+
     def on_button_savefig_clicked(self,button):
         filemodel, fileiter = Gtk.Builder.get_object(builder, "selection_file").get_selected_rows()
         savefig = io.BytesIO()
@@ -307,6 +320,7 @@ store=builder.get_object('file_list')
 yaxisList = builder.get_object("yaxis_list")
 sw = builder.get_object('scrolledwindow1')
 swtoolbar = builder.get_object('scrolledwindow2')
+headerWindow = builder.get_object('headerWindow')
 
 # fig = Figure(figsize=(4,3), dpi=100)
 # ax = fig.add_subplot()
