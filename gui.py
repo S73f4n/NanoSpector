@@ -86,6 +86,8 @@ class Handler:
         infobox = Gtk.Builder.get_object(builder, "button_infobox").get_active()
         crop = Gtk.Builder.get_object(builder, "button_crop").get_active()
         ax.cla()
+        specdata = []
+        handles = None
         try:
             # xaxis = xaxisModel[xaxisIter][0]#
             selected_rows = []
@@ -93,7 +95,7 @@ class Handler:
             if len(self.datastore) > 1 and settings['spec']['cmap'] != "default":
                 ax.set_prop_cycle('color',[getattr(plt.cm, settings['spec']['cmap'])(i) for i in np.linspace(0, 1, len(self.datastore))])
             for data in self.datastore:
-                if isinstance(data,nanonis_load.didv.spectrum):
+                if isinstance(data,nanonis_load.didv.spectrum) and [sxm for sxm in self.datastore if isinstance(sxm,nanonis_load.sxm.sxm)] == []:
                     if self.selectedRows == []:
                         selected_rows.append(settings['spec']['defaultch'])
                     else:
@@ -149,7 +151,8 @@ class Handler:
                         selected_rows = self.selectedRows
                     yaxislabel = selected_rows[0]
                     data.crop_missing_data(channel=selected_rows[0])
-                    sxm.plot(data, channel=selected_rows[0],flatten=flatten,subtract_plane=plane,crop_missing=crop,axes=ax)
+                    sxmplot = sxm.plot(data, channel=selected_rows[0],flatten=flatten,subtract_plane=plane,crop_missing=crop,axes=ax)
+                    sxmplot.add_spectra([didv for didv in self.datastore if isinstance(didv,nanonis_load.didv.spectrum)],channel=settings['spec']['defaultch'])
                     self.setHeaderText(data)
                     # fig.delaxes(fig.axes[1])
                     # fig.axes[1].remove()
@@ -164,10 +167,13 @@ class Handler:
                     # fig.set_figwidth(8)
                     legendLabels = getHeaderLabels(data) 
                     handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
-                if handles == None:
-                    ax.legend(legendLabels,loc=loc,fontsize='small',fancybox=True,framealpha=alpha)
-                elif infobox:
-                    ax.legend(handles, legendLabels, loc=loc, fontsize='small', fancybox=True, framealpha=alpha, handlelength=0, handletextpad=0)
+                try:
+                    if handles == None:
+                        ax.legend(legendLabels,loc=loc,fontsize='small',fancybox=True,framealpha=alpha)
+                    elif infobox:
+                        ax.legend(handles, legendLabels, loc=loc, fontsize='small', fancybox=True, framealpha=alpha, handlelength=0, handletextpad=0)
+                except UnboundLocalError:
+                    pass
         except KeyError:
             pass
         fig.canvas.draw()
