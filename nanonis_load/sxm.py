@@ -96,6 +96,7 @@ class sxm():
         extra_info = [None, None]
         self.header = sxm_header(filename, extra_info = extra_info)
         file, idx = extra_info
+        self.y_mask = None
         raw_data = file[idx+5:]
         size = self.header['x_pixels'] * self.header['y_pixels']
         raw_data = np.frombuffer(raw_data, dtype='>f')
@@ -857,7 +858,7 @@ class plot():
     '''
 
     def __init__(self, sxm_data : sxm, channel : str, direction : int=0, 
-                flatten : bool=False, subtract_plane : bool=True,
+                flatten : bool=False, subtract_plane : bool=True, crop_missing : bool=False,
                 cmap=util.get_w_cmap(), rasterized=True, imshow_interpolation='antialiased', axes =None):
 
         self.data = sxm_data
@@ -867,7 +868,8 @@ class plot():
         image_data[np.isnan(image_data)] = avg_dat
         if (flatten == True) and (subtract_plane == False):
             image_data=scipy.signal.detrend(image_data)
-
+        if crop_missing:
+            image_data = image_data[self.data.y_mask]
         # Flip upside down if image was taken scanning down
         # if sxm_data.header['direction'] == 'down':
         #     image_data=np.flipud(image_data)

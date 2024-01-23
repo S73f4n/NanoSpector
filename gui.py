@@ -84,6 +84,7 @@ class Handler:
         plane = Gtk.Builder.get_object(builder, "button_plane").get_active()
         index = Gtk.Builder.get_object(builder, "button_index").get_active()
         infobox = Gtk.Builder.get_object(builder, "button_infobox").get_active()
+        crop = Gtk.Builder.get_object(builder, "button_crop").get_active()
         ax.cla()
         try:
             # xaxis = xaxisModel[xaxisIter][0]#
@@ -147,7 +148,8 @@ class Handler:
                     else:
                         selected_rows = self.selectedRows
                     yaxislabel = selected_rows[0]
-                    sxm.plot(data, channel=selected_rows[0],flatten=flatten,subtract_plane=plane,axes=ax)
+                    data.crop_missing_data(channel=selected_rows[0])
+                    sxm.plot(data, channel=selected_rows[0],flatten=flatten,subtract_plane=plane,crop_missing=crop,axes=ax)
                     self.setHeaderText(data)
                     # fig.delaxes(fig.axes[1])
                     # fig.axes[1].remove()
