@@ -3,6 +3,7 @@ import gi
 import nanonis_load
 from nanonis_load import didv, sxm
 import yaml
+import shutil
 import os
 import io
 import re
@@ -73,9 +74,12 @@ class Handler:
         files = []
         # treeiter = store.append(glob.glob(filepath + "/*.VERT"))
         subDir = settings['file']['path']
-        files += [os.path.join(subDir, file) for file in os.listdir(subDir) if os.path.isfile(os.path.join(subDir, file)) and (file.endswith(settings['spec']['extension']) or file.endswith(settings['image']['extension']))]
-        for filename in sorted(files, key=os.path.getmtime, reverse=True):
-            treeiter = store.append([os.path.basename(filename)])
+        try:
+            files += [os.path.join(subDir, file) for file in os.listdir(subDir) if os.path.isfile(os.path.join(subDir, file)) and (file.endswith(settings['spec']['extension']) or file.endswith(settings['image']['extension']))]
+            for filename in sorted(files, key=os.path.getmtime, reverse=True):
+                treeiter = store.append([os.path.basename(filename)])
+        except FileNotFoundError:
+            pass
         selection.handler_unblock_by_func(self.on_file_selected)
     
     def plot_data(self):
@@ -251,6 +255,8 @@ class Handler:
         self.on_filter_text_changed(entry)
         
     def read_settings(self):
+        if not os.path.exists("settings.yaml"):
+            shutil.copy("settings_example.yaml", "settings.yaml")
         with open(os.path.join(os.path.dirname(__file__),"settings.yaml"), "r") as settingsFile:
             global settings
             settings = yaml.safe_load(settingsFile)   
