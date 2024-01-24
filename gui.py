@@ -151,7 +151,11 @@ class Handler:
                         selected_rows = self.selectedRows
                     yaxislabel = selected_rows[0]
                     data.crop_missing_data(channel=selected_rows[0])
-                    sxmplot = sxm.plot(data, channel=selected_rows[0],flatten=flatten,subtract_plane=plane,crop_missing=crop,axes=ax)
+                    cmap = settings['image']['cmap']
+                    if cmap == 'default':
+                        sxmplot = sxm.plot(data, channel=selected_rows[0],flatten=flatten,subtract_plane=plane,crop_missing=crop,axes=ax)
+                    else:
+                        sxmplot = sxm.plot(data, channel=selected_rows[0],cmap=cmap,flatten=flatten,subtract_plane=plane,crop_missing=crop,axes=ax)
                     sxmplot.add_spectra([didv for didv in self.datastore if isinstance(didv,nanonis_load.didv.spectrum)],channel=settings['spec']['defaultch'])
                     self.setHeaderText(data)
                     # fig.delaxes(fig.axes[1])
