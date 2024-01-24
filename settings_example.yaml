@@ -2,8 +2,10 @@ file:
   name: Bias-Spectroscopy00001.dat
   path: C:/
 image:
+  cmap: default 
   defaultch: Z (m)
   extension: .sxm
 spec:
+  cmap: default
   defaultch: Current (A)
   extension: .dat

@@ -20,7 +20,7 @@ from matplotlib.ticker import EngFormatter
 from matplotlib import style
 import matplotlib.patches as mpl_patches
 
-from dataheader import getHeaderLabels
+from src.dataheader import getHeaderLabels
 
 class Handler:
     def __init__(self):
@@ -326,7 +326,7 @@ class Handler:
 
 
 builder = Gtk.Builder()
-builder.add_from_file(os.path.join(os.path.dirname(__file__),"main.glade"))
+builder.add_from_file(os.path.join(os.path.dirname(__file__),"src/main.glade"))
 builder.connect_signals(Handler())
 
 window = builder.get_object("mainwindow")
