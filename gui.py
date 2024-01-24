@@ -255,8 +255,8 @@ class Handler:
         self.on_filter_text_changed(entry)
         
     def read_settings(self):
-        if not os.path.exists("settings.yaml"):
-            shutil.copy("settings_example.yaml", "settings.yaml")
+        if not os.path.exists(os.path.join(os.path.dirname(__file__),"settings.yaml")):
+            shutil.copy(os.path.join(os.path.dirname(__file__),"settings_example.yaml"), os.path.join(os.path.dirname(__file__),"settings.yaml"))
         with open(os.path.join(os.path.dirname(__file__),"settings.yaml"), "r") as settingsFile:
             global settings
             settings = yaml.safe_load(settingsFile)   
