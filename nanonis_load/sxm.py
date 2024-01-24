@@ -945,7 +945,7 @@ class plot():
             x = spectrum_to_center[0] + self.data.header['x_range (nm)'] * 0.5
             y = spectrum_to_center[1] + self.data.header['y_range (nm)'] * 0.5
             s_plt = self.ax.scatter(x, y, marker='x', color='red', picker = True)
-            lbl_plt = self.ax.text(x, y, label_inst, fontsize = 10)
+            lbl_plt = self.ax.text(x, y, label_inst, fontsize = 10,color='red')
             def picker_factory(spec_obj, scatter_plot):
                 def on_pick(event):
                     if scatter_plot == event.artist:

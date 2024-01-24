@@ -156,7 +156,9 @@ class Handler:
                         sxmplot = sxm.plot(data, channel=selected_rows[0],flatten=flatten,subtract_plane=plane,crop_missing=crop,axes=ax)
                     else:
                         sxmplot = sxm.plot(data, channel=selected_rows[0],cmap=cmap,flatten=flatten,subtract_plane=plane,crop_missing=crop,axes=ax)
-                    sxmplot.add_spectra([didv for didv in self.datastore if isinstance(didv,nanonis_load.didv.spectrum)],channel=settings['spec']['defaultch'])
+                    didvData = [didv for didv in self.datastore if isinstance(didv,nanonis_load.didv.spectrum)]
+                    didvLabel = [re.findall("\d+", didv._filename)[-1] for didv in didvData] 
+                    sxmplot.add_spectra(didvData,labels=didvLabel,channel=settings['spec']['defaultch'])
                     self.setHeaderText(data)
                     # fig.delaxes(fig.axes[1])
                     # fig.axes[1].remove()
