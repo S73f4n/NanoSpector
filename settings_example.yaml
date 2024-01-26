@@ -1,11 +1,41 @@
+general:
+  infobox: true
 file:
   name: Bias-Spectroscopy00001.dat
   path: C:/
 image:
   cmap: default 
+  crop: true
   defaultch: Z (m)
   extension: .sxm
+  flatten: true
+  plane: false
 spec:
   cmap: default
   defaultch: Current (A)
   extension: .dat
+  index: true
+  logplot: false
+cmaps:
+- default
+- gray
+- viridis
+- plasma
+- inferno
+- magma
+- cividis
+- cool
+- hot
+- afmhot
+- jet
+- Set1
+- gray_r
+- viridis_r
+- plasma_r
+- inferno_r
+- magma_r
+- cividis_r
+- cool_r
+- hot_r
+- afmhot_r
+- jet_r

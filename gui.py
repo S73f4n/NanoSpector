@@ -15,6 +15,7 @@ from gi.repository import Gtk, Gdk
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.cm as cm
+from matplotlib import colormaps
 from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
 from matplotlib.backends.backend_gtk3 import NavigationToolbar2GTK3 as NavigationToolbar
 from matplotlib.ticker import EngFormatter
@@ -37,6 +38,7 @@ class Handler:
         self.filter.set_visible_func(self.filter_function)
         treview = Gtk.Builder.get_object(builder, "yAxisTreeView")
         treview.set_model(self.filter)
+        self.initSettingsWindow()
 
     def on_mainwindow_destroy(self, *args):
         self.write_settings()
@@ -83,7 +85,7 @@ class Handler:
         selection.handler_unblock_by_func(self.on_file_selected)
     
     def plot_data(self):
-        plot_log = Gtk.Builder.get_object(builder, "button_logplot").get_active()
+        logplot = Gtk.Builder.get_object(builder, "button_logplot").get_active()
         flatten = Gtk.Builder.get_object(builder, "button_flatten").get_active()
         plane = Gtk.Builder.get_object(builder, "button_plane").get_active()
         index = Gtk.Builder.get_object(builder, "button_index").get_active()
@@ -114,9 +116,9 @@ class Handler:
                         except:
                             pass
                     for ch in selected_rows:
-                        didv.plot(data, channel=ch, axes=ax,legend=False,logabs=plot_log)
+                        didv.plot(data, channel=ch, axes=ax,legend=False,logabs=logplot)
                     ax.autoscale(enable=True,axis='both')
-                    if plot_log:
+                    if logplot:
                         try: 
                             ax.set_yscale('log')
                         except UserWarning:
@@ -255,11 +257,18 @@ class Handler:
         self.on_filter_text_changed(entry)
         
     def read_settings(self):
-        if not os.path.exists(os.path.join(os.path.dirname(__file__),"settings.yaml")):
-            shutil.copy(os.path.join(os.path.dirname(__file__),"settings_example.yaml"), os.path.join(os.path.dirname(__file__),"settings.yaml"))
-        with open(os.path.join(os.path.dirname(__file__),"settings.yaml"), "r") as settingsFile:
-            global settings
-            settings = yaml.safe_load(settingsFile)   
+        global settings
+        with open(os.path.join(os.path.dirname(__file__),"settings_example.yaml"), "r") as exampleFile:
+            exampleSettings = yaml.safe_load(exampleFile)   
+        if os.path.exists(os.path.join(os.path.dirname(__file__),"settings.yaml")):
+            with open(os.path.join(os.path.dirname(__file__),"settings.yaml"), "r") as settingsFile:
+                FileSettings = yaml.safe_load(settingsFile)  
+            settings = exampleSettings | FileSettings
+            for data in settings.keys():
+                if type(settings[data]) == dict:
+                    settings[data] = exampleSettings[data] | FileSettings[data]
+        else:
+            settings = exampleSettings
     
     def write_settings(self):
         with open(os.path.join(os.path.dirname(__file__), "settings.yaml"), 'w') as file:
@@ -295,6 +304,30 @@ class Handler:
                 outfile.write("X Setscale d, 0,0, \""+waveNames[wave]+"\", "+wave+"\n")
             outfile.write("X SetDataFolder ::")
 
+    def initSettingsWindow(self):
+        self.settingsDict = {'image': {'extension': 'setImgExt', 'defaultch': 'setImgCh'},
+                        'spec': {'extension': 'setSpecExt', 'defaultch': 'setSpecCh'}}
+        self.settingsCmaps = {'image': 'setImgCmap', 'spec': 'setSpecCmap'}
+        for color in settings['cmaps']:
+            for box in self.settingsCmaps.values():
+                Gtk.Builder.get_object(builder, box).append_text(color)
+        for setType, gtkName in self.settingsCmaps.items():
+            Gtk.Builder.get_object(builder, gtkName).set_active(settings['cmaps'].index(settings[setType]['cmap']))
+        for setType, setting in self.settingsDict.items():
+            for setName, gtkName in setting.items():
+                Gtk.Builder.get_object(builder, gtkName).set_text(settings[setType][setName])
+
+    def readSettingsfromWindow(self):
+        for setType, setting in self.settingsDict.items():
+            for setName, gtkName in setting.items():
+                targetValue = Gtk.Builder.get_object(builder, gtkName).get_text()
+                if targetValue is not None:
+                    settings[setType][setName] = targetValue
+        for setType, gtkName in self.settingsCmaps.items():
+            targetValue = Gtk.Builder.get_object(builder, gtkName).get_active_text()
+            if targetValue is not None:
+                settings[setType]['cmap'] = targetValue
+
     def on_button_export_clicked(self,button):
         try:
             selected_rows = []
@@ -316,6 +349,14 @@ class Handler:
 
     def on_button_header_clicked(self,button):
        headerWindow.show()
+
+    def on_buttonSettings_clicked(self,button):
+        # self.writeSettingstoWindow()
+        response = settingsDialog.run()
+        if response == Gtk.ResponseType.APPLY:
+            self.readSettingsfromWindow()
+        settingsDialog.hide()
+        self.write_settings()
 
     def on_button_savefig_clicked(self,button):
         filemodel, fileiter = Gtk.Builder.get_object(builder, "selection_file").get_selected_rows()
@@ -341,6 +382,7 @@ yaxisList = builder.get_object("yaxis_list")
 sw = builder.get_object('scrolledwindow1')
 swtoolbar = builder.get_object('scrolledwindow2')
 headerWindow = builder.get_object('headerWindow')
+settingsDialog = builder.get_object('settingsDialog')
 
 # fig = Figure(figsize=(4,3), dpi=100)
 # ax = fig.add_subplot()
