@@ -29,16 +29,16 @@ class Handler:
          self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
          self.datastore = []
          self.selectedRows = []
+         self.read_settings()
+         self.initSettingsWindow()
 
     def on_mainwindow_show(self, *args):
-        self.read_settings()
         self.open_folder()
         self.filter_text = ""
         self.filter = yaxisList.filter_new()
         self.filter.set_visible_func(self.filter_function)
         treview = Gtk.Builder.get_object(builder, "yAxisTreeView")
         treview.set_model(self.filter)
-        self.initSettingsWindow()
 
     def on_mainwindow_destroy(self, *args):
         self.write_settings()
@@ -85,12 +85,8 @@ class Handler:
         selection.handler_unblock_by_func(self.on_file_selected)
     
     def plot_data(self):
-        logplot = Gtk.Builder.get_object(builder, "button_logplot").get_active()
-        flatten = Gtk.Builder.get_object(builder, "button_flatten").get_active()
-        plane = Gtk.Builder.get_object(builder, "button_plane").get_active()
-        index = Gtk.Builder.get_object(builder, "button_index").get_active()
-        infobox = Gtk.Builder.get_object(builder, "button_infobox").get_active()
-        crop = Gtk.Builder.get_object(builder, "button_crop").get_active()
+        for btn in settings['buttons']:
+            settings['buttons'][btn] = Gtk.Builder.get_object(builder, "button_"+btn).get_active()
         ax.cla()
         specdata = []
         handles = None
@@ -107,7 +103,7 @@ class Handler:
                     else:
                         selected_rows = self.selectedRows
                     yaxislabel = selected_rows[0]
-                    if index:
+                    if settings['buttons']['index']:
                         if 'index' not in data.data:
                             data.data = data.data.reset_index()
                     else:
@@ -116,9 +112,9 @@ class Handler:
                         except:
                             pass
                     for ch in selected_rows:
-                        didv.plot(data, channel=ch, axes=ax,legend=False,logabs=logplot)
+                        didv.plot(data, channel=ch, axes=ax,legend=False,logabs=settings['buttons']['logplot'])
                     ax.autoscale(enable=True,axis='both')
-                    if logplot:
+                    if settings['buttons']['logplot']:
                         try: 
                             ax.set_yscale('log')
                         except UserWarning:
@@ -144,7 +140,7 @@ class Handler:
                         legendLabels = selected_rows.copy() 
                         handles = None
                         fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header['Saved Date'], fontsize='medium')
-                        if infobox:
+                        if settings['buttons']['infobox']:
                             ax.annotate('\n'.join(getHeaderLabels(data)),xy=(0.015,0.8),fontsize='small',xycoords='axes fraction',bbox=dict(alpha=0.7, facecolor='#eeeeee', edgecolor='#bcbcbc', linewidth=0.5,pad=3))
                     else:
                         fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header['Saved Date'], fontsize='medium')
@@ -159,9 +155,9 @@ class Handler:
                     data.crop_missing_data(channel=selected_rows[0])
                     cmap = settings['image']['cmap']
                     if cmap == 'default':
-                        sxmplot = sxm.plot(data, channel=selected_rows[0],flatten=flatten,subtract_plane=plane,crop_missing=crop,axes=ax)
+                        sxmplot = sxm.plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],crop_missing=settings['buttons']['crop'],axes=ax)
                     else:
-                        sxmplot = sxm.plot(data, channel=selected_rows[0],cmap=cmap,flatten=flatten,subtract_plane=plane,crop_missing=crop,axes=ax)
+                        sxmplot = sxm.plot(data, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],crop_missing=settings['buttons']['crop'],axes=ax)
                     didvData = [didv for didv in self.datastore if isinstance(didv,nanonis_load.didv.spectrum)]
                     didvLabel = [re.findall("\d+", didv._filename)[-1].lstrip('0') for didv in didvData] 
                     sxmplot.add_spectra(didvData,labels=didvLabel,channel=settings['spec']['defaultch'])
@@ -182,7 +178,7 @@ class Handler:
                 try:
                     if handles == None:
                         ax.legend(legendLabels,loc=loc,fontsize='small',fancybox=True,framealpha=alpha)
-                    elif infobox:
+                    elif settings['buttons']['infobox']:
                         ax.legend(handles, legendLabels, loc=loc, fontsize='small', fancybox=True, framealpha=alpha, handlelength=0, handletextpad=0)
                 except UnboundLocalError:
                     pass
@@ -271,6 +267,8 @@ class Handler:
             settings = exampleSettings
     
     def write_settings(self):
+        for btn in settings['buttons']:
+            settings['buttons'][btn] = Gtk.Builder.get_object(builder, "button_"+btn).get_active()
         with open(os.path.join(os.path.dirname(__file__), "settings.yaml"), 'w') as file:
             yaml.dump(settings, file)
 
@@ -316,6 +314,8 @@ class Handler:
         for setType, setting in self.settingsDict.items():
             for setName, gtkName in setting.items():
                 Gtk.Builder.get_object(builder, gtkName).set_text(settings[setType][setName])
+        for btn, value in settings['buttons'].items():
+            Gtk.Builder.get_object(builder, "button_"+btn).set_active(value)
 
     def readSettingsfromWindow(self):
         for setType, setting in self.settingsDict.items():

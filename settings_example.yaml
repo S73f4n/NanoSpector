@@ -1,20 +1,20 @@
-general:
-  infobox: true
 file:
   name: Bias-Spectroscopy00001.dat
   path: C:/
 image:
   cmap: default 
-  crop: true
   defaultch: Z (m)
   extension: .sxm
-  flatten: true
-  plane: false
 spec:
   cmap: default
   defaultch: Current (A)
   extension: .dat
-  index: true
+buttons:
+  infobox: true
+  crop: false
+  flatten: true
+  plane: false
+  index: false
   logplot: false
 cmaps:
 - default
