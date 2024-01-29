@@ -84,7 +84,7 @@ class Handler:
             pass
         selection.handler_unblock_by_func(self.on_file_selected)
     
-    def plot_data(self):
+    def plot_data(self, fft=None):
         for btn in settings['buttons']:
             settings['buttons'][btn] = Gtk.Builder.get_object(builder, "button_"+btn).get_active()
         ax.cla()
@@ -154,24 +154,28 @@ class Handler:
                     yaxislabel = selected_rows[0]
                     data.crop_missing_data(channel=selected_rows[0])
                     cmap = settings['image']['cmap']
-                    if cmap == 'default':
-                        sxmplot = sxm.plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],crop_missing=settings['buttons']['crop'],axes=ax)
-                    else:
-                        sxmplot = sxm.plot(data, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],crop_missing=settings['buttons']['crop'],axes=ax)
-                    didvData = [didv for didv in self.datastore if isinstance(didv,nanonis_load.didv.spectrum)]
-                    didvLabel = [re.findall("\d+", didv._filename)[-1].lstrip('0') for didv in didvData] 
-                    sxmplot.add_spectra(didvData,labels=didvLabel,channel=settings['spec']['defaultch'])
-                    self.setHeaderText(data)
-                    # fig.delaxes(fig.axes[1])
-                    # fig.axes[1].remove()
-                    xmax=fig.axes[0].get_xticks()[-1]
-                    ymax=fig.axes[0].get_yticks()[-1]
                     alpha = 0.4
                     loc = 'lower right'
                     plotname = data.filename
-                    fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n{:g} x {:g} nm'.format(xmax,ymax),
-                                fontsize='small')
-                    fig.axes[0].axis('off')            
+                    if cmap == 'default':
+                        self.sxmplot = sxm.plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],crop_missing=settings['buttons']['crop'],axes=ax)
+                    else:
+                        self.sxmplot = sxm.plot(data, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],crop_missing=settings['buttons']['crop'],axes=ax)
+                    xmax=fig.axes[0].get_xticks()[-1]
+                    ymax=fig.axes[0].get_yticks()[-1]
+                    if fft: 
+                        self.sxmplot.fft()
+                        fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + " (FFT) \n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0], fontsize='small')
+                    else:
+                        didvData = [didv for didv in self.datastore if isinstance(didv,nanonis_load.didv.spectrum)]
+                        didvLabel = [re.findall("\d+", didv._filename)[-1].lstrip('0') for didv in didvData] 
+                        self.sxmplot.add_spectra(didvData,labels=didvLabel,channel=settings['spec']['defaultch'])
+                        fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n{:g} x {:g} nm'.format(xmax,ymax),
+                                    fontsize='small')
+                        fig.axes[0].axis('off')            
+                    self.setHeaderText(data)
+                    # fig.delaxes(fig.axes[1])
+                    # fig.axes[1].remove()
                     # fig.set_figwidth(8)
                     legendLabels = getHeaderLabels(data) 
                     handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
@@ -221,6 +225,10 @@ class Handler:
                 files.append(model[thisiter][0])
         self.getDataFromFiles(files)
         self.plot_data()
+    
+    def on_button_fft_clicked(self, button):
+        ax.cla()
+        self.plot_data(fft=True)
 
     def on_logplot_changed(self,button):
         ax.cla()

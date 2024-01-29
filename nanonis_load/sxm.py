@@ -895,6 +895,8 @@ class plot():
         #y = y.T
         if subtract_plane == True:
             image_data = sxm_data.subtract_plane(channel, direction)
+
+        image_data = image_data - np.min(image_data)
         
         self.im_plot = self.ax.imshow(image_data, origin='lower', extent=(0, sxm_data.x_range, 0, sxm_data.y_range), 
                                         cmap=cmap, rasterized=rasterized, interpolation=imshow_interpolation)
@@ -962,16 +964,24 @@ class plot():
 
     # TO DO: Add window functions.
     def fft(self):
-        self.fft_fig = plt.figure()
-        self.fft_ax = self.fft_fig.add_subplot(111)
-        fft_array = np.absolute(np.fft.fft2(self.image_data))
-        max_fft = np.max(fft_array[1:-1,1:-1])
+        self.ax.cla()
+        self.fft_fig = self.ax.figure
+        # self.ax = self.fft_fig.add_subplot(111)
+
+        image = self.image_data 
+        hanning_window = np.blackman(image.shape[0])[:, np.newaxis] * np.blackman(image.shape[1])
+        image_windowed = image * hanning_window
+        fft_array = np.fft.fft2(image_windowed)
         fft_array = np.fft.fftshift(fft_array)
+        fft_array = np.abs(fft_array)
+        max_fft = np.log(1+ np.mean(fft_array)) * 20
         fft_x = -np.pi/(self.data.header['x_range (nm)']/self.data.header['x_pixels'])
         fft_y = np.pi/(self.data.header['y_range (nm)']/self.data.header['y_pixels'])
-        self.fft_plot = self.fft_ax.imshow(fft_array, extent = [fft_x, -fft_x, -fft_y, fft_y], origin = 'lower')
-        self.fft_fig.colorbar(self.fft_plot, ax = self.fft_ax)
-        self.fft_clim(0,max_fft)
+        self.fft_plot = self.ax.imshow(np.log(1+fft_array), extent = [fft_x, -fft_x, -fft_y, fft_y], origin = 'lower',vmax=max_fft)
+        self.ax.set_xlabel("nm$^{-1}$")
+        self.ax.set_ylabel("nm$^{-1}$")
+        # self.fft_fig.colorbar(self.fft_plot, ax = self.ax)
+        # self.fft_clim(0,max_fft)
 
     def fft_clim(self, c_min, c_max):
         self.fft_plot.set_clim(c_min, c_max)

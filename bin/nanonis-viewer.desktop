@@ -5,5 +5,5 @@ Exec=/home/stefan/nanonis-viewer/gui.py
 Path=/home/stefan/nanonis-viewer
 Icon=/home/stefan/nanonis-viewer/icons/nanonis-viewer.png
 Type=Application
-Terminal=false
+Terminal=false<
 StartupNotify=true
