@@ -11,13 +11,13 @@ spec:
   extension: .dat
 fft:
   cmap: viridis
+  level: 20
   window: Hanning
   windows:
   - None
   - Hanning
   - Hamming
   - Blackman
-  - Barlett
 buttons:
   infobox: true
   crop: false
