@@ -9,6 +9,15 @@ spec:
   cmap: default
   defaultch: Current (A)
   extension: .dat
+fft:
+  cmap: viridis
+  window: Hanning
+  windows:
+  - None
+  - Hanning
+  - Hamming
+  - Blackman
+  - Barlett
 buttons:
   infobox: true
   crop: false

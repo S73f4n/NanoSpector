@@ -896,7 +896,10 @@ class plot():
         if subtract_plane == True:
             image_data = sxm_data.subtract_plane(channel, direction)
 
-        image_data = image_data - np.min(image_data)
+        try:
+            image_data = image_data - np.min(image_data)
+        except:
+            pass
         
         self.im_plot = self.ax.imshow(image_data, origin='lower', extent=(0, sxm_data.x_range, 0, sxm_data.y_range), 
                                         cmap=cmap, rasterized=rasterized, interpolation=imshow_interpolation)
@@ -963,18 +966,21 @@ class plot():
             self.fig.canvas.mpl_connect('pick_event', pick_caller)
 
     # TO DO: Add window functions.
-    def fft(self):
+    def fft(self, windowFilter='None',level=20):
+        
         self.ax.cla()
         self.fft_fig = self.ax.figure
         # self.ax = self.fft_fig.add_subplot(111)
-
-        image = self.image_data 
-        hanning_window = np.blackman(image.shape[0])[:, np.newaxis] * np.blackman(image.shape[1])
-        image_windowed = image * hanning_window
-        fft_array = np.fft.fft2(image_windowed)
+        
+        if windowFilter == 'None':
+            image = self.image_data 
+        else:
+            hanning_window = getattr(np, windowFilter.lower())(self.image_data.shape[0])[:, np.newaxis] * np.blackman(self.image_data.shape[1])
+            image = self.image_data * hanning_window
+        fft_array = np.fft.fft2(image)
         fft_array = np.fft.fftshift(fft_array)
         fft_array = np.abs(fft_array)
-        max_fft = np.log(1+ np.mean(fft_array)) * 20
+        max_fft = np.log(1+ np.mean(fft_array)) * level
         fft_x = -np.pi/(self.data.header['x_range (nm)']/self.data.header['x_pixels'])
         fft_y = np.pi/(self.data.header['y_range (nm)']/self.data.header['y_pixels'])
         self.fft_plot = self.ax.imshow(np.log(1+fft_array), extent = [fft_x, -fft_x, -fft_y, fft_y], origin = 'lower',vmax=max_fft)

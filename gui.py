@@ -164,7 +164,7 @@ class Handler:
                     xmax=fig.axes[0].get_xticks()[-1]
                     ymax=fig.axes[0].get_yticks()[-1]
                     if fft: 
-                        self.sxmplot.fft()
+                        self.sxmplot.fft(windowFilter=settings['fft']['window'],level=settings['fft']['level'])
                         fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + " (FFT) \n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0], fontsize='small')
                     else:
                         didvData = [didv for didv in self.datastore if isinstance(didv,nanonis_load.didv.spectrum)]
@@ -313,15 +313,24 @@ class Handler:
     def initSettingsWindow(self):
         self.settingsDict = {'image': {'extension': 'setImgExt', 'defaultch': 'setImgCh'},
                         'spec': {'extension': 'setSpecExt', 'defaultch': 'setSpecCh'}}
-        self.settingsCmaps = {'image': 'setImgCmap', 'spec': 'setSpecCmap'}
+        self.settingsCmaps = {'image': 'setImgCmap', 'spec': 'setSpecCmap', 'fft': 'setFFTCmap'}
+        self.settingsBoxes = {'fft': {'window': 'setFFTWindow'}}
+        for setType, setting in self.settingsBoxes.items():
+            for setName, gtkName in setting.items():
+                for window in settings[setType][setName+'s']:
+                    Gtk.Builder.get_object(builder, gtkName).append_text(window)
         for color in settings['cmaps']:
             for box in self.settingsCmaps.values():
                 Gtk.Builder.get_object(builder, box).append_text(color)
+        for setType, setting in self.settingsBoxes.items():
+            for setName, gtkName in setting.items():
+                Gtk.Builder.get_object(builder, gtkName).set_active(settings[setType][setName+'s'].index(settings[setType][setName]))
         for setType, gtkName in self.settingsCmaps.items():
             Gtk.Builder.get_object(builder, gtkName).set_active(settings['cmaps'].index(settings[setType]['cmap']))
         for setType, setting in self.settingsDict.items():
             for setName, gtkName in setting.items():
                 Gtk.Builder.get_object(builder, gtkName).set_text(settings[setType][setName])
+        Gtk.Builder.get_object(builder, 'adjFFTLevel').set_value(settings['fft']['level'])
         for btn, value in settings['buttons'].items():
             Gtk.Builder.get_object(builder, "button_"+btn).set_active(value)
 
@@ -335,6 +344,12 @@ class Handler:
             targetValue = Gtk.Builder.get_object(builder, gtkName).get_active_text()
             if targetValue is not None:
                 settings[setType]['cmap'] = targetValue
+        for setType, setting in self.settingsBoxes.items():
+            for setName, gtkName in setting.items():
+                targetValue = Gtk.Builder.get_object(builder, gtkName).get_active_text()
+                if targetValue is not None:
+                    settings[setType][setName] = targetValue
+        settings['fft']['level'] = Gtk.Builder.get_object(builder, 'adjFFTLevel').get_value()
 
     def on_button_export_clicked(self,button):
         try:
@@ -365,6 +380,7 @@ class Handler:
             self.readSettingsfromWindow()
         settingsDialog.hide()
         self.write_settings()
+        self.plot_data()
 
     def on_button_savefig_clicked(self,button):
         filemodel, fileiter = Gtk.Builder.get_object(builder, "selection_file").get_selected_rows()
