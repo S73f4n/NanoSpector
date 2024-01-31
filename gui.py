@@ -112,7 +112,7 @@ class Handler:
                             data.data.drop('index', axis=1, inplace=True)
                         except:
                             pass
-                    offsetX = np.max(self.datastore[0].data[yaxislabel]) * offsetXslider/100
+                    offsetX = np.mean(self.datastore[0].data[yaxislabel]) * offsetXslider/100
                     for ch in selected_rows:
                         if settings['buttons']['average']:
                             bracketPos = ch.find('(')
