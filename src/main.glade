@@ -51,6 +51,12 @@
     <property name="step-increment">1</property>
     <property name="page-increment">10</property>
   </object>
+  <object class="GtkAdjustment" id="adjOffset">
+    <property name="upper">200</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">10</property>
+    <signal name="value-changed" handler="on_logplot_changed" swapped="no"/>
+  </object>
   <object class="GtkListStore" id="file_list">
     <columns>
       <!-- column-name gint1 -->
@@ -182,8 +188,8 @@
                     <property name="vexpand">True</property>
                     <property name="window-placement-set">False</property>
                     <property name="shadow-type">in</property>
-                    <property name="min-content-width">800</property>
-                    <property name="min-content-height">450</property>
+                    <property name="min-content-width">100</property>
+                    <property name="min-content-height">133</property>
                   </object>
                   <packing>
                     <property name="expand">True</property>
@@ -450,6 +456,38 @@
                             <property name="position">9</property>
                           </packing>
                         </child>
+                        <child>
+                          <object class="GtkCheckButton" id="button_legend">
+                            <property name="label" translatable="yes">legend</property>
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="receives-default">False</property>
+                            <property name="halign">start</property>
+                            <property name="valign">center</property>
+                            <property name="draw-indicator">True</property>
+                            <signal name="toggled" handler="on_logplot_changed" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">10</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkCheckButton" id="button_average">
+                            <property name="label" translatable="yes">average</property>
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="receives-default">False</property>
+                            <property name="draw-indicator">True</property>
+                            <signal name="toggled" handler="on_logplot_changed" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">11</property>
+                          </packing>
+                        </child>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -586,6 +624,19 @@
                             <property name="expand">False</property>
                             <property name="fill">True</property>
                             <property name="position">2</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkScale">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="adjustment">adjOffset</property>
+                            <property name="round-digits">1</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">3</property>
                           </packing>
                         </child>
                       </object>

@@ -25,6 +25,8 @@ buttons:
   plane: false
   index: false
   logplot: false
+  legend: true
+  average: true
 cmaps:
 - default
 - gray

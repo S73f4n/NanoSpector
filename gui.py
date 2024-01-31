@@ -87,6 +87,7 @@ class Handler:
     def plot_data(self, fft=None):
         for btn in settings['buttons']:
             settings['buttons'][btn] = Gtk.Builder.get_object(builder, "button_"+btn).get_active()
+        offsetXslider = Gtk.Builder.get_object(builder, "adjOffset").get_value()
         ax.cla()
         specdata = []
         handles = None
@@ -96,7 +97,7 @@ class Handler:
             legendLabels = []
             if len(self.datastore) > 1 and settings['spec']['cmap'] != "default":
                 ax.set_prop_cycle('color',[getattr(plt.cm, settings['spec']['cmap'])(i) for i in np.linspace(0, 1, len(self.datastore))])
-            for data in self.datastore:
+            for countIndex, data in enumerate(self.datastore):
                 if isinstance(data,nanonis_load.didv.spectrum) and [sxm for sxm in self.datastore if isinstance(sxm,nanonis_load.sxm.sxm)] == []:
                     if self.selectedRows == []:
                         selected_rows.append(settings['spec']['defaultch'])
@@ -111,8 +112,14 @@ class Handler:
                             data.data.drop('index', axis=1, inplace=True)
                         except:
                             pass
+                    offsetX = np.max(self.datastore[0].data[yaxislabel]) * offsetXslider/100
                     for ch in selected_rows:
-                        didv.plot(data, channel=ch, axes=ax,legend=False,logabs=settings['buttons']['logplot'])
+                        if settings['buttons']['average']:
+                            bracketPos = ch.find('(')
+                            average = ch[:bracketPos] + "[bwd] " + ch[bracketPos:]
+                        else:
+                            average = None
+                        didv.plot(data, channel=ch, axes=ax,legend=False,average=average,logabs=settings['buttons']['logplot'],multiply=(offsetX*(len(self.datastore)-countIndex)))
                     ax.autoscale(enable=True,axis='both')
                     if settings['buttons']['logplot']:
                         try: 
@@ -180,9 +187,9 @@ class Handler:
                     legendLabels = getHeaderLabels(data) 
                     handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
                 try:
-                    if handles == None:
+                    if handles == None and settings['buttons']['legend']:
                         ax.legend(legendLabels,loc=loc,fontsize='small',fancybox=True,framealpha=alpha)
-                    elif settings['buttons']['infobox']:
+                    elif handles is not None and settings['buttons']['infobox']:
                         ax.legend(handles, legendLabels, loc=loc, fontsize='small', fancybox=True, framealpha=alpha, handlelength=0, handletextpad=0)
                 except UnboundLocalError:
                     pass
