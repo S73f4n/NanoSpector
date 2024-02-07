@@ -15,6 +15,7 @@ import logging
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, to_rgba_array
+import os
 
 
 __version__ = "1.2.1"
@@ -24,7 +25,7 @@ log = logging.getLogger(__name__)
 
 
 def read_colorsets():
-    with open('src/tol_colors/colorsets.json', 'r') as f:
+    with open(os.path.join(os.path.dirname(__file__),'colorsets.json'), 'r') as f:
         colorsets_js = json.load(f)
 
     colorsets = {}
