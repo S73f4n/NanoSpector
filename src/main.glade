@@ -531,8 +531,8 @@
                           <object class="GtkEntry" id="entry_filter_text">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
-                            <property name="primary-icon-name">find</property>
-                            <property name="secondary-icon-name">clear</property>
+                            <property name="primary-icon-name">edit-find</property>
+                            <property name="secondary-icon-name">edit-delete</property>
                             <property name="placeholder-text" translatable="yes">Filter channels</property>
                             <signal name="activate" handler="on_filter_text_changed" swapped="no"/>
                             <signal name="icon-press" handler="on_filter_text_clear" swapped="no"/>
