@@ -1,9 +1,9 @@
 [Desktop Entry]
 Name=Nanonis Viewer
 Version=1.0
-Exec=/home/stefan/nanonis-viewer/gui.py
+Exec=/home/stefan/nanonis-viewer/NanonisViewer.py
 Path=/home/stefan/nanonis-viewer
 Icon=/home/stefan/nanonis-viewer/icons/nanonis-viewer.png
 Type=Application
-Terminal=false<
+Terminal=false
 StartupNotify=true
