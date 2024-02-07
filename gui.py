@@ -291,6 +291,20 @@ class Handler:
         ax.cla()
         fig.canvas.draw()
     
+    def on_button_reverse_clicked(self, button):
+        try:
+            if self.datastore is not None and len(self.datastore) > 1:
+                self.datastore.reverse()
+        except:
+            pass
+        try:
+            if self.selectedRows is not None and len(self.selectedRows) > 1:
+             self.selectedRows.reverse()
+        except:
+            pass
+
+        self.on_logplot_changed(button)
+    
     def cleanIgorName(self, folder):
         folder = folder.replace(folder.split(".")[-1], "")
         folder = folder.replace(".","_").replace("-","").replace("+","p").replace(" ","")
