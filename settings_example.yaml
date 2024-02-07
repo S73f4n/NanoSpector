@@ -39,7 +39,19 @@ cmaps:
 - hot
 - afmhot
 - jet
+- bright
+- vibrant
+- high-contrast
+- muted
+- medium-contrast
+- pale
+- dark
+- light
 - Set1
+- Paired
+- Dark2
+- tab10
+- tab20
 - gray_r
 - viridis_r
 - plasma_r
@@ -50,3 +62,9 @@ cmaps:
 - hot_r
 - afmhot_r
 - jet_r
+csets:
+- Set1
+- Paired
+- Dark2
+- tab10
+- tab20

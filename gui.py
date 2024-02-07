@@ -22,6 +22,8 @@ from matplotlib.ticker import EngFormatter
 from matplotlib import style
 import matplotlib.patches as mpl_patches
 
+import src.tol_colors as tc
+
 from src.dataheader import getHeaderLabels
 
 class Handler:
@@ -96,7 +98,13 @@ class Handler:
             selected_rows = []
             legendLabels = []
             if len(self.datastore) > 1 and settings['spec']['cmap'] != "default":
-                ax.set_prop_cycle('color',[getattr(plt.cm, settings['spec']['cmap'])(i) for i in np.linspace(0, 1, len(self.datastore))])
+                    if settings['spec']['cmap'] in settings['csets']:
+                        ax.set_prop_cycle('color',[getattr(plt.cm, settings['spec']['cmap'])(i) for i, ch in enumerate(self.datastore)])
+                    else:
+                        try:
+                                ax.set_prop_cycle('color',[getattr(plt.cm, settings['spec']['cmap'])(i) for i in np.linspace(0, 1, len(self.datastore))])
+                        except AttributeError:
+                            ax.set_prop_cycle('color',list(tc.tol_cset(settings['spec']['cmap'])))
             for countIndex, data in enumerate(self.datastore):
                 if isinstance(data,nanonis_load.didv.spectrum) and [sxm for sxm in self.datastore if isinstance(sxm,nanonis_load.sxm.sxm)] == []:
                     if self.selectedRows == []:
@@ -167,7 +175,10 @@ class Handler:
                     if cmap == 'default':
                         self.sxmplot = sxm.plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],crop_missing=settings['buttons']['crop'],axes=ax)
                     else:
-                        self.sxmplot = sxm.plot(data, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],crop_missing=settings['buttons']['crop'],axes=ax)
+                        try:
+                            self.sxmplot = sxm.plot(data, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],crop_missing=settings['buttons']['crop'],axes=ax)
+                        except ValueError:
+                            self.sxmplot = sxm.plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],crop_missing=settings['buttons']['crop'],axes=ax)
                     xmax=fig.axes[0].get_xticks()[-1]
                     ymax=fig.axes[0].get_yticks()[-1]
                     if fft: 
