@@ -86,6 +86,13 @@ class Handler:
             pass
         selection.handler_unblock_by_func(self.on_file_selected)
     
+    def replaceLabel(self, label):
+        label = label.replace('[AVG] ', '').replace('[bwd] ', '')
+        if settings['buttons']['replace']:
+            for key, value in settings['label'].items():
+                label = label.replace(key, value)
+        return label
+
     def plot_data(self, fft=None):
         for btn in settings['buttons']:
             settings['buttons'][btn] = Gtk.Builder.get_object(builder, "button_"+btn).get_active()
@@ -111,7 +118,7 @@ class Handler:
                         selected_rows.append(settings['spec']['defaultch'])
                     else:
                         selected_rows = self.selectedRows
-                    yaxislabel = selected_rows[0]
+                    yaxislabel = self.replaceLabel(selected_rows[0])
                     if settings['buttons']['index']:
                         if 'index' not in data.data:
                             data.data = data.data.reset_index()
@@ -120,7 +127,7 @@ class Handler:
                             data.data.drop('index', axis=1, inplace=True)
                         except:
                             pass
-                    offsetX = np.mean(self.datastore[0].data[yaxislabel]) * offsetXslider/100
+                    offsetX = np.mean(self.datastore[0].data[selected_rows[0]]) * offsetXslider/100
                     for ch in selected_rows:
                         if settings['buttons']['average']:
                             bracketPos = ch.find('(')
@@ -137,6 +144,7 @@ class Handler:
                     else:
                         ax.set_yscale('linear')
                     ax.set_ylabel(yaxislabel)
+                    ax.set_xlabel(self.replaceLabel(ax.get_xlabel()))
                     ax.set_aspect('auto')
                     ax.xaxis.set_major_formatter(formatter1)
                     ax.yaxis.set_major_formatter(formatter1)
@@ -166,7 +174,6 @@ class Handler:
                         selected_rows.append(settings['image']['defaultch'])
                     else:
                         selected_rows = self.selectedRows
-                    yaxislabel = selected_rows[0]
                     data.crop_missing_data(channel=selected_rows[0])
                     cmap = settings['image']['cmap']
                     alpha = 0.4

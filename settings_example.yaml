@@ -27,6 +27,7 @@ buttons:
   logplot: false
   legend: true
   average: true
+  replace: false
 cmaps:
 - default
 - gray
@@ -68,3 +69,9 @@ csets:
 - Dark2
 - tab10
 - tab20
+label:
+  Bias calc (V): V (V)
+  Current (A): I (A)
+  LI Demod 1 X (A): dI / dV (A/V)
+  OC D1 Amplitude (m): A (m)
+  OC M1 Freq. Shift (Hz): dF (Hz)
