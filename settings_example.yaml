@@ -26,7 +26,7 @@ buttons:
   index: false
   logplot: false
   legend: true
-  average: true
+  average: false
   replace: false
 cmaps:
 - default
