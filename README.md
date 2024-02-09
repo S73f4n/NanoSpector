@@ -4,7 +4,7 @@ Welcome to Nanonis Viewer a small program that allows you to quickly view images
 
 ## Screenshots
  
-<img src="screenshots/image.png"  width="320">
+<img src="screenshots/image.png"  width="640">
 <img src="screenshots/spectra.png"  width="320">
 <img src="screenshots/fft.png"  width="320">
 
