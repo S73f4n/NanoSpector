@@ -6,7 +6,6 @@ Welcome to NanonisViewer a small program that allows you to quickly view images 
  
 <img src="screenshots/image.png"  width="640">
 <img src="screenshots/spectra.png"  width="640">
-<img src="screenshots/fft.png"  width="640">
 
 ## Installation
 
