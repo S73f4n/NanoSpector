@@ -5,6 +5,7 @@ Welcome to Nanonis Viewer a small program that allows you to quickly view images
 ## Screenshots
  
 ![Alt text](screenshots/image.png?raw=true "Plotting an image with NanonisViewer")
+<img src="screenshots/spectra.png"  width="120">
 
 ## Installation
 
