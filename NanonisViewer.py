@@ -115,7 +115,10 @@ class Handler:
             for countIndex, data in enumerate(self.datastore):
                 if isinstance(data,nanonis_load.didv.spectrum) and [sxm for sxm in self.datastore if isinstance(sxm,nanonis_load.sxm.sxm)] == []:
                     if self.selectedRows == []:
-                        selected_rows.append(settings['spec']['defaultch'])
+                        if "Z" in data._filename:
+                            selected_rows.append(settings['spec']['defaultchZ'])
+                        else:
+                            selected_rows.append(settings['spec']['defaultch'])
                     else:
                         selected_rows = self.selectedRows
                     yaxislabel = self.replaceLabel(selected_rows[0])
@@ -351,7 +354,7 @@ class Handler:
 
     def initSettingsWindow(self):
         self.settingsDict = {'image': {'extension': 'setImgExt', 'defaultch': 'setImgCh'},
-                        'spec': {'extension': 'setSpecExt', 'defaultch': 'setSpecCh'}}
+                        'spec': {'extension': 'setSpecExt', 'defaultch': 'setSpecCh', 'defaultchZ': 'setSpecChZ'}}
         self.settingsCmaps = {'image': 'setImgCmap', 'spec': 'setSpecCmap', 'fft': 'setFFTCmap'}
         self.settingsBoxes = {'fft': {'window': 'setFFTWindow'}}
         for setType, setting in self.settingsBoxes.items():

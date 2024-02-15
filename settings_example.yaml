@@ -8,6 +8,7 @@ image:
 spec:
   cmap: default
   defaultch: Current (A)
+  defaultchZ: Current (A)
   extension: .dat
 fft:
   cmap: viridis
