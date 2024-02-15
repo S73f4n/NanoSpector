@@ -11,9 +11,9 @@ Welcome to NanonisViewer a small program that allows you to quickly view images 
 
 ### Windows and Linux binaries
 
-For Windows and Linux users, an executable binary versions are available on the release page. Just download the whole folder and run NanonisViewer from within. Linux version was tested on Ubuntu 22.04.
+For Windows and Linux users, executable binary versions are available on the release page (Packages). Just download the whole folder and run NanonisViewer from within. No need to download the source code of the repository. Linux version was tested on Ubuntu 22.04 but should run on other distros as well.
 
-### Conda
+### Conda (cross-platform)
 
 If you are using a conda python environment you can install the necessary dependencies by
 ```
@@ -32,10 +32,10 @@ pip install scipy pyaml pandas matplotlib
 ## Usage
 Usage of NanonisViewer is rather intuitive. Select the folder your data files are in and click on a specific file to view it. If the default channel is present in that file, it will already be plotted. Otherwise, select the respective channel from the list. Selecting multiple files as well as channels is also possible.
 Basic image analysis is available in the main window. Flatten, plane level or crop the images or calculate the 2D FFT.
-The save button save a .png image in the export subfolder of your working directory and copies it to the clip board automatically
+The “Save plot” button saves a .png image in the export subfolder of your working directory and copies it to the clip board automatically.
 
 ## Settings
-The file extensions NanonisViewer is looking for, the default channels and colormaps can be changed from the settings window. FFT settings allow you to change the window function that is applied to the image before calculating the FFT as well as the cut-off level of the finial FFT plot.
+The file extensions NanonisViewer is looking for, the default channels and colormaps can be changed from the settings window. FFT settings allow you to change the window function that is applied to the image before calculating the FFT as well as the cut-off level of the finial FFT plot. All settings are conveniently saved in a single YAML file (settings.yaml). Some settings are not changeable via the GUI and can be edited in the settings file directly, e.g., available color maps and axis labels. Make sure NanonisViewer is not running when you edit the file. 
 
 ## Support
 If you have problems with NanonisViewer or find a bug you can message me at st.schulte@fz-juelich.de.
