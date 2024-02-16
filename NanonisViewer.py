@@ -160,6 +160,7 @@ class Handler:
                     alpha = 1
                     loc = 'best'
                     if len(self.datastore) > 1:
+                        fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)))
                         legendLabels.append(os.path.basename(plotname))
                         handles = None
                     elif len(selected_rows) > 1:
