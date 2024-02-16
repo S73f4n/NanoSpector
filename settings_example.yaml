@@ -3,6 +3,8 @@ file:
   path: C:/
 image:
   cmap: default 
+  cmapI: viridis
+  cmapdIdV: magma 
   defaultch: Z (m)
   extension: .sxm
 spec:

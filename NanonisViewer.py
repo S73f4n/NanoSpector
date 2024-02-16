@@ -28,11 +28,15 @@ from src.dataheader import getHeaderLabels
 
 class Handler:
     def __init__(self):
-         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-         self.datastore = []
-         self.selectedRows = []
-         self.read_settings()
-         self.initSettingsWindow()
+        self.settingsDict = {'image': {'extension': 'setImgExt', 'defaultch': 'setImgCh'},
+                            'spec': {'extension': 'setSpecExt', 'defaultch': 'setSpecCh', 'defaultchZ': 'setSpecChZ'}}
+        self.settingsCmaps = {'image': {'cmap': 'setImgCmap', 'cmapI': 'setImgCmapI', 'cmapdIdV': 'setImgCmapdIdV'}, 'spec': {'cmap': 'setSpecCmap'}, 'fft': {'cmap': 'setFFTCmap'}}
+        self.settingsBoxes = {'fft': {'window': 'setFFTWindow'}}
+        self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        self.datastore = []
+        self.selectedRows = []
+        self.read_settings()
+        self.initSettingsWindow()
 
     def on_mainwindow_show(self, *args):
         self.open_folder()
@@ -179,7 +183,12 @@ class Handler:
                     else:
                         selected_rows = self.selectedRows
                     data.crop_missing_data(channel=selected_rows[0])
-                    cmap = settings['image']['cmap']
+                    if "Current" in selected_rows[0]:
+                        cmap = settings['image']['cmapI']
+                    elif "LI" in selected_rows[0]: 
+                        cmap = settings['image']['cmapdIdV']
+                    else:
+                        cmap = settings['image']['cmap']
                     alpha = 0.4
                     loc = 'lower right'
                     plotname = data.filename
@@ -354,22 +363,21 @@ class Handler:
             outfile.write("X SetDataFolder ::")
 
     def initSettingsWindow(self):
-        self.settingsDict = {'image': {'extension': 'setImgExt', 'defaultch': 'setImgCh'},
-                        'spec': {'extension': 'setSpecExt', 'defaultch': 'setSpecCh', 'defaultchZ': 'setSpecChZ'}}
-        self.settingsCmaps = {'image': 'setImgCmap', 'spec': 'setSpecCmap', 'fft': 'setFFTCmap'}
-        self.settingsBoxes = {'fft': {'window': 'setFFTWindow'}}
         for setType, setting in self.settingsBoxes.items():
             for setName, gtkName in setting.items():
                 for window in settings[setType][setName+'s']:
                     Gtk.Builder.get_object(builder, gtkName).append_text(window)
         for color in settings['cmaps']:
-            for box in self.settingsCmaps.values():
-                Gtk.Builder.get_object(builder, box).append_text(color)
+            for boxes in self.settingsCmaps.values():
+                print(boxes)
+                for box in boxes.values():
+                    Gtk.Builder.get_object(builder, box).append_text(color)
         for setType, setting in self.settingsBoxes.items():
             for setName, gtkName in setting.items():
                 Gtk.Builder.get_object(builder, gtkName).set_active(settings[setType][setName+'s'].index(settings[setType][setName]))
-        for setType, gtkName in self.settingsCmaps.items():
-            Gtk.Builder.get_object(builder, gtkName).set_active(settings['cmaps'].index(settings[setType]['cmap']))
+        for setType, setting in self.settingsCmaps.items():
+            for setName, gtkName in setting.items():
+                Gtk.Builder.get_object(builder, gtkName).set_active(settings['cmaps'].index(settings[setType][setName]))
         for setType, setting in self.settingsDict.items():
             for setName, gtkName in setting.items():
                 Gtk.Builder.get_object(builder, gtkName).set_text(settings[setType][setName])
@@ -383,10 +391,11 @@ class Handler:
                 targetValue = Gtk.Builder.get_object(builder, gtkName).get_text()
                 if targetValue is not None:
                     settings[setType][setName] = targetValue
-        for setType, gtkName in self.settingsCmaps.items():
-            targetValue = Gtk.Builder.get_object(builder, gtkName).get_active_text()
-            if targetValue is not None:
-                settings[setType]['cmap'] = targetValue
+        for setType, setting in self.settingsCmaps.items():
+            for setName, gtkName in setting.items():
+                targetValue = Gtk.Builder.get_object(builder, gtkName).get_active_text()
+                if targetValue is not None:
+                    settings[setType][setName] = targetValue
         for setType, setting in self.settingsBoxes.items():
             for setName, gtkName in setting.items():
                 targetValue = Gtk.Builder.get_object(builder, gtkName).get_active_text()
