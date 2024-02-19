@@ -1,3 +1,5 @@
+general:
+  plotstyle: 'bmh'
 file:
   name: Bias-Spectroscopy00001.dat
   path: C:/

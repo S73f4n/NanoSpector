@@ -15,11 +15,10 @@ from gi.repository import Gtk, Gdk
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.cm as cm
-from matplotlib import colormaps
+from matplotlib import colormaps, style
 from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
 from matplotlib.backends.backend_gtk3 import NavigationToolbar2GTK3 as NavigationToolbar
 from matplotlib.ticker import EngFormatter
-from matplotlib import style
 import matplotlib.patches as mpl_patches
 
 import src.tol_colors as tc
@@ -28,8 +27,13 @@ from src.dataheader import getHeaderLabels
 
 class Handler:
     def __init__(self):
-        self.settingsDict = {'image': {'extension': 'setImgExt', 'defaultch': 'setImgCh'},
-                            'spec': {'extension': 'setSpecExt', 'defaultch': 'setSpecCh', 'defaultchZ': 'setSpecChZ'}}
+        self.settingsDict = {
+                            'image': {'extension': 'setImgExt', 'defaultch': 'setImgCh'},
+                            'spec': {'extension': 'setSpecExt', 'defaultch': 'setSpecCh', 'defaultchZ': 'setSpecChZ'},
+                            }
+        self.settingsDropdown = {
+                            'general': {'plotstyle': 'setGeneralPlotstyle'}
+        }
         self.settingsCmaps = {'image': {'cmap': 'setImgCmap', 'cmapI': 'setImgCmapI', 'cmapdIdV': 'setImgCmapdIdV'}, 'spec': {'cmap': 'setSpecCmap'}, 'fft': {'cmap': 'setFFTCmap'}}
         self.settingsBoxes = {'fft': {'window': 'setFFTWindow'}}
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
@@ -37,6 +41,13 @@ class Handler:
         self.selectedRows = []
         self.read_settings()
         self.initSettingsWindow()
+        self.setPlotstyle()
+
+    def setPlotstyle(self):
+        plt.style.use(settings['general']['plotstyle'])
+        plt.rcParams["font.family"] = 'sans-serif'
+        plt.rcParams["font.sans-serif"] = ['DejaVu Sans','Arial']
+        
 
     def on_mainwindow_show(self, *args):
         self.open_folder()
@@ -363,13 +374,16 @@ class Handler:
             outfile.write("X SetDataFolder ::")
 
     def initSettingsWindow(self):
+        plotstyleGtk = Gtk.Builder.get_object(builder, "setGeneralPlotstyle")
+        for ps in style.available:
+            plotstyleGtk.append_text(ps)
+        plotstyleGtk.set_active(style.available.index(settings['general']['plotstyle'])) 
         for setType, setting in self.settingsBoxes.items():
             for setName, gtkName in setting.items():
                 for window in settings[setType][setName+'s']:
                     Gtk.Builder.get_object(builder, gtkName).append_text(window)
         for color in settings['cmaps']:
             for boxes in self.settingsCmaps.values():
-                print(boxes)
                 for box in boxes.values():
                     Gtk.Builder.get_object(builder, box).append_text(color)
         for setType, setting in self.settingsBoxes.items():
@@ -396,12 +410,18 @@ class Handler:
                 targetValue = Gtk.Builder.get_object(builder, gtkName).get_active_text()
                 if targetValue is not None:
                     settings[setType][setName] = targetValue
+        for setType, setting in self.settingsDropdown.items():
+            for setName, gtkName in setting.items():
+                targetValue = Gtk.Builder.get_object(builder, gtkName).get_active_text()
+                if targetValue is not None:
+                    settings[setType][setName] = targetValue
         for setType, setting in self.settingsBoxes.items():
             for setName, gtkName in setting.items():
                 targetValue = Gtk.Builder.get_object(builder, gtkName).get_active_text()
                 if targetValue is not None:
                     settings[setType][setName] = targetValue
         settings['fft']['level'] = Gtk.Builder.get_object(builder, 'adjFFTLevel').get_value()
+        self.setPlotstyle()
 
     def on_button_export_clicked(self,button):
         try:
@@ -462,7 +482,6 @@ settingsDialog = builder.get_object('settingsDialog')
 
 # fig = Figure(figsize=(4,3), dpi=100)
 # ax = fig.add_subplot()
-plt.style.use('bmh')
 fig, ax = plt.subplots()
 # fig.tight_layout()
 formatter1 = EngFormatter(sep="\u2009")
