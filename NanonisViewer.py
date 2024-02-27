@@ -353,7 +353,10 @@ class Handler:
         return folder[:-1]
 
     def cleanWaveName(self,rows,filename):
-        specno = re.search(r'\d+',filename).group()
+        try:
+            specno = re.search(r'\d+',filename).group()
+        except AttributeError:
+            specno = ""
         units = [re.search(r"\((\w+)\)", wave).group(1) for wave in rows]
         ch = [re.sub(r"\((\w+)\)", '', wave) for wave in rows]
         ch = [wave.replace(".","_").replace("-","").replace("+","p").replace(" ","").replace("[","").replace("]","").replace("(","").replace(")","")+specno for wave in ch]
