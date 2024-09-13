@@ -866,6 +866,7 @@ class plot():
         image_data = np.copy(sxm_data.data[channel][direction])
         avg_dat = image_data[~np.isnan(image_data)].mean()
         image_data[np.isnan(image_data)] = avg_dat
+        image_data = np.ma.masked_where(image_data == 0.0, image_data)
         if (flatten == True) and (subtract_plane == False):
             image_data=scipy.signal.detrend(image_data)
         if crop_missing:
@@ -900,7 +901,9 @@ class plot():
             image_data = image_data - np.min(image_data)
         except:
             pass
-        
+
+        cmap = plt.get_cmap(cmap)
+        cmap.set_bad(color='#dddddd')
         self.im_plot = self.ax.imshow(image_data, origin='lower', extent=(0, sxm_data.x_range, 0, sxm_data.y_range), 
                                         cmap=cmap, rasterized=rasterized, interpolation=imshow_interpolation)
         self.ax.set_aspect('equal')
