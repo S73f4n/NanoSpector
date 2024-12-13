@@ -64,7 +64,7 @@ def getHeaderLabels(data):
             pass
         return labels
                     
-def formatSI(value, precision=3):
+def formatSI(value, precision=4):
     prefixes = {
         9: "G",   # giga
         6: "M",   # mega
