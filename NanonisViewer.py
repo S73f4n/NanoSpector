@@ -370,11 +370,15 @@ class Handler:
         waveNames = self.cleanWaveName(rows,igorFolder)
         with open(outpath, 'w') as outfile:
             outfile.write("IGOR\nX NewDataFolder/S "+igorFolder+"\nWAVES/D "+' '.join(waveNames.keys())+ "\nBEGIN\n")
-            data.to_csv(outfile,sep="\t",columns=rows,index=False,header=False)
+            data.data.to_csv(outfile,sep="\t",columns=rows,index=False,header=False)
             outfile.write("END\n")
             for wave in waveNames.keys():
                 outfile.write("X Setscale d, 0,0, \""+waveNames[wave]+"\", "+wave+"\n")
+                outfile.write("X Note "+wave+" \"Saved Date: "+data.header['Saved Date'] +"\\n"+'\\n'.join(self.cleanHeader(data))+"\"\n")
             outfile.write("X SetDataFolder ::")
+
+    def cleanHeader(self,headerData):
+        return [x.replace("$","").replace("{","").replace("}","") for x in getHeaderLabels(headerData)]
 
     def initSettingsWindow(self):
         plotstyleGtk = Gtk.Builder.get_object(builder, "setGeneralPlotstyle")
@@ -436,7 +440,7 @@ class Handler:
                     else:
                         selected_rows = self.selectedRows
                     plotname = data._filename
-                    self.export(selected_rows,data.data,plotname)
+                    self.export(selected_rows,data,plotname)
         except KeyError:
             pass
         
