@@ -204,12 +204,12 @@ class Handler:
                     loc = 'lower right'
                     plotname = data.filename
                     if cmap == 'default':
-                        self.sxmplot = sxm.plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],crop_missing=settings['buttons']['crop'],axes=ax)
+                        self.sxmplot = sxm.plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],axes=ax)
                     else:
                         try:
-                            self.sxmplot = sxm.plot(data, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],crop_missing=settings['buttons']['crop'],axes=ax)
+                            self.sxmplot = sxm.plot(data, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],axes=ax)
                         except ValueError:
-                            self.sxmplot = sxm.plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],crop_missing=settings['buttons']['crop'],axes=ax)
+                            self.sxmplot = sxm.plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],axes=ax)
                     xmax=fig.axes[0].get_xticks()[-1]
                     ymax=fig.axes[0].get_yticks()[-1]
                     if fft: 

@@ -530,6 +530,12 @@ def subtract_plane(data: np.ndarray) -> np.ndarray:
     if len(data.shape) != 2:
         raise ValueError("Error: input array is not 2-dimensional.")
 
+    data = np.ma.masked_where(data == 0, data)
+    try:
+        data = np.ma.getdata(data[~data.mask.any(axis=1)])
+    except:
+        data = np.ma.getdata(data)
+
     x_dim = data.shape[1]
     y_dim = data.shape[0]
 
@@ -868,7 +874,7 @@ class plot():
         image_data[np.isnan(image_data)] = avg_dat
         image_data = np.ma.masked_where(image_data == 0.0, image_data)
         if (flatten == True) and (subtract_plane == False):
-            image_data=scipy.signal.detrend(image_data)
+            image_data[self.data.y_mask]=scipy.signal.detrend(image_data[self.data.y_mask])
         if crop_missing:
             image_data = image_data[self.data.y_mask]
         # Flip upside down if image was taken scanning down
@@ -895,7 +901,7 @@ class plot():
         #x = x.T
         #y = y.T
         if subtract_plane == True:
-            image_data = sxm_data.subtract_plane(channel, direction)
+            image_data[self.data.y_mask] = sxm_data.subtract_plane(channel, direction)
 
         try:
             image_data = image_data - np.min(image_data)

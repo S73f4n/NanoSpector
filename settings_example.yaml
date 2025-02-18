@@ -25,7 +25,6 @@ fft:
   - Blackman
 buttons:
   infobox: true
-  crop: false
   flatten: true
   plane: false
   index: false
