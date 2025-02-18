@@ -210,8 +210,6 @@ class Handler:
                             self.sxmplot = sxm.plot(data, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],axes=ax)
                         except ValueError:
                             self.sxmplot = sxm.plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],axes=ax)
-                    xmax=fig.axes[0].get_xticks()[-1]
-                    ymax=fig.axes[0].get_yticks()[-1]
                     if fft: 
                         self.sxmplot.fft(windowFilter=settings['fft']['window'],level=settings['fft']['level'])
                         fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + " (FFT) \n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0], fontsize='small')
@@ -219,7 +217,7 @@ class Handler:
                         didvData = [didv for didv in self.datastore if isinstance(didv,nanonis_load.didv.spectrum)]
                         didvLabel = [re.findall("\d+", didv._filename)[-1].lstrip('0') for didv in didvData] 
                         self.sxmplot.add_spectra(didvData,labels=didvLabel,channel=settings['spec']['defaultch'])
-                        fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n{:g} x {:g} nm'.format(xmax,ymax),
+                        fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n{:g} × {:g} nm'.format(data.x_range,data.y_range),
                                     fontsize='small')
                         fig.axes[0].axis('off')            
                     self.setHeaderText(data)
