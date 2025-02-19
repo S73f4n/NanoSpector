@@ -1,5 +1,6 @@
 general:
   plotstyle: 'bmh'
+  exportformat: 'ASCII'
 file:
   name: Bias-Spectroscopy00001.dat
   path: C:/

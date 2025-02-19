@@ -32,10 +32,13 @@ class Handler:
                             'spec': {'extension': 'setSpecExt', 'defaultch': 'setSpecCh', 'defaultchZ': 'setSpecChZ'},
                             }
         self.settingsDropdown = {
-                            'general': {'plotstyle': 'setGeneralPlotstyle'}
+                            'general': {'plotstyle': 'setGeneralPlotstyle'},
         }
         self.settingsCmaps = {'image': {'cmap': 'setImgCmap', 'cmapI': 'setImgCmapI', 'cmapdIdV': 'setImgCmapdIdV'}, 'spec': {'cmap': 'setSpecCmap'}, 'fft': {'cmap': 'setFFTCmap'}}
-        self.settingsBoxes = {'fft': {'window': 'setFFTWindow'}}
+        self.settingsBoxes = {
+            'fft': {'window': 'setFFTWindow'},
+            'general': {'exportformat': 'setGeneralExportformat'}
+            }
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         self.datastore = []
         self.selectedRows = []
@@ -385,17 +388,23 @@ class Handler:
     def export(self,rows,data,filepath):
         os.makedirs(os.path.join(settings['file']['path'],"export"), exist_ok=True)
         filename = os.path.basename(filepath)
-        outpath = os.path.join(settings['file']['path'],"export",filename.replace(os.path.splitext(filename)[1],".itx")) 
-        igorFolder = self.cleanIgorName(filename)
-        waveNames = self.cleanWaveName(rows,igorFolder)
-        with open(outpath, 'w') as outfile:
-            outfile.write("IGOR\nX NewDataFolder/S "+igorFolder+"\nWAVES/D "+' '.join(waveNames.keys())+ "\nBEGIN\n")
-            data.data.to_csv(outfile,sep="\t",columns=rows,index=False,header=False)
-            outfile.write("END\n")
-            for wave in waveNames.keys():
-                outfile.write("X Setscale d, 0,0, \""+waveNames[wave]+"\", "+wave+"\n")
-                outfile.write("X Note "+wave+" \"Saved Date: "+data.header['Saved Date'] +"\\n"+'\\n'.join(self.cleanHeader(data))+"\"\n")
-            outfile.write("X SetDataFolder ::")
+        if settings['general']['exportformat'] == "IgorPro":
+            outpath = os.path.join(settings['file']['path'],"export",filename.replace(os.path.splitext(filename)[1],".itx")) 
+            igorFolder = self.cleanIgorName(filename)
+            waveNames = self.cleanWaveName(rows,igorFolder)
+            with open(outpath, 'w') as outfile:
+                outfile.write("IGOR\nX NewDataFolder/S "+igorFolder+"\nWAVES/D "+' '.join(waveNames.keys())+ "\nBEGIN\n")
+                data.data.to_csv(outfile,sep="\t",columns=rows,index=False,header=False)
+                outfile.write("END\n")
+                for wave in waveNames.keys():
+                    outfile.write("X Setscale d, 0,0, \""+waveNames[wave]+"\", "+wave+"\n")
+                    outfile.write("X Note "+wave+" \"Saved Date: "+data.header['Saved Date'] +"\\n"+'\\n'.join(self.cleanHeader(data))+"\"\n")
+                outfile.write("X SetDataFolder ::")
+        elif settings['general']['exportformat'] == "ASCII":
+            outpath = os.path.join(settings['file']['path'],"export",filename.replace(os.path.splitext(filename)[1],".csv")) 
+            with open(outpath, 'w') as outfile:
+                data.data.to_csv(outfile,sep="\t",columns=rows,index=False,header=True)
+
 
     def cleanHeader(self,headerData):
         return [x.replace("$","").replace("{","").replace("}","") for x in getHeaderLabels(headerData)]
