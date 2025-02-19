@@ -56,6 +56,10 @@ class Handler:
         self.filter.set_visible_func(self.filter_function)
         treview = Gtk.Builder.get_object(builder, "yAxisTreeView")
         treview.set_model(self.filter)
+        self.fileFilter_text = ""
+        self.fileFilter = store.filter_new()
+        self.fileFilter.set_visible_func(self.fileFilter_function)
+        Gtk.Builder.get_object(builder,"file_list_view").set_model(self.fileFilter)
 
     def on_mainwindow_destroy(self, *args):
         self.write_settings()
@@ -298,6 +302,16 @@ class Handler:
             item = model[iter][0]
             # Check if the filter text is present in the item
             return self.filter_text.lower() in item.lower()
+    
+    def fileFilter_function(self, model, iter, data):
+        if self.fileFilter_text == "":
+            return True
+        else:
+            # Get the text to filter
+            # Get the text from the model
+            item = model[iter][0]
+            # Check if the filter text is present in the item
+            return self.fileFilter_text.lower() in item.lower()
 
     def on_filter_text_changed(self, entry):
         self.filter_text = entry.get_text()
@@ -306,6 +320,14 @@ class Handler:
     def on_filter_text_clear(self, entry, icon, event):
         entry.set_text("")
         self.on_filter_text_changed(entry)
+
+    def on_filter_file_changed(self, entry):
+        self.fileFilter_text = entry.get_text()
+        self.fileFilter.refilter()
+
+    def on_filter_file_clear(self, entry, icon, event):
+        entry.set_text("")
+        self.on_filter_file_changed(entry)
         
     def read_settings(self):
         global settings
