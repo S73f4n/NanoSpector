@@ -403,6 +403,10 @@ class Handler:
         Gtk.Builder.get_object(builder, 'adjFFTLevel').set_value(settings['fft']['level'])
         for btn, value in settings['buttons'].items():
             Gtk.Builder.get_object(builder, "button_"+btn).set_active(value)
+        labelstore.clear()
+        for lb in settings['label'].items():
+            model = labelstore.append(lb)
+        labelstore.append(["Add channel...",""])
 
     def readSettingsfromWindow(self):
         for setType, setting in self.settingsDict.items():
@@ -427,6 +431,8 @@ class Handler:
                     settings[setType][setName] = targetValue
         settings['fft']['level'] = Gtk.Builder.get_object(builder, 'adjFFTLevel').get_value()
         self.setPlotstyle()
+        settings['label'] = {row[0]: row[1] for row in labelstore}
+        del settings['label']['Add channel...']
 
     def on_button_export_clicked(self,button):
         try:
@@ -455,6 +461,11 @@ class Handler:
         response = settingsDialog.run()
         if response == Gtk.ResponseType.APPLY:
             self.readSettingsfromWindow()
+        else:
+            labelstore.clear()
+            for lb in settings['label'].items():
+                model = labelstore.append(lb)
+            labelstore.append(["Add channel...",""])
         settingsDialog.hide()
         self.write_settings()
         self.plot_data()
@@ -470,11 +481,34 @@ class Handler:
             piximage = Gtk.Image.new_from_file(savefig.name)
             self.clipboard.set_image(piximage.get_pixbuf())
             fig.canvas.draw()
+    
+    def on_label_data_edited(self, widget, path, new_text):
+        labelstore[path][0] = new_text
+        if new_text == "":
+            del labelstore[path]
+        elif int(path) == len(labelstore) - 1:
+            labelstore.append(["Add channel...",""])
+
+    def on_label_friendly_edited(self, widget, path, new_text):
+        labelstore[path][1] = new_text
+        if new_text == "":
+            del labelstore[path]
+        elif int(path) == len(labelstore) - 1:
+            labelstore.append(["Add channel...",""])
+    
+    def on_labelTreeView_key_press_event(self, widget, event):
+        if event.keyval == Gdk.KEY_Delete:  # Check if "Delete" key was pressed
+                model, tree_iter = Gtk.Builder.get_object(builder, "selection_label").get_selected()
+                if tree_iter is not None:
+                    path = model.get_path(tree_iter)
+                    if path[0] != len(model) - 1:  # Prevent deleting the last "Add Row"
+                        model.remove(tree_iter)  # Remove the selected row
 
 
 
 builder = Gtk.Builder()
 builder.add_from_file(os.path.join(os.path.dirname(__file__),"src/main.glade"))
+labelstore = builder.get_object("label_list")
 builder.connect_signals(Handler())
 
 window = builder.get_object("mainwindow")
