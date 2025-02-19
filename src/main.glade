@@ -373,6 +373,7 @@
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                             <property name="receives-default">False</property>
+                            <property name="tooltip-text" translatable="yes">average fwd and bwd sweep for each curve (if present)</property>
                             <property name="draw-indicator">True</property>
                             <signal name="toggled" handler="on_logplot_changed" swapped="no"/>
                           </object>
