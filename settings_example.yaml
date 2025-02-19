@@ -1,6 +1,9 @@
 general:
   plotstyle: 'bmh'
   exportformat: 'ASCII'
+  exportformats:
+  - ASCII
+  - IgorPro
 file:
   name: Bias-Spectroscopy00001.dat
   path: C:/
