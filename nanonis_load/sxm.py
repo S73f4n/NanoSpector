@@ -864,7 +864,7 @@ class plot():
     '''
 
     def __init__(self, sxm_data : sxm, channel : str, direction : int=0, 
-                flatten : bool=False, subtract_plane : bool=True, crop_missing : bool=False,
+                flatten : bool=False, subtract_plane : bool=True, crop_missing : bool=False, zero : bool = False,
                 cmap=util.get_w_cmap(), rasterized=True, imshow_interpolation='antialiased', axes =None):
 
         self.data = sxm_data
@@ -903,10 +903,11 @@ class plot():
         if subtract_plane == True:
             image_data[self.data.y_mask] = sxm_data.subtract_plane(channel, direction)
 
-        try:
-            image_data = image_data - np.min(image_data)
-        except:
-            pass
+        if zero:
+            try:
+                image_data = image_data - np.min(image_data)
+            except:
+                pass
 
         cmap = plt.get_cmap(cmap)
         cmap.set_bad(color='#dddddd')
