@@ -864,7 +864,7 @@ class plot():
     '''
 
     def __init__(self, sxm_data : sxm, channel : str, direction : int=0, 
-                flatten : bool=False, subtract_plane : bool=True, crop_missing : bool=False, zero : bool = False,
+                flatten : bool=False, subtract_plane : bool=True, crop_missing : bool=False, zero : bool = False, cbar : bool = False,
                 cmap=util.get_w_cmap(), rasterized=True, imshow_interpolation='antialiased', axes =None):
 
         self.data = sxm_data
@@ -914,7 +914,8 @@ class plot():
         self.im_plot = self.ax.imshow(image_data, origin='lower', extent=(0, sxm_data.x_range, 0, sxm_data.y_range), 
                                         cmap=cmap, rasterized=rasterized, interpolation=imshow_interpolation)
         self.ax.set_aspect('equal')
-        # self.fig.colorbar(self.im_plot, ax = self.ax)
+        if cbar:
+            self.colorbar = self.fig.colorbar(self.im_plot, ax = self.ax)
         self.image_data = image_data
 
     def xlim(self, x_min, x_max):

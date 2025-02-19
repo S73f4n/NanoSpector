@@ -120,6 +120,10 @@ class Handler:
         for btn in settings['buttons']:
             settings['buttons'][btn] = Gtk.Builder.get_object(builder, "button_"+btn).get_active()
         offsetXslider = Gtk.Builder.get_object(builder, "adjOffset").get_value()
+        try:
+            self.sxmplot.colorbar.remove()
+        except:
+            pass
         ax.cla()
         specdata = []
         handles = None
@@ -233,6 +237,10 @@ class Handler:
                                     fontsize='small')
                         fig.axes[0].axis('off')            
                     self.setHeaderText(data)
+                    # try:
+                    #     self.sxmplot.colorbar.ax.yaxis.set_major_formatter(formatter1)
+                    # except:
+                    #     pass
                     # fig.delaxes(fig.axes[1])
                     # fig.axes[1].remove()
                     # fig.set_figwidth(8)
@@ -270,6 +278,10 @@ class Handler:
     def on_selection_yaxis_changed(self,selection):
         yaxisModel, yaxisIter = selection.get_selected_rows()
         if yaxisIter:
+            # try:
+            #     self.sxmplot.colorbar.remove()
+            # except:
+            #     pass
             ax.cla()
             self.selectedRows = []
             for yiter in yaxisIter:
@@ -286,18 +298,34 @@ class Handler:
         self.plot_data()
     
     def on_button_fft_clicked(self, button):
+        # try:
+        #     self.sxmplot.colorbar.remove()
+        # except:
+        #     pass
         ax.cla()
         self.plot_data(fft=True)
 
     def on_logplot_changed(self,button):
+        # try:
+        #     self.sxmplot.colorbar.remove()
+        # except:
+        #     pass
         ax.cla()
         self.plot_data()
 
     def on_index_changed(self,button):
+        # try:
+        #     self.sxmplot.colorbar.remove()
+        # except:
+        #     pass
         ax.cla()
         self.plot_data()
 
     def on_button_infobox_toggled(self,button):
+        # try:
+        #     self.sxmplot.colorbar.remove()
+        # except:
+        #     pass
         ax.cla()
         self.plot_data()
 
