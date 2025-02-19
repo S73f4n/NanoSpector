@@ -486,6 +486,11 @@ class Handler:
 
     def on_button_header_clicked(self,button):
        headerWindow.show()
+       headerWindow.present()
+    
+    def on_headerWindow_destroy(self, *data):
+        headerWindow.hide()
+        return True
 
     def on_buttonSettings_clicked(self,button):
         # self.writeSettingstoWindow()
