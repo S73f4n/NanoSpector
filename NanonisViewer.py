@@ -584,8 +584,12 @@ class Handler:
         if fileiter:
             savefig.name = os.path.join(settings['file']['path'], "export", "export.png")
             selectedFiles = [filemodel[path][0] for path in fileiter] 
-            # print("Selected Names:", selectedFiles[0], selectedFiles[-1])
-            savefig.name = os.path.join(settings['file']['path'], "export", selectedFiles[0].replace(os.path.splitext(selectedFiles[0])[1],".png"))
+            if len(selectedFiles) > 1:
+                selectedNums = [re.findall(r"\d+", filename)[-1] for filename in selectedFiles]
+                exportFile = selectedFiles[-1].replace(os.path.splitext(selectedFiles[-1])[1],"-"+str(selectedNums[0])+".png") 
+            else:
+                exportFile = selectedFiles[0].replace(os.path.splitext(selectedFiles[0])[1],".png")
+            savefig.name = os.path.join(settings['file']['path'], "export", exportFile)
             fig.savefig(savefig.name, dpi=300,format='png',bbox_inches='tight')
             savefig.seek(0)
             piximage = Gtk.Image.new_from_file(savefig.name)
