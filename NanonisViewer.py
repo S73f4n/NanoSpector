@@ -582,7 +582,10 @@ class Handler:
         savefig = io.BytesIO()
         os.makedirs(os.path.join(settings['file']['path'],"export"), exist_ok=True)
         if fileiter:
-            savefig.name = os.path.join(settings['file']['path'], "export", filemodel[fileiter][0].replace(os.path.splitext(filemodel[fileiter][0])[1],".png"))
+            savefig.name = os.path.join(settings['file']['path'], "export", "export.png")
+            selectedFiles = [filemodel[path][0] for path in fileiter] 
+            # print("Selected Names:", selectedFiles[0], selectedFiles[-1])
+            savefig.name = os.path.join(settings['file']['path'], "export", selectedFiles[0].replace(os.path.splitext(selectedFiles[0])[1],".png"))
             fig.savefig(savefig.name, dpi=300,format='png',bbox_inches='tight')
             savefig.seek(0)
             piximage = Gtk.Image.new_from_file(savefig.name)
