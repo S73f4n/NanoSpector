@@ -431,7 +431,10 @@ class Handler:
                 outfile.write("END\n")
                 for wave in waveNames.keys():
                     outfile.write("X Setscale d, 0,0, \""+waveNames[wave]+"\", "+wave+"\n")
-                    outfile.write("X Note "+wave+" \"Saved Date: "+data.header['Saved Date'] +"\\n"+'\\n'.join(self.cleanHeader(data))+"\"\n")
+                    try:
+                        outfile.write("X Note "+wave+" \"Saved Date: "+data.header['Saved Date'] +"\\n"+'\\n'.join(self.cleanHeader(data))+"\"\n")
+                    except (TypeError, ValueError):
+                        pass
                 outfile.write("X SetDataFolder ::")
         elif settings['general']['exportformat'] == "ASCII":
             outpath = os.path.join(settings['file']['path'],"export",filename.replace(os.path.splitext(filename)[1],".csv")) 
