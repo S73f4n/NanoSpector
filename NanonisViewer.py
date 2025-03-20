@@ -102,7 +102,7 @@ class Handler:
         # treeiter = store.append(glob.glob(filepath + "/*.VERT"))
         subDir = settings['file']['path']
         try:
-            files += [os.path.join(subDir, file) for file in os.listdir(subDir) if os.path.isfile(os.path.join(subDir, file)) and (file.endswith(settings['spec']['extension']) or file.endswith(settings['image']['extension']))]
+            files += [os.path.join(subDir, file) for file in os.listdir(subDir) if os.path.isfile(os.path.join(subDir, file)) and (file.endswith(settings['spec']['extension']) or file.endswith(settings['image']['extension']) or file.endswith(settings['grid']['extension']))]
             for filename in sorted(files, key=os.path.getmtime, reverse=True):
                 treeiter = store.append([os.path.basename(filename)])
         except FileNotFoundError:
@@ -140,7 +140,7 @@ class Handler:
                         except AttributeError:
                             ax.set_prop_cycle('color',list(tc.tol_cset(settings['spec']['cmap'])))
             for countIndex, data in enumerate(self.datastore):
-                if isinstance(data,nanonis_load.didv.spectrum) and [sxm for sxm in self.datastore if isinstance(sxm,nanonis_load.sxm.sxm)] == []:
+                if isinstance(data,nanonis_load.didv.Spectrum) and [sxm for sxm in self.datastore if isinstance(sxm,nanonis_load.sxm.Sxm)] == []:
                     if self.selectedRows == []:
                         if "Z" in data._filename:
                             selected_rows.append(settings['spec']['defaultchZ'])
@@ -164,7 +164,7 @@ class Handler:
                             average = ch[:bracketPos] + "[bwd] " + ch[bracketPos:]
                         else:
                             average = None
-                        didv.plot(data, channel=ch, axes=ax,legend=False,average=average,logabs=settings['buttons']['logplot'],multiply=(offsetX*(len(self.datastore)-countIndex)))
+                        didv.Plot(data, channel=ch, axes=ax,legend=False,average=average,logabs=settings['buttons']['logplot'],multiply=(offsetX*(len(self.datastore)-countIndex)))
                     ax.autoscale(enable=True,axis='both')
                     if settings['buttons']['logplot']:
                         try: 
@@ -200,7 +200,7 @@ class Handler:
                         fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header['Saved Date'], fontsize='medium')
                         legendLabels = getHeaderLabels(data) 
                         handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
-                if isinstance(data,nanonis_load.sxm.sxm):
+                if isinstance(data,nanonis_load.sxm.Sxm):
                     if self.selectedRows == []:
                         selected_rows.append(settings['image']['defaultch'])
                     else:
@@ -220,17 +220,17 @@ class Handler:
                     loc = 'lower right'
                     plotname = data.filename
                     if cmap == 'default':
-                        self.sxmplot = sxm.plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,axes=ax)
+                        self.sxmplot = sxm.Plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,axes=ax)
                     else:
                         try:
-                            self.sxmplot = sxm.plot(data, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,axes=ax)
+                            self.sxmplot = sxm.Plot(data, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,axes=ax)
                         except ValueError:
-                            self.sxmplot = sxm.plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,axes=ax)
+                            self.sxmplot = sxm.Plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,axes=ax)
                     if fft: 
                         self.sxmplot.fft(windowFilter=settings['fft']['window'],level=settings['fft']['level'])
                         fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + " (FFT) \n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0], fontsize='small')
                     else:
-                        didvData = [didv for didv in self.datastore if isinstance(didv,nanonis_load.didv.spectrum)]
+                        didvData = [didv for didv in self.datastore if isinstance(didv,nanonis_load.didv.Spectrum)]
                         didvLabel = [re.findall(r"\d+", didv._filename)[-1].lstrip('0') for didv in didvData] 
                         self.sxmplot.add_spectra(didvData,labels=didvLabel,channel=settings['spec']['defaultch'])
                         fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n{:g} × {:g} nm'.format(data.x_range,data.y_range),
@@ -270,9 +270,9 @@ class Handler:
         for thisFile in files:
             filename = os.path.join(settings['file']['path'],thisFile)
             if filename.endswith('.dat'):
-                self.datastore.append(didv.spectrum(filename))
+                self.datastore.append(didv.Spectrum(filename))
             if filename.endswith('.sxm'):
-                self.datastore.append(sxm.sxm(filename))
+                self.datastore.append(sxm.Sxm(filename))
             self.setChannelList(self.datastore[-1].data.keys())
 
     def on_selection_yaxis_changed(self,selection):
@@ -536,14 +536,14 @@ class Handler:
         try:
             selected_rows = []
             for data in self.datastore:
-                if isinstance(data,nanonis_load.didv.spectrum):
+                if isinstance(data,nanonis_load.didv.Spectrum):
                     if self.selectedRows == []:
                         selected_rows.append(settings['spec']['defaultch'])
                     else:
                         selected_rows = self.selectedRows
                     plotname = data._filename
                     self.export(selected_rows,data,plotname)
-                elif isinstance(data,nanonis_load.sxm.sxm):
+                elif isinstance(data,nanonis_load.sxm.Sxm):
                     if self.selectedRows == []:
                         selected_rows.append(settings['image']['defaultch'])
                     else:
