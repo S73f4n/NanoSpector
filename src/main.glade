@@ -55,7 +55,7 @@
     <property name="upper">200</property>
     <property name="step-increment">1</property>
     <property name="page-increment">10</property>
-    <signal name="value-changed" handler="on_logplot_changed" swapped="no"/>
+    <signal name="value-changed" handler="on_slider_changed" swapped="no"/>
   </object>
   <object class="GtkListStore" id="file_list">
     <columns>
@@ -705,7 +705,7 @@
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
                             <child>
-                              <object class="GtkLabel">
+                              <object class="GtkLabel" id="sliderLabel">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
                                 <property name="xpad">10</property>

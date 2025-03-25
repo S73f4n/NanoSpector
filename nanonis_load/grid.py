@@ -243,8 +243,16 @@ class Grid:
     def __lt__(self, other):
         return self.gate_voltage < other.gate_voltage
 
-    def plot(self, sweep_index=0, channel="Current (A)"):
+    def plot(self, sweep_index=0, channel="Current (A)",axes=None):
         # Create axes for plotting
+
+        if axes is not None:
+            self.plot_ax = axes
+            self.fig = self.plot_ax.figure
+        else:
+            self.fig = plt.figure(figsize=[2 * 6.4, 4.8])
+            self.plot_ax = self.fig.add_subplot(221)
+
         if self.fft:
             self.fig = plt.figure(figsize=[2 * 6.4, 4.8])
             self.plot_ax = self.fig.add_subplot(221)
@@ -256,11 +264,11 @@ class Grid:
             self.linecut_ax.set_aspect("auto")
             self.fft_linecut_ax.set_aspect("auto")
 
-        else:
-            self.fig = plt.figure(figsize=[2 * 6.4, 4.8])
-            self.plot_ax = self.fig.add_subplot(121)
-            self.linecut_ax = self.fig.add_subplot(122)  # Axes for linecut through grid
-            self.linecut_ax.set_aspect("auto")
+        # else:
+            # self.fig = plt.figure(figsize=[2 * 6.4, 4.8])
+            # self.plot_ax = self.fig.add_subplot(121)
+            # self.linecut_ax = self.fig.add_subplot(122)  # Axes for linecut through grid
+            # self.linecut_ax.set_aspect("auto")
 
         # Plot grid
         self.im = self.plot_ax.imshow(
@@ -285,15 +293,15 @@ class Grid:
             self.fft_plot = None
 
         # Line representing the linecut will be drawn here
-        self.linecut_line = matplotlib.lines.Line2D([0, 0], [0, 0], color="r")
-        self.plot_ax.add_line(self.linecut_line)
+        # self.linecut_line = matplotlib.lines.Line2D([0, 0], [0, 0], color="r")
+        # self.plot_ax.add_line(self.linecut_line)
         # Empty linecut plot as placeholder first
-        self.linecut_plot = self.linecut_ax.imshow(
-            np.zeros((1, 1)), cmap="RdYlBu_r", aspect="auto"
-        )
-        self.fig.colorbar(self.linecut_plot)
-        self.linecut_ax.set_xlabel("Distance (nm)")
-        self.linecut_ax.set_ylabel("Bias (V)")
+        # self.linecut_plot = self.linecut_ax.imshow(
+        #     np.zeros((1, 1)), cmap="RdYlBu_r", aspect="auto"
+        # )
+        # self.fig.colorbar(self.linecut_plot)
+        # self.linecut_ax.set_xlabel("Distance (nm)")
+        # self.linecut_ax.set_ylabel("Bias (V)")
 
         if self.fft:
             self.fft_linecut_line = matplotlib.lines.Line2D([0, 0], [0, 0], color="r")
@@ -304,7 +312,7 @@ class Grid:
 
         self.plot_ax.set_xlabel("X (nm)")
         self.plot_ax.set_ylabel("Y (nm)")
-        self.colorbar = self.fig.colorbar(self.im, ax=self.plot_ax)
+        # self.colorbar = self.fig.colorbar(self.im, ax=self.plot_ax)
         self.free = 0
         title = "Energy = " + str(round(self.biases[sweep_index], 4)) + " eV"
         self.plot_ax.set_title(title)
@@ -347,7 +355,7 @@ class Grid:
                 self.linecut_plot.set_clim(0, data_cut.max())
             except:
                 pass
-
+        
         def key_press(event):
             if event.key[0:4] == "alt+":
                 key = event.key[4:]
@@ -375,6 +383,16 @@ class Grid:
             self.plot_ax.set_title(title)
             self.fig.canvas.draw()
 
+        def update_bias(freeBias):
+            biasValue = int(len(self.biases) / 201 * freeBias)
+            print(biasValue)
+            data = np.flipud(self.data[channel][:, :, biasValue])
+            self.im.set_data(data)
+            self.im.set_clim(data.min(), data.max())
+            title = "Energy = " + str(self.biases[biasValue]) + " eV"
+            self.plot_ax.set_title(title)
+            self.fig.canvas.draw()
+
         def on_press(event):
             if event.inaxes == self.plot_ax and event.button == 1:
                 self.click = (event.xdata, event.ydata)
@@ -395,6 +413,7 @@ class Grid:
             return
 
         self.key_press = key_press
+        self.update_bias = update_bias
         self.fig.canvas.mpl_connect("key_press_event", key_press)
         self.fig.canvas.mpl_connect("button_press_event", on_press)
         self.fig.canvas.mpl_connect("motion_notify_event", on_motion)

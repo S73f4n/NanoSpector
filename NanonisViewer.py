@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import gi
 import nanonis_load
-from nanonis_load import didv, sxm
+from nanonis_load import didv, sxm, grid
 import yaml
 import shutil
 import os
@@ -246,6 +246,13 @@ class Handler:
                     # fig.set_figwidth(8)
                     legendLabels = getHeaderLabels(data) 
                     handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
+                if isinstance(data,nanonis_load.grid.Grid):
+                    if self.selectedRows == []:
+                        selected_rows.append(settings['image']['defaultch'])
+                    else:
+                        selected_rows = self.selectedRows
+                    print("Grid")
+                    self.gridplot = data.plot(channel=selected_rows[0],axes=ax)
                 try:
                     if handles == None and settings['buttons']['legend']:
                         ax.legend(legendLabels,loc=loc,fontsize='small',fancybox=True,framealpha=alpha)
@@ -269,10 +276,14 @@ class Handler:
         self.datastore = []
         for thisFile in files:
             filename = os.path.join(settings['file']['path'],thisFile)
-            if filename.endswith('.dat'):
+            if filename.endswith(settings['spec']['extension']):
                 self.datastore.append(didv.Spectrum(filename))
-            if filename.endswith('.sxm'):
+            elif filename.endswith(settings['image']['extension']):
                 self.datastore.append(sxm.Sxm(filename))
+            elif filename.endswith(settings['grid']['extension']):
+                self.datastore.append(grid.Grid(filename))
+            else:
+                return 0
             self.setChannelList(self.datastore[-1].data.keys())
 
     def on_selection_yaxis_changed(self,selection):
@@ -312,6 +323,14 @@ class Handler:
         #     pass
         ax.cla()
         self.plot_data()
+    
+    def on_slider_changed(self,button):
+        if isinstance(self.datastore[0],nanonis_load.grid.Grid):
+            self.datastore[0].update_bias(button.get_value())
+            print(button.get_value())
+
+
+        
 
     def on_index_changed(self,button):
         # try:
