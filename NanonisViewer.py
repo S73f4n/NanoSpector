@@ -621,6 +621,7 @@ class Handler:
             os.makedirs(os.path.join(settings['file']['path'],"export"), exist_ok=True)
             gifName = os.path.join(settings['file']['path'], "export", "export.gif")
             iio.imwrite(gifName, self.gifStore, duration=250, loop=0)
+            self.gifStore.clear()
 
     def on_button_savefig_clicked(self,button):
         self.plot_data(save=True)
