@@ -22,6 +22,8 @@ from matplotlib.backends.backend_gtk3 import NavigationToolbar2GTK3 as Navigatio
 from matplotlib.ticker import EngFormatter
 import matplotlib.patches as mpl_patches
 
+import imageio.v3 as iio
+
 import src.tol_colors as tc
 
 from src.dataheader import getHeaderLabels
@@ -42,6 +44,7 @@ class Handler:
             }
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         self.datastore = []
+        self.gifStore = []
         self.selectedRows = []
         self.read_settings()
         self.initSettingsWindow()
@@ -116,7 +119,7 @@ class Handler:
                 label = label.replace(key, value)
         return label
 
-    def plot_data(self, fft=None):
+    def plot_data(self, fft=None,save=False):
         for btn in settings['buttons']:
             settings['buttons'][btn] = Gtk.Builder.get_object(builder, "button_"+btn).get_active()
         offsetXslider = Gtk.Builder.get_object(builder, "adjOffset").get_value()
@@ -253,6 +256,8 @@ class Handler:
                         ax.legend(handles, legendLabels, loc=loc, fontsize='small', fancybox=True, framealpha=alpha, handlelength=0, handletextpad=0)
                 except UnboundLocalError:
                     pass
+                if save:
+                    self.save_sxm(data)
         except KeyError:
             pass
         fig.canvas.draw()
@@ -580,7 +585,7 @@ class Handler:
         self.write_settings()
         self.plot_data()
 
-    def on_button_savefig_clicked(self,button):
+    def on_button_savefig_clicked_(self,button):
         filemodel, fileiter = Gtk.Builder.get_object(builder, "selection_file").get_selected_rows()
         savefig = io.BytesIO()
         os.makedirs(os.path.join(settings['file']['path'],"export"), exist_ok=True)
@@ -598,6 +603,28 @@ class Handler:
             piximage = Gtk.Image.new_from_file(savefig.name)
             self.clipboard.set_image(piximage.get_pixbuf())
             fig.canvas.draw()
+
+    def save_sxm(self,data):
+        fname = os.path.basename(data.filename)
+        savefig = io.BytesIO()
+        os.makedirs(os.path.join(settings['file']['path'],"export"), exist_ok=True)
+        exportFile = fname.replace(os.path.splitext(fname)[1],".png")
+        savefig.name = os.path.join(settings['file']['path'], "export", exportFile)
+        fig.savefig(savefig.name, dpi=300,format='png',bbox_inches='tight')
+        savefig.seek(0)
+        piximage = Gtk.Image.new_from_file(savefig.name)
+        self.clipboard.set_image(piximage.get_pixbuf())
+        self.gifStore.append(iio.imread(savefig.name))
+
+    def make_gif(self):
+        if self.gifStore is not []:
+            os.makedirs(os.path.join(settings['file']['path'],"export"), exist_ok=True)
+            gifName = os.path.join(settings['file']['path'], "export", "export.gif")
+            iio.imwrite(gifName, self.gifStore, duration=250, loop=0)
+
+    def on_button_savefig_clicked(self,button):
+        self.plot_data(save=True)
+        self.make_gif()
     
     def on_label_data_edited(self, widget, path, new_text):
         labelstore[path][0] = new_text
