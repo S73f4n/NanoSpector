@@ -61,8 +61,8 @@ class Nanonis3ds:
                 self.header[entry_array[0]] = "=".join(entry_array[1:])
 
         temp = re.split(' |"', self.header["Grid dim"])
-        self.header["x_pixels"] = int(temp[1])
-        self.header["y_pixels"] = int(temp[3])
+        self.header["x_pixels"] = int(temp[3])
+        self.header["y_pixels"] = int(temp[1])
         temp = re.split(";|=", self.header["Grid settings"])
         self.header["x_center (nm)"] = float(temp[0]) * 1e9
         self.header["y_center (nm)"] = float(temp[1]) * 1e9
@@ -274,7 +274,7 @@ class Grid:
         self.im = self.plot_ax.imshow(
             np.flipud(self.data[channel][:, :, sweep_index]),
             extent=(0, self.header["x_size (nm)"], 0, self.header["y_size (nm)"]),
-            cmap="Blues_r",
+            cmap="magma_r",
         )  # Check to make sure x_size and y_size aren't mixed up
         if self.fft:
             fft_array = np.absolute(np.fft.fft2(np.flipud(self.data[channel][:, :, 0])))
@@ -307,7 +307,8 @@ class Grid:
             self.fft_linecut_line = matplotlib.lines.Line2D([0, 0], [0, 0], color="r")
             self.fft_ax.add_line(self.fft_linecut_line)
             self.fft_linecut_plot = self.fft_linecut_ax.imshow(
-                np.zeros((1, 1)), cmap="RdYlBu_r", aspect="auto"
+                # np.zeros((1, 1)), cmap="RdYlBu_r", aspect="auto"
+                np.zeros((1, 1)), cmap="magma", aspect="auto"
             )
 
         self.plot_ax.set_xlabel("X (nm)")
@@ -397,17 +398,17 @@ class Grid:
             if event.inaxes == self.plot_ax and event.button == 1:
                 self.click = (event.xdata, event.ydata)
                 self.show_spectra(channel=self.channel)
-                self.linecut_line.set_xdata([event.xdata, event.xdata])
-                self.linecut_line.set_ydata([event.ydata, event.ydata])
+                # self.linecut_line.set_xdata([event.xdata, event.xdata])
+                # self.linecut_line.set_ydata([event.ydata, event.ydata])
             else:
                 return
 
-        def on_motion(event):
-            if event.inaxes == self.plot_ax and event.button == 1:
-                self.linecut_line.set_xdata([self.click[0], event.xdata])
-                self.linecut_line.set_ydata([self.click[1], event.ydata])
-                update_linecut()
-                self.fig.canvas.draw()
+        # def on_motion(event):
+        #     if event.inaxes == self.plot_ax and event.button == 1:
+        #         self.linecut_line.set_xdata([self.click[0], event.xdata])
+        #         self.linecut_line.set_ydata([self.click[1], event.ydata])
+        #         update_linecut()
+        #         self.fig.canvas.draw()
 
         def on_release(event):
             return
@@ -415,8 +416,8 @@ class Grid:
         self.key_press = key_press
         self.update_bias = update_bias
         self.fig.canvas.mpl_connect("key_press_event", key_press)
-        self.fig.canvas.mpl_connect("button_press_event", on_press)
-        self.fig.canvas.mpl_connect("motion_notify_event", on_motion)
+        # self.fig.canvas.mpl_connect("button_press_event", on_press)
+        # self.fig.canvas.mpl_connect("motion_notify_event", on_motion)
         self.fig.canvas.mpl_connect("button_release_event", on_release)
 
     def clim(self, c_min, c_max):
@@ -467,6 +468,11 @@ class Grid:
             x - self.header["x_size (nm)"] * 0.5,
             y - self.header["y_size (nm)"] * 0.5,
         )
+        try:
+            self.s_plt.remove()
+        except AttributeError:
+            pass
+        self.s_plt = self.plot_ax.scatter(x, y, marker="x", color="red", picker=True)
         transformed_vec = R.dot(xy_vec)
         transformed_x = transformed_vec[0] + self.header["x_center (nm)"]
         transformed_y = transformed_vec[1] + self.header["y_center (nm)"]

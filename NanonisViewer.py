@@ -8,6 +8,7 @@ import os
 import io
 import re
 import warnings
+from datetime import datetime, timezone
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
@@ -46,6 +47,8 @@ class Handler:
         self.read_settings()
         self.initSettingsWindow()
         self.setPlotstyle()
+        self.igorseconds = 2082844800
+        self.dateformat = "%d.%m.%Y %H:%M:%S"
 
     def setPlotstyle(self):
         plt.style.use(settings['general']['plotstyle'])
@@ -263,6 +266,7 @@ class Handler:
         except KeyError:
             pass
         fig.canvas.draw()
+        fig.canvas.mpl_connect("button_press_event", self.on_fig_click)
 
 
     def setHeaderText(self, data):
@@ -308,6 +312,25 @@ class Handler:
         self.getDataFromFiles(files)
         self.plot_data()
     
+    def on_fig_click(self,event):
+        print("Click")
+        if isinstance(self.datastore[0],nanonis_load.grid.Grid):
+            gData = self.datastore[0]
+            specAx.cla()
+            gData.click = (event.xdata, event.ydata)
+            gData.show_spectra(channel=self.selectedRows[0],ax=specAx)
+            yaxislabel = self.replaceLabel(self.selectedRows[0])
+            specAx.set_ylabel(yaxislabel)
+            specAx.set_xlabel(self.replaceLabel(gData.header["Sweep Signal"].strip('"')))
+            specAx.xaxis.set_major_formatter(formatter1)
+            specAx.yaxis.set_major_formatter(formatter1)
+            specFig.canvas.draw()
+            fig.canvas.draw()
+            specWindow.show_all()
+            if not specWindow.is_visible():
+                specWindow.present()
+        
+    
     def on_button_fft_clicked(self, button):
         # try:
         #     self.sxmplot.colorbar.remove()
@@ -328,6 +351,9 @@ class Handler:
         if isinstance(self.datastore[0],nanonis_load.grid.Grid):
             self.datastore[0].update_bias(button.get_value())
             print(button.get_value())
+        else: 
+            ax.cla()
+            self.plot_data()
 
 
         
@@ -450,10 +476,12 @@ class Handler:
                 outfile.write("END\n")
                 for wave in waveNames.keys():
                     outfile.write("X Setscale d, 0,0, \""+waveNames[wave]+"\", "+wave+"\n")
-                    try:
-                        outfile.write("X Note "+wave+" \"Saved Date: "+data.header['Saved Date'] +"\\n"+'\\n'.join(self.cleanHeader(data))+"\"\n")
-                    except (TypeError, ValueError):
-                        pass
+                try:
+                    saveddate = datetime.strptime(data.header['Saved Date'], self.dateformat)
+                    outfile.write("X Variable saveddate = "+str(saveddate.replace(tzinfo=timezone.utc).timestamp()+self.igorseconds)+"\n")
+                    outfile.write("X Note "+wave+" \"Saved Date: "+data.header['Saved Date'] +"\\n"+'\\n'.join(self.cleanHeader(data))+"\"\n")
+                except (TypeError, ValueError):
+                    pass
                 outfile.write("X SetDataFolder ::")
         elif settings['general']['exportformat'] == "ASCII":
             outpath = os.path.join(settings['file']['path'],"export",filename.replace(os.path.splitext(filename)[1],".csv")) 
@@ -489,6 +517,34 @@ class Handler:
             outpath = os.path.join(settings['file']['path'],"export",filename.replace(os.path.splitext(filename)[1],".csv")) 
             np.savetxt(outpath, exportdata, delimiter=",")
 
+    def exportgrid(self,rows,data,filepath):
+        filename = os.path.basename(filepath)
+        basename = os.path.splitext(filename)[0]
+        os.makedirs(os.path.join(settings['file']['path'],"export",basename), exist_ok=True)
+        exportfile = os.path.join(settings['file']['path'],"export",basename+".itx")
+        igorFolder = self.cleanIgorName(filename)
+        waveNames = self.cleanWaveName(rows,igorFolder)
+        if settings['general']['exportformat'] == "IgorPro":
+            for i, wave in enumerate(waveNames.keys()):
+                unit = re.search(r"\((\w+)\)", rows[i]).group(1)
+                flat_data = data.data[rows[i]].flatten(order="F")
+                with open(exportfile, "w") as outfile:
+                    outfile.write("IGOR\n")
+                    outfile.write(f"WAVES/N=({data.y_pixels:g},{data.x_pixels:g},{len(data.biases):g}) {wave}\n")
+                    outfile.write("BEGIN\n")
+                    for i, val in enumerate(flat_data):
+                        outfile.write(f"{val:.6e} ")
+                        if (i + 1) % 10 == 0:
+                            outfile.write("\n")
+                    outfile.write("\nEND\n")
+                    outfile.write(f"X Setscale/I x, 0, {data.x_size*1e-9:.6g}, \"m\", {wave}\n")
+                    outfile.write(f"X Setscale/I y, 0, {data.y_size*1e-9:.6g}, \"m\", {wave}\n")
+                    outfile.write(f"X Setscale/I z, {data.biases[0]:.6g},{data.biases[-1]:.6g}, \"V\", {wave}\n")
+                    outfile.write(f"X Setscale d, 0,0, \"{unit}\", {wave}\n")
+
+
+
+        
 
 
 
@@ -569,6 +625,13 @@ class Handler:
                         selected_rows = self.selectedRows
                     plotname = data.filename
                     self.exportsxm(selected_rows,data,plotname)
+                elif isinstance(data, nanonis_load.grid.Grid):
+                    if self.selectedRows == []:
+                        selected_rows.append(settings['grid']['defaultch'])
+                    else:
+                        selected_rows = self.selectedRows
+                    plotname = data.filename
+                    self.exportgrid(selected_rows,data,plotname)
         except KeyError:
             pass
         
@@ -583,6 +646,10 @@ class Handler:
     
     def on_headerWindow_destroy(self, *data):
         headerWindow.hide()
+        return True
+
+    def on_specWindow_destroy(self, *data):
+        specWindow.hide()
         return True
 
     def on_buttonSettings_clicked(self,button):
@@ -650,23 +717,38 @@ builder.connect_signals(Handler())
 window = builder.get_object("mainwindow")
 store=builder.get_object('file_list')
 yaxisList = builder.get_object("yaxis_list")
+specWindow = builder.get_object('specWindow')
 sw = builder.get_object('scrolledwindow1')
+specsw = builder.get_object('specScrolledWindow1')
 swtoolbar = builder.get_object('scrolledwindow2')
+specswtoolbar = builder.get_object('specScrolledWindow2')
 headerWindow = builder.get_object('headerWindow')
 settingsDialog = builder.get_object('settingsDialog')
 
 # fig = Figure(figsize=(4,3), dpi=100)
 # ax = fig.add_subplot()
 fig, ax = plt.subplots()
+specFig, specAx = plt.subplots()
 # fig.tight_layout()
 formatter1 = EngFormatter(sep="\u2009")
 canvas = FigureCanvas(fig)
+specCanvas = FigureCanvas(specFig)
+
 try:
     toolbar = NavigationToolbar(canvas, window)
 except TypeError:
     toolbar = NavigationToolbar(canvas)
+
+try:
+    specToolbar = NavigationToolbar(specCanvas, specWindow)
+except:
+    specToolbar = NavigationToolbar(specCanvas)
+
 sw.add(canvas)
 swtoolbar.add(toolbar)
+
+specsw.add(specCanvas)
+specswtoolbar.add(specToolbar)
 
 #warnings.filterwarnings("error")
 
