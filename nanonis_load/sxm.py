@@ -965,6 +965,8 @@ class Plot:
 
         cmap = plt.get_cmap(cmap)
         cmap.set_bad(color='#dddddd')
+        # cmap.set_over(color='#ff0000')
+        # cmap.set_under(color="#0000ff")
         vmin, vmax = self.central_percentile_limits(cover=cover)
         self.im_plot = self.ax.imshow(
             image_data,
@@ -991,7 +993,7 @@ class Plot:
     def colormap(self, cmap):
         self.im_plot.set_cmap(cmap)
 
-    def central_percentile_limits(self, cover=1.0, *, ignore_nan=True, mask=None, eps=1e-12):
+    def central_percentile_limits(self, cover=1.0, *, ignore_nan=True, mask=None, eps=1e-15):
         """
         Return (vmin, vmax) capturing the central `cover` fraction of values in `a`.
 
