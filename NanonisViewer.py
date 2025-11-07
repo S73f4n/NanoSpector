@@ -533,10 +533,10 @@ class Handler:
         filename = os.path.basename(filepath)
         basename = os.path.splitext(filename)[0]
         os.makedirs(os.path.join(settings['file']['path'],"export",basename), exist_ok=True)
-        exportfile = os.path.join(settings['file']['path'],"export",basename+".itx")
         igorFolder = self.cleanIgorName(filename)
         waveNames = self.cleanWaveName(rows,igorFolder)
         if settings['general']['exportformat'] == "IgorPro":
+            exportfile = os.path.join(settings['file']['path'],"export",basename+".itx")
             for i, wave in enumerate(waveNames.keys()):
                 unit = re.search(r"\((\w+)\)", rows[i]).group(1)
                 flat_data = data.data[rows[i]].flatten(order="F")
@@ -553,12 +553,11 @@ class Handler:
                     outfile.write(f"X Setscale/I y, 0, {data.y_size*1e-9:.6g}, \"m\", {wave}\n")
                     outfile.write(f"X Setscale/I z, {data.biases[0]:.6g},{data.biases[-1]:.6g}, \"V\", {wave}\n")
                     outfile.write(f"X Setscale d, 0,0, \"{unit}\", {wave}\n")
-
-
-
-        
-
-
+        if settings['general']['exportformat'] == "ASCII":
+            exportfile = os.path.join(settings['file']['path'],"export",basename+".dat")
+            for i, wave in enumerate(waveNames.keys()):
+                reshaped_data = data.data[rows[i]].reshape(-1, data.data[rows[i]].shape[2]).T
+                np.savetxt(exportfile, reshaped_data, delimiter=",")
 
     def cleanHeader(self,headerData):
         return [x.replace("$","").replace("{","").replace("}","") for x in getHeaderLabels(headerData)]
