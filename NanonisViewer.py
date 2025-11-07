@@ -412,8 +412,11 @@ class Handler:
         self.on_filter_text_changed(entry)
 
     def on_filter_file_changed(self, entry):
+        selection = Gtk.Builder.get_object(builder, "selection_file")
         self.fileFilter_text = entry.get_text()
+        selection.handler_block_by_func(self.on_file_selected)
         self.fileFilter.refilter()
+        selection.handler_unblock_by_func(self.on_file_selected)
 
     def on_filter_file_clear(self, entry, icon, event):
         entry.set_text("")
