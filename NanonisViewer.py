@@ -144,6 +144,7 @@ class Handler:
                             ax.set_prop_cycle('color',list(tc.tol_cset(settings['spec']['cmap'])))
             for countIndex, data in enumerate(self.datastore):
                 if isinstance(data,nanonis_load.didv.Spectrum) and [sxm for sxm in self.datastore if isinstance(sxm,nanonis_load.sxm.Sxm)] == []:
+                    builder.get_object('sliderLabel').set_text("Y offset")
                     if self.selectedRows == []:
                         if "Z" in data._filename:
                             selected_rows.append(settings['spec']['defaultchZ'])
@@ -160,7 +161,7 @@ class Handler:
                             data.data.drop('index', axis=1, inplace=True)
                         except:
                             pass
-                    offsetX = np.mean(self.datastore[0].data[selected_rows[0]]) * offsetXslider/100
+                    offsetX = np.mean(self.datastore[0].data[selected_rows[0]]) * offsetXslider*10*len(selected_rows)
                     for ch in selected_rows:
                         if settings['buttons']['average']:
                             bracketPos = ch.find('(')
@@ -204,6 +205,7 @@ class Handler:
                         legendLabels = getHeaderLabels(data) 
                         handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
                 if isinstance(data,nanonis_load.sxm.Sxm):
+                    builder.get_object('sliderLabel').set_text("Contrast")
                     if self.selectedRows == []:
                         selected_rows.append(settings['image']['defaultch'])
                     else:
@@ -223,12 +225,12 @@ class Handler:
                     loc = 'lower right'
                     plotname = data.filename
                     if cmap == 'default':
-                        self.sxmplot = sxm.Plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,axes=ax)
+                        self.sxmplot = sxm.Plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,axes=ax)
                     else:
                         try:
-                            self.sxmplot = sxm.Plot(data, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,axes=ax)
+                            self.sxmplot = sxm.Plot(data, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,axes=ax)
                         except ValueError:
-                            self.sxmplot = sxm.Plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,axes=ax)
+                            self.sxmplot = sxm.Plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,axes=ax)
                     if fft: 
                         self.sxmplot.fft(windowFilter=settings['fft']['window'],level=settings['fft']['level'])
                         fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + " (FFT) \n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0], fontsize='small')
@@ -254,7 +256,8 @@ class Handler:
                         selected_rows.append(settings['image']['defaultch'])
                     else:
                         selected_rows = self.selectedRows
-                    print("Grid")
+                    
+                    builder.get_object('sliderLabel').set_text("Energy")
                     self.gridplot = data.plot(channel=selected_rows[0],axes=ax)
                 try:
                     if handles == None and settings['buttons']['legend']:
@@ -298,6 +301,7 @@ class Handler:
             # except:
             #     pass
             ax.cla()
+            specAx.cla()
             self.selectedRows = []
             for yiter in yaxisIter:
                 self.selectedRows.append(yaxisModel[yiter][0])
@@ -313,22 +317,28 @@ class Handler:
         self.plot_data()
     
     def on_fig_click(self,event):
-        print("Click")
         if isinstance(self.datastore[0],nanonis_load.grid.Grid):
             gData = self.datastore[0]
             specAx.cla()
             gData.click = (event.xdata, event.ydata)
-            gData.show_spectra(channel=self.selectedRows[0],ax=specAx)
-            yaxislabel = self.replaceLabel(self.selectedRows[0])
-            specAx.set_ylabel(yaxislabel)
-            specAx.set_xlabel(self.replaceLabel(gData.header["Sweep Signal"].strip('"')))
-            specAx.xaxis.set_major_formatter(formatter1)
-            specAx.yaxis.set_major_formatter(formatter1)
-            specFig.canvas.draw()
-            fig.canvas.draw()
-            specWindow.show_all()
-            if not specWindow.is_visible():
-                specWindow.present()
+            if self.selectedRows == []:
+                isPlot = gData.show_spectra(channel=settings['grid']['defaultch'],ax=specAx)
+                yaxislabel = self.replaceLabel(settings['grid']['defaultch'])
+            else:
+                isPlot = gData.show_spectra(channel=self.selectedRows[0],ax=specAx)
+                yaxislabel = self.replaceLabel(self.selectedRows[0])
+
+            if isPlot is not None:
+                specAx.set_ylabel(yaxislabel)
+                specAx.set_xlabel(self.replaceLabel(gData.header["Sweep Signal"].strip('"')))
+                specAx.xaxis.set_major_formatter(formatter1)
+                specAx.yaxis.set_major_formatter(formatter1)
+                specFig.canvas.draw()
+                # specFig.tight_layout()
+                fig.canvas.draw()
+                specWindow.show_all()
+                if not specWindow.is_visible():
+                    specWindow.present()
         
     
     def on_button_fft_clicked(self, button):
@@ -350,7 +360,6 @@ class Handler:
     def on_slider_changed(self,button):
         if isinstance(self.datastore[0],nanonis_load.grid.Grid):
             self.datastore[0].update_bias(button.get_value())
-            print(button.get_value())
         else: 
             ax.cla()
             self.plot_data()
@@ -727,8 +736,8 @@ settingsDialog = builder.get_object('settingsDialog')
 
 # fig = Figure(figsize=(4,3), dpi=100)
 # ax = fig.add_subplot()
-fig, ax = plt.subplots()
-specFig, specAx = plt.subplots()
+fig, ax = plt.subplots(layout="constrained")
+specFig, specAx = plt.subplots(layout="constrained")
 # fig.tight_layout()
 formatter1 = EngFormatter(sep="\u2009")
 canvas = FigureCanvas(fig)

@@ -1,10 +1,9 @@
 [Desktop Entry]
 Name=Nanonis Viewer
 Version=1.0
-Exec=/bin/bash -c 'source /home/stefan/venvs/nanonisviewer/bin/activate && /home/stefan/nanonis-viewer/NanonisViewer.py'
+Exec=/bin/bash -c 'source /home/stefan/nanonis-viewer/.venv/bin/activate && /home/stefan/nanonis-viewer/NanonisViewer.py'
 Path=/home/stefan/nanonis-viewer
 Icon=/home/stefan/nanonis-viewer/icons/nanonis-viewer.png
 Type=Application
 Terminal=false
 StartupNotify=true
-#Exec=/bin/bash -c 'source /home/username/PycharmProjects/ProBlog/venv/bin/activate && /home/username/PycharmProjects/ProBlog/venv/bin/python /home/username/PycharmProjects/ProBlog/ExeMain.py'

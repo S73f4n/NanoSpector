@@ -20,6 +20,7 @@ spec:
   extension: .dat
 grid:
   extension: .3ds
+  defaultch: Current (A)
 fft:
   cmap: viridis
   level: 20
