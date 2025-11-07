@@ -395,11 +395,10 @@ class Grid:
 
         def update_bias(freeBias):
             biasValue = int((len(self.biases)-1) * freeBias)
-            print(biasValue)
             data = np.flipud(self.data[channel][:, :, biasValue])
             self.im.set_data(data)
             self.im.set_clim(data.min(), data.max())
-            title = "Energy = " + str(self.biases[biasValue]) + " eV"
+            title = f"Energy = {self.biases[biasValue]:.4g} eV"
             self.plot_ax.set_title(title)
             self.fig.canvas.draw()
 
