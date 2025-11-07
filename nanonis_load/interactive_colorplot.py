@@ -17,7 +17,7 @@ class ColorplotException(Exception):
         super(ColorplotException, self).__init__(message)
 
 # TO DO: Turn this into an abstract base class
-class colorplot(object):
+class Colorplot(object):
 
     r"""
     Colorplot object that is inherited by didv.colorplot.
@@ -118,12 +118,19 @@ class colorplot(object):
         try:
             self._fake_lock = True
             self.load_data()
-            pseudocoordX, pseudocoordY = self.mesh(tilt = tilt, xshift = xshift, derivative = derivative)
             cmap = self.pcolor.cmap
             clim_min, clim_max = self.pcolor.get_clim()
+            
             if colorbar:
                 self.colorbar.remove()
             self.pcolor.remove()
+            if not self.transpose:
+                pseudocoordX, pseudocoordY = self.mesh(tilt = tilt, xshift = xshift, derivative = derivative)
+            else:
+                pseudocoordX, pseudocoordY = self.mesh(tilt = tilt, xshift = xshift, derivative = derivative)
+                pseudocoordY = pseudocoordY.T
+                pseudocoordX = pseudocoordX.T
+
             self.pcolor = self.ax.pcolormesh(pseudocoordX, pseudocoordY, self.data, cmap = cmap)
             self.clim(clim_min, clim_max)
             if colorbar:
@@ -134,7 +141,7 @@ class colorplot(object):
         except:
             err_detect = traceback.format_exc()
             print(err_detect)
-            raise
+            # raise
         finally:
             self._fake_lock = False
 
@@ -265,7 +272,7 @@ class colorplot(object):
             self._drag_color_index += 1
             self._drag_color_index = self._drag_color_index % len(self._color_cycle)
 
-        return drag_bar(self, direction, axes, color, initial_value, self.xlist, self.ylist, locator_axes = locator_axes)
+        return DragBar(self, direction, axes, color, initial_value, self.xlist, self.ylist, locator_axes = locator_axes)
 
     def define_colormap(self):
 
@@ -330,7 +337,7 @@ class colorplot(object):
         self.colormap(new_cmap, change_original = False)
 
     def add_colorbar_rectangle(self, x_value, y_value):
-        rect = colorbar_rectangle(x_value, y_value, self)
+        rect = ColorbarRectangle(x_value, y_value, self)
         self._colorbar_rectangles.append(rect)
         self.ax.add_patch(rect.rect)
         self.fig.canvas.draw()
@@ -343,7 +350,7 @@ class colorplot(object):
         print('C_MAX: ' + str(c_max))
         return self.pcolor.cmap(np.linspace(0,1,256))
 
-class drag_bar():
+class DragBar():
 
     def __init__(self, colorplot, direction, axes, color, initial_value, xlist, ylist, locator_axes = None):
 
@@ -388,7 +395,7 @@ class drag_bar():
         self.phantom_index_value = self.index_value
         self.slice_dict[self.slice_const] = self.index
         self.colorplot_line = axline_function(self.index_value, color = self.color)
-        self.plot, = self.drag_ax.plot(self.indep_list, self.data[self.slice_dict['left'],self.slice_dict['right']], label = str(self.index_value), color = self.color)
+        self.plot, = self.drag_ax.plot(self.indep_list, self.data[self.slice_dict['left'], self.slice_dict['right']], label = str(self.index_value), color = self.color)
         legend = self.drag_ax.legend()
         self.legend_order = len(legend.get_lines()) - 1
 
@@ -565,7 +572,7 @@ class drag_bar():
         self.updated = True
         self.waiting = False
 
-class colorbar_rectangle():
+class ColorbarRectangle():
 
     def __init__(self, x_value, y_value, colorplot):
 

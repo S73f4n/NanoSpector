@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 import gi
 import nanonis_load
-from nanonis_load import didv, sxm
+from nanonis_load import didv, sxm, grid
 import yaml
 import shutil
 import os
 import io
 import re
 import warnings
+from datetime import datetime, timezone
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
@@ -49,6 +50,8 @@ class Handler:
         self.read_settings()
         self.initSettingsWindow()
         self.setPlotstyle()
+        self.igorseconds = 2082844800
+        self.dateformat = "%d.%m.%Y %H:%M:%S"
 
     def setPlotstyle(self):
         plt.style.use(settings['general']['plotstyle'])
@@ -105,7 +108,7 @@ class Handler:
         # treeiter = store.append(glob.glob(filepath + "/*.VERT"))
         subDir = settings['file']['path']
         try:
-            files += [os.path.join(subDir, file) for file in os.listdir(subDir) if os.path.isfile(os.path.join(subDir, file)) and (file.endswith(settings['spec']['extension']) or file.endswith(settings['image']['extension']))]
+            files += [os.path.join(subDir, file) for file in os.listdir(subDir) if os.path.isfile(os.path.join(subDir, file)) and (file.endswith(settings['spec']['extension']) or file.endswith(settings['image']['extension']) or file.endswith(settings['grid']['extension']))]
             for filename in sorted(files, key=os.path.getmtime, reverse=True):
                 treeiter = store.append([os.path.basename(filename)])
         except FileNotFoundError:
@@ -143,7 +146,8 @@ class Handler:
                         except AttributeError:
                             ax.set_prop_cycle('color',list(tc.tol_cset(settings['spec']['cmap'])))
             for countIndex, data in enumerate(self.datastore):
-                if isinstance(data,nanonis_load.didv.spectrum) and [sxm for sxm in self.datastore if isinstance(sxm,nanonis_load.sxm.sxm)] == []:
+                if isinstance(data,nanonis_load.didv.Spectrum) and [sxm for sxm in self.datastore if isinstance(sxm,nanonis_load.sxm.Sxm)] == []:
+                    builder.get_object('sliderLabel').set_text("Y offset")
                     if self.selectedRows == []:
                         if "Z" in data._filename:
                             selected_rows.append(settings['spec']['defaultchZ'])
@@ -160,14 +164,14 @@ class Handler:
                             data.data.drop('index', axis=1, inplace=True)
                         except:
                             pass
-                    offsetX = np.mean(self.datastore[0].data[selected_rows[0]]) * offsetXslider/100
+                    offsetX = np.mean(self.datastore[0].data[selected_rows[0]]) * offsetXslider*10*len(selected_rows)
                     for ch in selected_rows:
                         if settings['buttons']['average']:
                             bracketPos = ch.find('(')
                             average = ch[:bracketPos] + "[bwd] " + ch[bracketPos:]
                         else:
                             average = None
-                        didv.plot(data, channel=ch, axes=ax,legend=False,average=average,logabs=settings['buttons']['logplot'],multiply=(offsetX*(len(self.datastore)-countIndex)))
+                        didv.Plot(data, channel=ch, axes=ax,legend=False,average=average,logabs=settings['buttons']['logplot'],multiply=(offsetX*(len(self.datastore)-countIndex)))
                     ax.autoscale(enable=True,axis='both')
                     if settings['buttons']['logplot']:
                         try: 
@@ -203,7 +207,8 @@ class Handler:
                         fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header['Saved Date'], fontsize='medium')
                         legendLabels = getHeaderLabels(data) 
                         handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
-                if isinstance(data,nanonis_load.sxm.sxm):
+                if isinstance(data,nanonis_load.sxm.Sxm):
+                    builder.get_object('sliderLabel').set_text("Contrast")
                     if self.selectedRows == []:
                         selected_rows.append(settings['image']['defaultch'])
                     else:
@@ -223,17 +228,17 @@ class Handler:
                     loc = 'lower right'
                     plotname = data.filename
                     if cmap == 'default':
-                        self.sxmplot = sxm.plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,axes=ax)
+                        self.sxmplot = sxm.Plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,axes=ax)
                     else:
                         try:
-                            self.sxmplot = sxm.plot(data, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,axes=ax)
+                            self.sxmplot = sxm.Plot(data, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,axes=ax)
                         except ValueError:
-                            self.sxmplot = sxm.plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,axes=ax)
+                            self.sxmplot = sxm.Plot(data, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,axes=ax)
                     if fft: 
                         self.sxmplot.fft(windowFilter=settings['fft']['window'],level=settings['fft']['level'])
                         fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + " (FFT) \n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0], fontsize='small')
                     else:
-                        didvData = [didv for didv in self.datastore if isinstance(didv,nanonis_load.didv.spectrum)]
+                        didvData = [didv for didv in self.datastore if isinstance(didv,nanonis_load.didv.Spectrum)]
                         didvLabel = [re.findall(r"\d+", didv._filename)[-1].lstrip('0') for didv in didvData] 
                         self.sxmplot.add_spectra(didvData,labels=didvLabel,channel=settings['spec']['defaultch'])
                         fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n{:g} × {:g} nm'.format(data.x_range,data.y_range),
@@ -249,6 +254,14 @@ class Handler:
                     # fig.set_figwidth(8)
                     legendLabels = getHeaderLabels(data) 
                     handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
+                if isinstance(data,nanonis_load.grid.Grid):
+                    if self.selectedRows == []:
+                        selected_rows.append(settings['image']['defaultch'])
+                    else:
+                        selected_rows = self.selectedRows
+                    
+                    builder.get_object('sliderLabel').set_text("Energy")
+                    self.gridplot = data.plot(channel=selected_rows[0],axes=ax)
                 try:
                     if handles == None and settings['buttons']['legend']:
                         ax.legend(legendLabels,loc=loc,fontsize='small',fancybox=True,framealpha=alpha)
@@ -261,6 +274,7 @@ class Handler:
         except KeyError:
             pass
         fig.canvas.draw()
+        fig.canvas.mpl_connect("button_press_event", self.on_fig_click)
 
 
     def setHeaderText(self, data):
@@ -274,10 +288,14 @@ class Handler:
         self.datastore = []
         for thisFile in files:
             filename = os.path.join(settings['file']['path'],thisFile)
-            if filename.endswith('.dat'):
-                self.datastore.append(didv.spectrum(filename))
-            if filename.endswith('.sxm'):
-                self.datastore.append(sxm.sxm(filename))
+            if filename.endswith(settings['spec']['extension']):
+                self.datastore.append(didv.Spectrum(filename))
+            elif filename.endswith(settings['image']['extension']):
+                self.datastore.append(sxm.Sxm(filename))
+            elif filename.endswith(settings['grid']['extension']):
+                self.datastore.append(grid.Grid(filename))
+            else:
+                return 0
             self.setChannelList(self.datastore[-1].data.keys())
 
     def on_selection_yaxis_changed(self,selection):
@@ -288,6 +306,7 @@ class Handler:
             # except:
             #     pass
             ax.cla()
+            specAx.cla()
             self.selectedRows = []
             for yiter in yaxisIter:
                 self.selectedRows.append(yaxisModel[yiter][0])
@@ -301,6 +320,31 @@ class Handler:
                 files.append(model[thisiter][0])
         self.getDataFromFiles(files)
         self.plot_data()
+    
+    def on_fig_click(self,event):
+        if isinstance(self.datastore[0],nanonis_load.grid.Grid):
+            gData = self.datastore[0]
+            specAx.cla()
+            gData.click = (event.xdata, event.ydata)
+            if self.selectedRows == []:
+                isPlot = gData.show_spectra(channel=settings['grid']['defaultch'],ax=specAx)
+                yaxislabel = self.replaceLabel(settings['grid']['defaultch'])
+            else:
+                isPlot = gData.show_spectra(channel=self.selectedRows[0],ax=specAx)
+                yaxislabel = self.replaceLabel(self.selectedRows[0])
+
+            if isPlot is not None:
+                specAx.set_ylabel(yaxislabel)
+                specAx.set_xlabel(self.replaceLabel(gData.header["Sweep Signal"].strip('"')))
+                specAx.xaxis.set_major_formatter(formatter1)
+                specAx.yaxis.set_major_formatter(formatter1)
+                specFig.canvas.draw()
+                # specFig.tight_layout()
+                fig.canvas.draw()
+                specWindow.show_all()
+                if not specWindow.is_visible():
+                    specWindow.present()
+        
     
     def on_button_fft_clicked(self, button):
         # try:
@@ -317,6 +361,16 @@ class Handler:
         #     pass
         ax.cla()
         self.plot_data()
+    
+    def on_slider_changed(self,button):
+        if isinstance(self.datastore[0],nanonis_load.grid.Grid):
+            self.datastore[0].update_bias(button.get_value())
+        else: 
+            ax.cla()
+            self.plot_data()
+
+
+        
 
     def on_index_changed(self,button):
         # try:
@@ -363,8 +417,11 @@ class Handler:
         self.on_filter_text_changed(entry)
 
     def on_filter_file_changed(self, entry):
+        selection = Gtk.Builder.get_object(builder, "selection_file")
         self.fileFilter_text = entry.get_text()
+        selection.handler_block_by_func(self.on_file_selected)
         self.fileFilter.refilter()
+        selection.handler_unblock_by_func(self.on_file_selected)
 
     def on_filter_file_clear(self, entry, icon, event):
         entry.set_text("")
@@ -436,10 +493,12 @@ class Handler:
                 outfile.write("END\n")
                 for wave in waveNames.keys():
                     outfile.write("X Setscale d, 0,0, \""+waveNames[wave]+"\", "+wave+"\n")
-                    try:
-                        outfile.write("X Note "+wave+" \"Saved Date: "+data.header['Saved Date'] +"\\n"+'\\n'.join(self.cleanHeader(data))+"\"\n")
-                    except (TypeError, ValueError):
-                        pass
+                try:
+                    saveddate = datetime.strptime(data.header['Saved Date'], self.dateformat)
+                    outfile.write("X Variable saveddate = "+str(saveddate.replace(tzinfo=timezone.utc).timestamp()+self.igorseconds)+"\n")
+                    outfile.write("X Note "+wave+" \"Saved Date: "+data.header['Saved Date'] +"\\n"+'\\n'.join(self.cleanHeader(data))+"\"\n")
+                except (TypeError, ValueError):
+                    pass
                 outfile.write("X SetDataFolder ::")
         elif settings['general']['exportformat'] == "ASCII":
             outpath = os.path.join(settings['file']['path'],"export",filename.replace(os.path.splitext(filename)[1],".csv")) 
@@ -475,8 +534,35 @@ class Handler:
             outpath = os.path.join(settings['file']['path'],"export",filename.replace(os.path.splitext(filename)[1],".csv")) 
             np.savetxt(outpath, exportdata, delimiter=",")
 
-
-
+    def exportgrid(self,rows,data,filepath):
+        filename = os.path.basename(filepath)
+        basename = os.path.splitext(filename)[0]
+        os.makedirs(os.path.join(settings['file']['path'],"export",basename), exist_ok=True)
+        igorFolder = self.cleanIgorName(filename)
+        waveNames = self.cleanWaveName(rows,igorFolder)
+        if settings['general']['exportformat'] == "IgorPro":
+            exportfile = os.path.join(settings['file']['path'],"export",basename+".itx")
+            for i, wave in enumerate(waveNames.keys()):
+                unit = re.search(r"\((\w+)\)", rows[i]).group(1)
+                flat_data = data.data[rows[i]].flatten(order="F")
+                with open(exportfile, "w") as outfile:
+                    outfile.write("IGOR\n")
+                    outfile.write(f"WAVES/N=({data.y_pixels:g},{data.x_pixels:g},{len(data.biases):g}) {wave}\n")
+                    outfile.write("BEGIN\n")
+                    for i, val in enumerate(flat_data):
+                        outfile.write(f"{val:.6e} ")
+                        if (i + 1) % 10 == 0:
+                            outfile.write("\n")
+                    outfile.write("\nEND\n")
+                    outfile.write(f"X Setscale/I x, 0, {data.x_size*1e-9:.6g}, \"m\", {wave}\n")
+                    outfile.write(f"X Setscale/I y, 0, {data.y_size*1e-9:.6g}, \"m\", {wave}\n")
+                    outfile.write(f"X Setscale/I z, {data.biases[0]:.6g},{data.biases[-1]:.6g}, \"V\", {wave}\n")
+                    outfile.write(f"X Setscale d, 0,0, \"{unit}\", {wave}\n")
+        if settings['general']['exportformat'] == "ASCII":
+            exportfile = os.path.join(settings['file']['path'],"export",basename+".dat")
+            for i, wave in enumerate(waveNames.keys()):
+                reshaped_data = data.data[rows[i]].reshape(-1, data.data[rows[i]].shape[2]).T
+                np.savetxt(exportfile, reshaped_data, delimiter=",")
 
     def cleanHeader(self,headerData):
         return [x.replace("$","").replace("{","").replace("}","") for x in getHeaderLabels(headerData)]
@@ -541,20 +627,27 @@ class Handler:
         try:
             selected_rows = []
             for data in self.datastore:
-                if isinstance(data,nanonis_load.didv.spectrum):
+                if isinstance(data,nanonis_load.didv.Spectrum):
                     if self.selectedRows == []:
                         selected_rows.append(settings['spec']['defaultch'])
                     else:
                         selected_rows = self.selectedRows
                     plotname = data._filename
                     self.export(selected_rows,data,plotname)
-                elif isinstance(data,nanonis_load.sxm.sxm):
+                elif isinstance(data,nanonis_load.sxm.Sxm):
                     if self.selectedRows == []:
                         selected_rows.append(settings['image']['defaultch'])
                     else:
                         selected_rows = self.selectedRows
                     plotname = data.filename
                     self.exportsxm(selected_rows,data,plotname)
+                elif isinstance(data, nanonis_load.grid.Grid):
+                    if self.selectedRows == []:
+                        selected_rows.append(settings['grid']['defaultch'])
+                    else:
+                        selected_rows = self.selectedRows
+                    plotname = data.filename
+                    self.exportgrid(selected_rows,data,plotname)
         except KeyError:
             pass
         
@@ -569,6 +662,10 @@ class Handler:
     
     def on_headerWindow_destroy(self, *data):
         headerWindow.hide()
+        return True
+
+    def on_specWindow_destroy(self, *data):
+        specWindow.hide()
         return True
 
     def on_buttonSettings_clicked(self,button):
@@ -659,23 +756,38 @@ builder.connect_signals(Handler())
 window = builder.get_object("mainwindow")
 store=builder.get_object('file_list')
 yaxisList = builder.get_object("yaxis_list")
+specWindow = builder.get_object('specWindow')
 sw = builder.get_object('scrolledwindow1')
+specsw = builder.get_object('specScrolledWindow1')
 swtoolbar = builder.get_object('scrolledwindow2')
+specswtoolbar = builder.get_object('specScrolledWindow2')
 headerWindow = builder.get_object('headerWindow')
 settingsDialog = builder.get_object('settingsDialog')
 
 # fig = Figure(figsize=(4,3), dpi=100)
 # ax = fig.add_subplot()
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(layout="constrained")
+specFig, specAx = plt.subplots(layout="constrained")
 # fig.tight_layout()
 formatter1 = EngFormatter(sep="\u2009")
 canvas = FigureCanvas(fig)
+specCanvas = FigureCanvas(specFig)
+
 try:
     toolbar = NavigationToolbar(canvas, window)
 except TypeError:
     toolbar = NavigationToolbar(canvas)
+
+try:
+    specToolbar = NavigationToolbar(specCanvas, specWindow)
+except:
+    specToolbar = NavigationToolbar(specCanvas)
+
 sw.add(canvas)
 swtoolbar.add(toolbar)
+
+specsw.add(specCanvas)
+specswtoolbar.add(specToolbar)
 
 #warnings.filterwarnings("error")
 

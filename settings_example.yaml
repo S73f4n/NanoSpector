@@ -18,6 +18,9 @@ spec:
   defaultch: Current (A)
   defaultchZ: Current (A)
   extension: .dat
+grid:
+  extension: .3ds
+  defaultch: Current (A)
 fft:
   cmap: viridis
   level: 20
