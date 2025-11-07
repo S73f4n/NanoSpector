@@ -271,11 +271,20 @@ class Grid:
             # self.linecut_ax.set_aspect("auto")
 
         # Plot grid
-        self.im = self.plot_ax.imshow(
-            np.flipud(self.data[channel][:, :, sweep_index]),
-            extent=(0, self.header["x_size (nm)"], 0, self.header["y_size (nm)"]),
-            cmap="magma_r",
-        )  # Check to make sure x_size and y_size aren't mixed up
+        if self.data[channel][:, :, sweep_index].ndim == 1 or 1 in self.data[channel][:, :, sweep_index].shape[:2]:
+            self.im = self.plot_ax.imshow(
+                np.flipud(self.data[channel][:, :, sweep_index]),
+                aspect="auto",
+                interpolation="nearest",
+                # extent=(0, self.header["x_size (nm)"], 0, self.header["y_size (nm)"]),
+                cmap="magma_r",
+            )  # Check to make sure x_size and y_size aren't mixed up
+        else:
+            self.im = self.plot_ax.imshow(
+                np.flipud(self.data[channel][:, :, sweep_index]),
+                extent=(0, self.header["x_size (nm)"], 0, self.header["y_size (nm)"]),
+                cmap="magma_r",
+            )  # Check to make sure x_size and y_size aren't mixed up
         if self.fft:
             fft_array = np.absolute(np.fft.fft2(np.flipud(self.data[channel][:, :, 0])))
             max_fft = np.max(fft_array[1:-1, 1:-1])
@@ -385,7 +394,7 @@ class Grid:
             self.fig.canvas.draw()
 
         def update_bias(freeBias):
-            biasValue = int(len(self.biases) / 201 * freeBias)
+            biasValue = int((len(self.biases)-1) * freeBias)
             print(biasValue)
             data = np.flipud(self.data[channel][:, :, biasValue])
             self.im.set_data(data)
@@ -444,40 +453,53 @@ class Grid:
 
         if self.click is None:
             return
-        x_pixel = int(
-            np.floor(
-                self.click[0] * self.header["x_pixels"] / self.header["x_size (nm)"]
-            )
-        )
-        y_pixel = int(
-            np.floor(
-                self.click[1] * self.header["y_pixels"] / self.header["y_size (nm)"]
-            )
-        )
-        if ax is None:
-            fig = plt.figure()
-            ax = fig.add_subplot(111)
-        ax.plot(self.biases, self.data[channel][y_pixel, x_pixel, :])
-
-        # TO DO: test this
-        x = (x_pixel + 0.5) * self.header["x_size (nm)"] / self.header["x_pixels"]
-        y = (y_pixel + 0.5) * self.header["y_size (nm)"] / self.header["x_pixels"]
-        theta = -np.radians(self.header["angle"])
-        R = np.array(((np.cos(theta), -np.sin(theta)), (np.sin(theta), np.cos(theta))))
-        xy_vec = (
-            x - self.header["x_size (nm)"] * 0.5,
-            y - self.header["y_size (nm)"] * 0.5,
-        )
         try:
-            self.s_plt.remove()
-        except AttributeError:
-            pass
-        self.s_plt = self.plot_ax.scatter(x, y, marker="x", color="red", picker=True)
-        transformed_vec = R.dot(xy_vec)
-        transformed_x = transformed_vec[0] + self.header["x_center (nm)"]
-        transformed_y = transformed_vec[1] + self.header["y_center (nm)"]
-        print("x = " + str(transformed_x) + " nm")
-        print("y = " + str(transformed_y) + " nm")
+            if self.header["x_size (nm)"] > 0.0:
+                x_pixel = int(
+                        np.floor(
+                            self.click[0] * self.header["x_pixels"] / self.header["x_size (nm)"]
+                        )
+                )
+            else:
+                x_pixel = 0
+
+            if self.header["y_size (nm)"] > 0.0:
+                y_pixel = int(
+                    np.floor(
+                        self.click[1] * self.header["y_pixels"] / self.header["y_size (nm)"]
+                    )
+                )
+            else:
+                y_pixel = 0
+
+        except TypeError:
+            return
+        else:
+            if ax is None:
+                fig = plt.figure()
+                ax = fig.add_subplot(100)
+            ax.plot(self.biases, self.data[channel][y_pixel, x_pixel, :])
+
+            # TO DO: test this
+            x = (x_pixel + 0.5) * self.header["x_size (nm)"] / self.header["x_pixels"]
+            y = (y_pixel + 0.5) * self.header["y_size (nm)"] / self.header["x_pixels"]
+            theta = -np.radians(self.header["angle"])
+            R = np.array(((np.cos(theta), -np.sin(theta)), (np.sin(theta), np.cos(theta))))
+            xy_vec = (
+                x - self.header["x_size (nm)"] * 0.5,
+                y - self.header["y_size (nm)"] * 0.5,
+            )
+            try:
+                self.s_plt.remove()
+            except (AttributeError, NotImplementedError):
+                pass
+            self.s_plt = self.plot_ax.scatter(x, y, marker="x", color="red", picker=True)
+            transformed_vec = R.dot(xy_vec)
+            transformed_x = transformed_vec[0] + self.header["x_center (nm)"]
+            transformed_y = transformed_vec[1] + self.header["y_center (nm)"]
+            # print("x = " + str(transformed_x) + " nm")
+            # print("y = " + str(transformed_y) + " nm")
+            return 0
 
     # dpi does not work... why?
     # Needs a MovieWriter
