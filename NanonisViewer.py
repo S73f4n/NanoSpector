@@ -254,6 +254,8 @@ class Handler:
                     # fig.set_figwidth(8)
                     legendLabels = getHeaderLabels(data) 
                     handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
+                    if save:
+                        self.save_sxm(data)
                 if isinstance(data,nanonis_load.grid.Grid):
                     if self.selectedRows == []:
                         selected_rows.append(settings['image']['defaultch'])
@@ -269,8 +271,6 @@ class Handler:
                         ax.legend(handles, legendLabels, loc=loc, fontsize='small', fancybox=True, framealpha=alpha, handlelength=0, handletextpad=0)
                 except UnboundLocalError:
                     pass
-                if save:
-                    self.save_sxm(data)
         except KeyError:
             pass
         fig.canvas.draw()
