@@ -324,8 +324,8 @@ class Grid:
         self.plot_ax.set_ylabel("Y (nm)")
         # self.colorbar = self.fig.colorbar(self.im, ax=self.plot_ax)
         self.free = 0
-        title = "Energy = " + str(round(self.biases[sweep_index], 4)) + " eV"
-        self.plot_ax.set_title(title)
+        title = self.filename.split("/")[-1].split("\\")[-1] + "\n" + self.header['Start time'].replace("\"","") + '\n{:g} × {:g} nm ({:g} × {:g} px)\nEnergy = {:.4g} eV'.format(self.x_size,self.y_size,self.x_pixels,self.y_pixels,self.biases[sweep_index])
+        self.plot_ax.set_title(title,fontsize='small')
 
         def update_linecut():
             # Convert line endpoints to pixel units
@@ -389,8 +389,8 @@ class Grid:
                 )  # Is this the correct orientation?
                 self.fft_plot.set_data(fft_array)
             self.im.set_clim(data.min(), data.max())
-            title = "Energy = " + str(self.biases[self.free]) + " eV"
-            self.plot_ax.set_title(title)
+            title = self.filename.split("/")[-1].split("\\")[-1] + "\n" + self.header['Start time'].replace("\"","") + '\n{:g} × {:g} nm ({:g} × {:g} px)\nEnergy = {:.4g} eV'.format(self.x_size,self.y_size,self.x_pixels,self.y_pixels,self.biases[self.free])
+            self.plot_ax.set_title(title,fontsize='small')
             self.fig.canvas.draw()
 
         def update_bias(freeBias):
@@ -398,8 +398,9 @@ class Grid:
             data = np.flipud(self.data[channel][:, :, biasValue])
             self.im.set_data(data)
             self.im.set_clim(data.min(), data.max())
-            title = f"Energy = {self.biases[biasValue]:.4g} eV"
-            self.plot_ax.set_title(title)
+
+            title = self.filename.split("/")[-1].split("\\")[-1] + "\n" + self.header['Start time'].replace("\"","") + '\n{:g} × {:g} nm ({:g} × {:g} px)\nEnergy = {:.4g} eV'.format(self.x_size,self.y_size,self.x_pixels,self.y_pixels,self.biases[biasValue])
+            self.plot_ax.set_title(title,fontsize='small')
             self.fig.canvas.draw()
 
         def on_press(event):
