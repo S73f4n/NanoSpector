@@ -202,10 +202,10 @@ class Handler:
                         handles = None
                         fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header['Saved Date'], fontsize='medium')
                         if settings['buttons']['infobox']:
-                            ax.annotate('\n'.join(getHeaderLabels(data)),xy=(0.015,0.8),fontsize='small',xycoords='axes fraction',bbox=dict(alpha=0.7, facecolor='#eeeeee', edgecolor='#bcbcbc', linewidth=0.5,pad=3))
+                            ax.annotate('\n'.join(getHeaderLabels(data.header,"spectrum")),xy=(0.015,0.8),fontsize='small',xycoords='axes fraction',bbox=dict(alpha=0.7, facecolor='#eeeeee', edgecolor='#bcbcbc', linewidth=0.5,pad=3))
                     else:
                         fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header['Saved Date'], fontsize='medium')
-                        legendLabels = getHeaderLabels(data) 
+                        legendLabels = getHeaderLabels(data.header,"spectrum") 
                         handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
                 if isinstance(data,nanonis_load.sxm.Sxm):
                     builder.get_object('sliderLabel').set_text("Contrast")
@@ -241,8 +241,7 @@ class Handler:
                         didvData = [didv for didv in self.datastore if isinstance(didv,nanonis_load.didv.Spectrum)]
                         didvLabel = [re.findall(r"\d+", didv._filename)[-1].lstrip('0') for didv in didvData] 
                         self.sxmplot.add_spectra(didvData,labels=didvLabel,channel=settings['spec']['defaultch'])
-                        fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n{:g} × {:g} nm'.format(data.x_range,data.y_range),
-                                    fontsize='small')
+                        fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n{:g} × {:g} nm'.format(data.x_range,data.y_range), fontsize='small')
                         fig.axes[0].axis('off')            
                     self.setHeaderText(data)
                     # try:
@@ -252,11 +251,13 @@ class Handler:
                     # fig.delaxes(fig.axes[1])
                     # fig.axes[1].remove()
                     # fig.set_figwidth(8)
-                    legendLabels = getHeaderLabels(data) 
+                    legendLabels = getHeaderLabels(data.header,dtype="sxm") 
                     handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
                     if save:
                         self.save_sxm(data)
                 if isinstance(data,nanonis_load.grid.Grid):
+                    plotname = data.filename
+                    self.setHeaderText(data)
                     if self.selectedRows == []:
                         selected_rows.append(settings['image']['defaultch'])
                     else:
@@ -264,6 +265,12 @@ class Handler:
                     
                     builder.get_object('sliderLabel').set_text("Energy")
                     self.gridplot = data.plot(channel=selected_rows[0],axes=ax)
+                    fig.axes[0].axis('off')            
+                    loc = 'lower right'
+                    alpha = 0.4
+                    legendLabels = getHeaderLabels(data.header,"grid") 
+                    handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
+
                 try:
                     if handles == None and settings['buttons']['legend']:
                         ax.legend(legendLabels,loc=loc,fontsize='small',fancybox=True,framealpha=alpha)

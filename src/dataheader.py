@@ -1,69 +1,191 @@
 import numpy as np
 
-def getHeaderLabels(data):
-        labels = [] 
+sxmCH = {
+    ":Bias>Bias (V):" : {
+        "unitType": "direct",
+        "unit": "V",
+        "symbol": "$V$"
+    },
+    ":Z-Controller>Setpoint:" : {
+        "unitType": "eval",
+        "unit": ":Z-Controller>Setpoint unit:",
+        "symbol": "$Z_{sp}$"
+    },
+    ":Z-Controller>I gain:": {
+        "unitType": "direct",
+        "unit": "m/s",
+        "symbol": "$I_{FB}$"
+    },
+    ":Scan>speed forw. (m/s):": {
+        "unitType": "direct",
+        "unit": "m/s",
+        "symbol": "$v$"
+    },
+    ":Oscillation Control>Amplitude Setpoint (m):": {
+        "unitType": "direct",
+        "unit": "m",
+        "symbol": "$A_{osc}$",
+    }
+}
+
+sxmCC = {
+    ":Bias>Bias (V):" : {
+        "unitType": "direct",
+        "unit": "V",
+        "symbol": "$V$"
+    },
+    ":Z-Controller>Z (m):" :{
+        "unitType": "direct",
+        "unit": "m",
+        "symbol": "$Z$",
+        "precision": 6
+    },
+    ":Scan>speed forw. (m/s):": {
+        "unitType": "direct",
+        "unit": "m/s",
+        "symbol": "$v$"
+    },
+}
+
+spectrum = {
+    "": {
+        "unitType": "direct",
+        "unit": "",
+        "symbol": ""
+    },
+    "Bias>Bias (V)" : {
+        "unitType": "direct",
+        "unit": "V",
+        "symbol": "$V$"
+    },
+    "Z (m)": {
+        "unitType": "direct",
+        "unit": "m",
+        "symbol": "$Z$",
+        "precision": 6
+    },
+    "Lock-in>Amplitude": {
+        "unitType": "direct",
+        "unit": "V",
+        "symbol": "$V_{mod}$"
+    },
+    "f_res (Hz)": {
+        "unitType": "direct",
+        "unit": "Hz",
+        "symbol": "$f_0$",
+        "precision" : 10
+    },
+    "Q": {
+        "unitType": "direct",
+        "unit": "",
+        "symbol": "$Q$"
+    },
+    "Phase (deg)": {
+        "unitType": "direct",
+        "unit": "°",
+        "symbol": "$\\Phi$"
+    },
+    "Oscillation Control>Amplitude Setpoint (m)": {
+        "unitType": "direct",
+        "unit": "m",
+        "symbol": "$A_{osc}$",
+    },
+    "Sample period (ms)": {
+        "unitType": "direct",
+        "unit": "ms",
+        "symbol": "$t_{sample}$"
+    },
+
+}
+
+spectrumZ = {
+    "Z-Controller>Setpoint" : {
+        "unitType": "eval",
+        "unit": "Z-Controller>Setpoint unit",
+        "symbol": "$Z_{sp}$"
+    }
+}
+
+grid = {
+    "Bias>Bias (V)" : {
+        "unitType": "direct",
+        "unit": "V",
+        "symbol": "$V$"
+    },
+    "Z (m)": {
+        "unitType": "direct",
+        "unit": "m",
+        "symbol": "$Z$",
+        "precision": 6
+    },
+    "Lock-in>Amplitude": {
+        "unitType": "direct",
+        "unit": "V",
+        "symbol": "$V_{mod}$"
+    },
+    "f_res (Hz)": {
+        "unitType": "direct",
+        "unit": "Hz",
+        "symbol": "$f_0$",
+        "precision" : 10
+    },
+    "Q": {
+        "unitType": "direct",
+        "unit": "",
+        "symbol": "$Q$"
+    },
+    "Phase (deg)": {
+        "unitType": "direct",
+        "unit": "°",
+        "symbol": "$\\Phi$"
+    },
+    "Oscillation Control>Amplitude Setpoint (m)": {
+        "unitType": "direct",
+        "unit": "m",
+        "symbol": "$A_{osc}$",
+    },
+}
+
+def getHeaderLabels(header, dtype):
+    labels = []
+    if dtype == "sxm":
+        if header[":Z-Controller>Controller status:"][0] == "ON":
+            headerDict = sxmCH
+        elif header[":Z-Controller>Controller status:"][0] == "OFF":
+            headerDict = sxmCC
+    elif dtype == "spectrum":
+        headerDict = spectrum
+        if "Z-Controller>Controller status" in header:
+            if header["Z-Controller>Controller status"] == "ON":
+                headerDict.update(spectrumZ)
+    elif dtype == "grid":
+        headerDict = grid
+        if "Z-Controller>Controller status" in header:
+            if header["Z-Controller>Controller status"] == "ON":
+                headerDict.update(spectrumZ)
+    else:
+        headerDict = {}
+ 
+    for headerKey, headerVal in headerDict.items():
         try:
-            labels.append("V = " + formatSI(data.header['Bias>Bias (V)']) + "V")
+            value = header[headerKey]
+            if headerVal["unitType"] == "direct":
+                unit = headerVal["unit"]
+            elif headerVal["unitType"] == "eval":
+                unit = header[headerVal["unit"]]
+                if type(unit) == list:
+                    unit = unit[0]
+            if type(value) == list:
+                value = value[0]
+            try:
+                prec = headerVal["precision"]
+            except KeyError:
+                prec = 4
+            labels.append(headerVal["symbol"] + " = "+ formatSI(value,precision=prec) + unit)
         except KeyError:
             pass
-        try:
-            labels.append("Sample period = " + str(data.header['Sample Period (ms)']) + " ms")
-        except KeyError:
-            pass
-        try: 
-            labels.append("Z = " + formatSI(data.header['Z (m)']) + "m")
-        except KeyError:
-            pass
-        try: 
-            labels.append("Z offset = " + formatSI(data.header['Z offset (m)']) + "m")
-        except KeyError:
-            pass
-        try: 
-            labels.append("$I$ = " + formatSI(data.header['Current>Current (A)']) + "A")
-        except KeyError:
-            pass
-        try: 
-            labels.append("$V_{mod}$ = " + formatSI(data.header['Lock-in>Amplitude']) + "V")
-        except KeyError:
-            pass
-        try: 
-            labels.append("$f_0$ = " + formatSI(data.header['f_res (Hz)'],precision=10) + "Hz")
-        except KeyError:
-            pass
-        try: 
-            labels.append("$Q$ = " + str(data.header['Q']))
-        except KeyError:
-            pass
-        try: 
-            labels.append("$\Phi$ = " + formatSI(data.header['Phase (deg)']) + "°")
-        except KeyError:
-            pass
-        try:
-            labels.append("$V$ = " + formatSI(data.header[':Bias>Bias (V):'][0]) + "V")
-        except KeyError:
-            pass
-        try:
-            labels.append("$I$ =" + formatSI(data.header[':Current>Current (A):'][0]) + "A")
-        except KeyError:
-            pass
-        try:
-            labels.append("$Z$ = " + formatSI(data.header[':Z-Controller>Setpoint:'][0]) + data.header[':Z-Controller>Setpoint unit:'][0])
-        except KeyError:
-            pass
-        try:
-            labels.append("$I_{FB}$ = " + formatSI(data.header[':Z-Controller>I gain:'][0]) + 'm/s')
-        except KeyError:
-            pass
-        try:
-            labels.append("$v$ = " + formatSI(data.header[':Scan>speed forw. (m/s):'][0]) + "m/s")
-        except KeyError:
-            pass
-        try:
-            labels.append("OC input = " + formatSI(data.header['Oscillation Control>Amplitude Setpoint (m)']) + "m")
-        except KeyError:
-            pass
-        return labels
-                    
+    return labels
+
 def formatSI(value, precision=4):
     prefixes = {
         9: "G",   # giga
