@@ -266,8 +266,8 @@
                     <property name="hexpand">True</property>
                     <property name="vexpand">True</property>
                     <property name="window-placement-set">False</property>
-                    <property name="min-content-width">569</property>
-                    <property name="min-content-height">320</property>
+                    <property name="min-content-width">747</property>
+                    <property name="min-content-height">420</property>
                   </object>
                   <packing>
                     <property name="expand">True</property>
