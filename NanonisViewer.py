@@ -367,9 +367,9 @@ class Handler:
         if self.datastore is not None and len(self.datastore) > 0:
             if isinstance(self.datastore[0],nanonis_load.grid.Grid):
                 self.datastore[0].update_bias(button.get_value())
-        else: 
-            ax.cla()
-            self.plot_data()
+            else: 
+                ax.cla()
+                self.plot_data()
 
 
         
@@ -684,24 +684,30 @@ class Handler:
         self.write_settings()
         self.plot_data()
 
-    def on_button_savefig_clicked_(self,button):
+    def on_button_savefig_clicked(self,button):
         filemodel, fileiter = Gtk.Builder.get_object(builder, "selection_file").get_selected_rows()
         savefig = io.BytesIO()
         os.makedirs(os.path.join(settings['file']['path'],"export"), exist_ok=True)
         if fileiter:
             savefig.name = os.path.join(settings['file']['path'], "export", "export.png")
             selectedFiles = [filemodel[path][0] for path in fileiter] 
-            if len(selectedFiles) > 1:
+            if len(selectedFiles) > 1 and isinstance(self.datastore[0],nanonis_load.sxm.Sxm):
                 selectedNums = [re.findall(r"\d+", filename)[-1] for filename in selectedFiles]
-                exportFile = selectedFiles[-1].replace(os.path.splitext(selectedFiles[-1])[1],"-"+str(selectedNums[0])+".png") 
+                exportFile = selectedFiles[-1].replace(os.path.splitext(selectedFiles[-1])[1],"-"+str(selectedNums[0])+".gif") 
+                self.plot_data(save=True)
+                self.make_gif(exportFile)
             else:
-                exportFile = selectedFiles[0].replace(os.path.splitext(selectedFiles[0])[1],".png")
-            savefig.name = os.path.join(settings['file']['path'], "export", exportFile)
-            fig.savefig(savefig.name, dpi=300,format='png',bbox_inches='tight')
-            savefig.seek(0)
-            piximage = Gtk.Image.new_from_file(savefig.name)
-            self.clipboard.set_image(piximage.get_pixbuf())
-            fig.canvas.draw()
+                if len(selectedFiles) > 1:
+                    selectedNums = [re.findall(r"\d+", filename)[-1] for filename in selectedFiles]
+                    exportFile = selectedFiles[-1].replace(os.path.splitext(selectedFiles[-1])[1],"-"+str(selectedNums[0])+".png") 
+                else:
+                    exportFile = selectedFiles[0].replace(os.path.splitext(selectedFiles[0])[1],".png")
+                savefig.name = os.path.join(settings['file']['path'], "export", exportFile)
+                fig.savefig(savefig.name, dpi=300,format='png',bbox_inches='tight')
+                savefig.seek(0)
+                piximage = Gtk.Image.new_from_file(savefig.name)
+                self.clipboard.set_image(piximage.get_pixbuf())
+                fig.canvas.draw()
 
     def save_sxm(self,data):
         fname = os.path.basename(data.filename)
@@ -709,23 +715,19 @@ class Handler:
         os.makedirs(os.path.join(settings['file']['path'],"export"), exist_ok=True)
         exportFile = fname.replace(os.path.splitext(fname)[1],".png")
         savefig.name = os.path.join(settings['file']['path'], "export", exportFile)
-        fig.savefig(savefig.name, dpi=300,format='png',bbox_inches='tight')
+        fig.savefig(savefig.name, dpi=150,format='png',bbox_inches='tight')
         savefig.seek(0)
         piximage = Gtk.Image.new_from_file(savefig.name)
         self.clipboard.set_image(piximage.get_pixbuf())
         self.gifStore.append(iio.imread(savefig.name))
 
-    def make_gif(self):
+    def make_gif(self,gifName):
         if self.gifStore is not []:
             os.makedirs(os.path.join(settings['file']['path'],"export"), exist_ok=True)
-            gifName = os.path.join(settings['file']['path'], "export", "export.gif")
-            iio.imwrite(gifName, self.gifStore, duration=250, loop=0)
+            gifPath = os.path.join(settings['file']['path'], "export", gifName)
+            iio.imwrite(gifPath, self.gifStore, duration=250, loop=0)
             self.gifStore.clear()
 
-    def on_button_savefig_clicked(self,button):
-        self.plot_data(save=True)
-        self.make_gif()
-    
     def on_label_data_edited(self, widget, path, new_text):
         labelstore[path][0] = new_text
         if new_text == "":
