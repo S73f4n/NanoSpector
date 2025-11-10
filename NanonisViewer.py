@@ -322,28 +322,29 @@ class Handler:
         self.plot_data()
     
     def on_fig_click(self,event):
-        if isinstance(self.datastore[0],nanonis_load.grid.Grid):
-            gData = self.datastore[0]
-            specAx.cla()
-            gData.click = (event.xdata, event.ydata)
-            if self.selectedRows == []:
-                isPlot = gData.show_spectra(channel=settings['grid']['defaultch'],ax=specAx)
-                yaxislabel = self.replaceLabel(settings['grid']['defaultch'])
-            else:
-                isPlot = gData.show_spectra(channel=self.selectedRows[0],ax=specAx)
-                yaxislabel = self.replaceLabel(self.selectedRows[0])
+        if self.datastore is not None and len(self.datastore) > 0:
+            if isinstance(self.datastore[0],nanonis_load.grid.Grid):
+                gData = self.datastore[0]
+                specAx.cla()
+                gData.click = (event.xdata, event.ydata)
+                if self.selectedRows == []:
+                    isPlot = gData.show_spectra(channel=settings['grid']['defaultch'],ax=specAx)
+                    yaxislabel = self.replaceLabel(settings['grid']['defaultch'])
+                else:
+                    isPlot = gData.show_spectra(channel=self.selectedRows[0],ax=specAx)
+                    yaxislabel = self.replaceLabel(self.selectedRows[0])
 
-            if isPlot is not None:
-                specAx.set_ylabel(yaxislabel)
-                specAx.set_xlabel(self.replaceLabel(gData.header["Sweep Signal"].strip('"')))
-                specAx.xaxis.set_major_formatter(formatter1)
-                specAx.yaxis.set_major_formatter(formatter1)
-                specFig.canvas.draw()
-                # specFig.tight_layout()
-                fig.canvas.draw()
-                specWindow.show_all()
-                if not specWindow.is_visible():
-                    specWindow.present()
+                if isPlot is not None:
+                    specAx.set_ylabel(yaxislabel)
+                    specAx.set_xlabel(self.replaceLabel(gData.header["Sweep Signal"].strip('"')))
+                    specAx.xaxis.set_major_formatter(formatter1)
+                    specAx.yaxis.set_major_formatter(formatter1)
+                    specFig.canvas.draw()
+                    # specFig.tight_layout()
+                    fig.canvas.draw()
+                    specWindow.show_all()
+                    if not specWindow.is_visible():
+                        specWindow.present()
         
     
     def on_button_fft_clicked(self, button):
@@ -363,8 +364,9 @@ class Handler:
         self.plot_data()
     
     def on_slider_changed(self,button):
-        if isinstance(self.datastore[0],nanonis_load.grid.Grid):
-            self.datastore[0].update_bias(button.get_value())
+        if self.datastore is not None and len(self.datastore) > 0:
+            if isinstance(self.datastore[0],nanonis_load.grid.Grid):
+                self.datastore[0].update_bias(button.get_value())
         else: 
             ax.cla()
             self.plot_data()
