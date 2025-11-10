@@ -72,7 +72,6 @@
       <object class="GtkScrolledWindow">
         <property name="visible">True</property>
         <property name="can-focus">True</property>
-        <property name="shadow-type">in</property>
         <property name="min-content-width">240</property>
         <property name="min-content-height">320</property>
         <child>
@@ -83,12 +82,6 @@
         </child>
       </object>
     </child>
-  </object>
-  <object class="GtkImage" id="image1">
-    <property name="visible">True</property>
-    <property name="can-focus">False</property>
-    <property name="margin-right">1</property>
-    <property name="icon-name">applications-system</property>
   </object>
   <object class="GtkListStore" id="label_list">
     <columns>
@@ -119,7 +112,6 @@
             <property name="can-focus">True</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
-            <property name="shadow-type">in</property>
             <property name="min-content-width">320</property>
             <property name="min-content-height">240</property>
             <child>
@@ -136,7 +128,6 @@
           <object class="GtkScrolledWindow" id="specScrolledWindow2">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
-            <property name="shadow-type">in</property>
             <child>
               <placeholder/>
             </child>
@@ -271,13 +262,10 @@
                   <object class="GtkScrolledWindow" id="scrolledwindow1">
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
-                    <property name="margin-start">10</property>
-                    <property name="margin-top">10</property>
-                    <property name="margin-bottom">10</property>
+                    <property name="double-buffered">False</property>
                     <property name="hexpand">True</property>
                     <property name="vexpand">True</property>
                     <property name="window-placement-set">False</property>
-                    <property name="shadow-type">in</property>
                     <property name="min-content-width">569</property>
                     <property name="min-content-height">320</property>
                   </object>
@@ -291,7 +279,8 @@
                   <object class="GtkScrolledWindow" id="scrolledwindow2">
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
-                    <property name="shadow-type">in</property>
+                    <property name="double-buffered">False</property>
+                    <property name="window-placement-set">False</property>
                     <child>
                       <placeholder/>
                     </child>
@@ -857,8 +846,15 @@
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
-                <property name="image">image1</property>
+                <property name="always-show-image">True</property>
                 <signal name="clicked" handler="on_buttonSettings_clicked" swapped="no"/>
+                <child>
+                  <object class="GtkImage">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="stock">gtk-properties</property>
+                  </object>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
