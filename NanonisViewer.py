@@ -194,7 +194,12 @@ class Handler:
                     alpha = 1
                     loc = 'best'
                     if len(self.datastore) > 1:
-                        fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)))
+                        selectedNums = [re.findall(r"\d+", didv._filename)[-1] for didv in self.datastore if isinstance(didv,nanonis_load.didv.Spectrum)]
+                        basename = re.sub(r'\d+$', '', os.path.splitext(os.path.basename(plotname))[0])
+                        if len(selectedNums) > 5:
+                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "\n" + basename + selectedNums[0] + "-" + selectedNums[-1],fontsize='medium')
+                        else:
+                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "\n" + basename + ",".join(selectedNums),fontsize='medium')
                         legendLabels.append(os.path.basename(plotname))
                         handles = None
                     elif len(selected_rows) > 1:
