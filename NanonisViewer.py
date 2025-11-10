@@ -539,7 +539,6 @@ class Handler:
     def exportgrid(self,rows,data,filepath):
         filename = os.path.basename(filepath)
         basename = os.path.splitext(filename)[0]
-        os.makedirs(os.path.join(settings['file']['path'],"export",basename), exist_ok=True)
         igorFolder = self.cleanIgorName(filename)
         waveNames = self.cleanWaveName(rows,igorFolder)
         if settings['general']['exportformat'] == "IgorPro":
