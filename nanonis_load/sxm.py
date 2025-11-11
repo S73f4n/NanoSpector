@@ -912,6 +912,7 @@ class Plot:
         zero: bool = False,
         cover: float = 1,
         cbar: bool = False,
+        reverse: bool = False,
         cmap=util.get_w_cmap(),
         rasterized=True,
         axes=None
@@ -963,6 +964,10 @@ class Plot:
 
         self.image_data = image_data
 
+        if reverse:
+            cmap = plt.get_cmap(cmap).reversed()
+        else:
+            cmap = plt.get_cmap(cmap)
         cmap = plt.get_cmap(cmap)
         cmap.set_bad(color='#dddddd')
         cmap.set_over(color='#ff0000')

@@ -123,7 +123,7 @@ class Handler:
                 label = label.replace(key, value)
         return label
 
-    def plot_data(self, fft=None,save=False,direction=0):
+    def plot_data(self, fft=None,save=False,direction=0,reverse=False):
         for btn in settings['buttons']:
             settings['buttons'][btn] = Gtk.Builder.get_object(builder, "button_"+btn).get_active()
         offsetXslider = Gtk.Builder.get_object(builder, "adjOffset").get_value()
@@ -241,12 +241,12 @@ class Handler:
                     loc = 'lower right'
                     plotname = data.filename
                     if cmap == 'default':
-                        self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,axes=ax)
+                        self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,reverse=reverse,axes=ax)
                     else:
                         try:
-                            self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,axes=ax)
+                            self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,reverse=reverse,axes=ax)
                         except ValueError:
-                            self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,axes=ax)
+                            self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,reverse=reverse,axes=ax)
                     if fft: 
                         self.sxmplot.fft(windowFilter=settings['fft']['window'],level=settings['fft']['level'])
                         if settings['buttons']['showtitle']:
@@ -504,8 +504,9 @@ class Handler:
              self.selectedRows.reverse()
         except:
             pass
-
-        self.on_logplot_changed(button)
+        
+        ax.cla()
+        self.plot_data(reverse=True)
     
     def cleanIgorName(self, folder):
         folder = folder.replace(folder.split(".")[-1], "")
