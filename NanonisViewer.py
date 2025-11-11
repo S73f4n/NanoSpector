@@ -23,7 +23,7 @@ from matplotlib.backends.backend_gtk3 import NavigationToolbar2GTK3 as Navigatio
 from matplotlib.ticker import EngFormatter
 import matplotlib.patches as mpl_patches
 
-import imageio.v3 as iio
+from PIL import Image
 
 import src.tol_colors as tc
 
@@ -761,13 +761,13 @@ class Handler:
         savefig.seek(0)
         piximage = Gtk.Image.new_from_file(savefig.name)
         self.clipboard.set_image(piximage.get_pixbuf())
-        self.gifStore.append(iio.imread(savefig.name))
+        self.gifStore.append(Image.open(savefig.name))
 
     def make_gif(self,gifName):
         if self.gifStore is not []:
             os.makedirs(os.path.join(settings['file']['path'],"export"), exist_ok=True)
             gifPath = os.path.join(settings['file']['path'], "export", gifName)
-            iio.imwrite(gifPath, self.gifStore, duration=250, loop=0)
+            self.gifStore[0].save(gifPath, save_all = True, append_images = self.gifStore[1:], optimize = False, duration = 250, loop = 0)
             self.gifStore.clear()
 
     def on_label_data_edited(self, widget, path, new_text):
