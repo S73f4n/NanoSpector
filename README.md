@@ -11,7 +11,7 @@ Welcome to NanonisViewer a small program that allows you to quickly view images 
 
 ### Windows and Linux binaries
 
-For Windows and Linux users, executable binary versions are available on the release page (Packages). Just download the whole folder and run NanonisViewer from within. No need to download the source code of the repository. Linux version was tested on Ubuntu 22.04 but should run on other distros as well.
+For Windows and Linux users, executable binary versions are available on the [release page](https://gitlab.fz-juelich.de/st.schulte/nanonis-viewer/-/releases) (Packages). Just download the whole folder and run NanonisViewer from within. No need to download the source code of the repository. The Linux version was tested on Ubuntu 24.04 but should run on other distros as well.
 
 ### Conda (cross-platform)
 
@@ -23,7 +23,7 @@ You can then run NanonisViewer.py from within that environment.
 
 ### Linux
 
-If you want to run the python file directly make sure you have a working installation of PyGObject (https://gnome.pages.gitlab.gnome.org/pygobject/getting_started.html).
+If you want to run the python file directly make sure you have a working installation of GTK3 and PyGObject (https://gnome.pages.gitlab.gnome.org/pygobject/getting_started.html).
 Other dependencies are installed with the following pip command:
 ```
 pip install scipy pyaml pandas matplotlib
