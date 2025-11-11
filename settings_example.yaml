@@ -21,6 +21,7 @@ spec:
 grid:
   extension: .3ds
   defaultch: Current (A)
+  cmap: default
 fft:
   cmap: viridis
   level: 20
@@ -40,6 +41,7 @@ buttons:
   average: false
   replace: false
   exportbias: true
+  showtitle: true
 cmaps:
 - default
 - gray
