@@ -39,6 +39,7 @@ buttons:
   legend: true
   average: false
   replace: false
+  exportbias: true
 cmaps:
 - default
 - gray

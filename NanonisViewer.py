@@ -648,6 +648,8 @@ class Handler:
                     else:
                         selected_rows = self.selectedRows
                     plotname = data._filename
+                    if settings['buttons']['exportbias'] and 'Bias calc (V)' in data.data.keys() and 'Bias calc (V)' not in selected_rows:
+                        selected_rows.insert(0,'Bias calc (V)')
                     self.export(selected_rows,data,plotname)
                 elif isinstance(data,nanonis_load.sxm.Sxm):
                     if self.selectedRows == []:
