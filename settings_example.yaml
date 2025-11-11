@@ -8,7 +8,7 @@ file:
   name: Bias-Spectroscopy00001.dat
   path: C:/
 image:
-  cmap: default 
+  cmap: gray 
   cmapI: viridis
   cmapdIdV: magma 
   defaultch: Z (m)

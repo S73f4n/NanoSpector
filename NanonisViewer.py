@@ -274,7 +274,7 @@ class Handler:
                     plotname = data.filename
                     self.setHeaderText(data)
                     if self.selectedRows == []:
-                        selected_rows.append(settings['image']['defaultch'])
+                        selected_rows.append(settings['grid']['defaultch'])
                     else:
                         selected_rows = self.selectedRows
                     
