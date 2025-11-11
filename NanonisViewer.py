@@ -150,8 +150,10 @@ class Handler:
                     builder.get_object('sliderLabel').set_text("Y offset")
                     if self.selectedRows == []:
                         if "Z" in data._filename:
+                            selected_rows.clear()
                             selected_rows.append(settings['spec']['defaultchZ'])
                         else:
+                            selected_rows.clear()
                             selected_rows.append(settings['spec']['defaultch'])
                     else:
                         selected_rows = self.selectedRows
