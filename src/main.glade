@@ -573,9 +573,9 @@
                               <object class="GtkLabel" id="label_direction">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="xpad">5</property>
                                 <property name="label" translatable="yes">fwd</property>
                                 <property name="justify">center</property>
+                                <property name="width-chars">5</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
