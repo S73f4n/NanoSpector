@@ -40,3 +40,5 @@ The file extensions NanoSpector is looking for, the default channels and colorma
 ## Support
 If you have problems with NanoSpector or find a bug you can message me at st.schulte@fz-juelich.de.
 Is NanoSpector working for you and helping you in your research? Drop a message, too!
+
+_"Nanonis" is a trademark of SPECS Surface Nano Analysis GmbH. NanoSpector is an independent project and is not affiliated with or endorsed by the owner of the Nanonis trademark._
