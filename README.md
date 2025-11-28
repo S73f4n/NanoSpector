@@ -1,6 +1,6 @@
-# Nanonis Viewer
+# NanoSpector
 
-Welcome to NanonisViewer a small program that allows you to quickly view images and spectra saved by Specs Nanonis software (https://www.specs-group.com/nanonis/). NanonisViewer works best if you save your files in one directory, that you can select to browse all viewable files. 
+Welcome to NanoSpector a small program that allows you to quickly view images and spectra saved by [SPECS Nanonis software](https://www.specs-group.com/nanonis/). NanoSpector works best if you save your files in one directory, that you can select to browse all viewable files. 
 
 ## Screenshots
  
@@ -11,7 +11,7 @@ Welcome to NanonisViewer a small program that allows you to quickly view images 
 
 ### Windows and Linux binaries
 
-For Windows and Linux users, executable binary versions are available on the [release page](https://gitlab.fz-juelich.de/st.schulte/nanonis-viewer/-/releases) (Packages). Just download the whole folder and run NanonisViewer from within. No need to download the source code of the repository. The Linux version was tested on Ubuntu 24.04 but should run on other distros as well.
+For Windows and Linux users, executable binary versions are available on the [release page](https://gitlab.fz-juelich.de/st.schulte/nanonis-viewer/-/releases) (Packages). Just download the whole folder and run NanoSpector from within. No need to download the source code of the repository. The Linux version was tested on Ubuntu 24.04 but should run on other distros as well.
 
 ### Conda (cross-platform)
 
@@ -19,7 +19,7 @@ If you are using a conda python environment you can install the necessary depend
 ```
 conda install scipy pyaml pandas gtk3 matplotlib pygobject adwaita-icon-theme
 ```
-You can then run NanonisViewer.py from within that environment.
+You can then run NanoSpector.py from within that environment.
 
 ### Linux
 
@@ -30,13 +30,13 @@ pip install scipy pyaml pandas matplotlib
 ```
 
 ## Usage
-Usage of NanonisViewer is rather intuitive. Select the folder your data files are in and click on a specific file to view it. If the default channel is present in that file, it will already be plotted. Otherwise, select the respective channel from the list. Selecting multiple files as well as channels is also possible.
+Usage of NanoSpector is rather intuitive. Select the folder your data files are in and click on a specific file to view it. If the default channel is present in that file, it will already be plotted. Otherwise, select the respective channel from the list. Selecting multiple files as well as channels is also possible.
 Basic image analysis is available in the main window. Flatten, plane level or crop the images or calculate the 2D FFT.
 The “Save plot” button saves a .png image in the export subfolder of your working directory and copies it to the clip board automatically.
 
 ## Settings
-The file extensions NanonisViewer is looking for, the default channels and colormaps can be changed from the settings window. FFT settings allow you to change the window function that is applied to the image before calculating the FFT as well as the cut-off level of the finial FFT plot. All settings are conveniently saved in a single YAML file (settings.yaml). Some settings are not changeable via the GUI and can be edited in the settings file directly, e.g., available color maps and axis labels. Make sure NanonisViewer is not running when you edit the file. 
+The file extensions NanoSpector is looking for, the default channels and colormaps can be changed from the settings window. FFT settings allow you to change the window function that is applied to the image before calculating the FFT as well as the cut-off level of the finial FFT plot. All settings are conveniently saved in a single YAML file (settings.yaml). Some settings are not changeable via the GUI and can be edited in the settings file directly, e.g., available color maps and axis labels. Make sure NanoSpector is not running when you edit the file. 
 
 ## Support
-If you have problems with NanonisViewer or find a bug you can message me at st.schulte@fz-juelich.de.
-Is NanonisViewer working for you and helping you in your research? Drop a message, too!
+If you have problems with NanoSpector or find a bug you can message me at st.schulte@fz-juelich.de.
+Is NanoSpector working for you and helping you in your research? Drop a message, too!

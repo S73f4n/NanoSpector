@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=NanoSpector
+Version=1.0
+Exec=/bin/bash -c 'source /home/<user>/nanospector/.venv/bin/activate && /home/<user>/nanospector/NanoSpector.py'
+Path=/home/<user>/nanospector
+Icon=/home/<user>/nanospector/icons/nanospector.png
+Type=Application
+Terminal=false
+StartupNotify=true
