@@ -11,7 +11,7 @@ Welcome to NanoSpector a small program that allows you to quickly view images an
 
 ### Windows and Linux binaries
 
-For Windows and Linux users, executable binary versions are available on the [release page](https://gitlab.fz-juelich.de/st.schulte/nanonis-viewer/-/releases) (Packages). Just download the whole folder and run NanoSpector from within. No need to download the source code of the repository. The Linux version was tested on Ubuntu 24.04 but should run on other distros as well.
+For Windows and Linux users, executable binary versions are available on the [release page](https://github.com/S73f4n/NanoSpector/releases) (Packages). Just download the whole folder and run NanoSpector from within. No need to download the source code of the repository. The Linux version was tested on Ubuntu 24.04 but should run on other distros as well.
 
 ### Conda (cross-platform)
 
