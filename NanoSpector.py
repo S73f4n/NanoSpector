@@ -29,6 +29,8 @@ import src.tol_colors as tc
 
 from src.dataheader import getHeaderLabels
 
+__version__ = "2.0.1"
+
 class Handler:
     def __init__(self):
         self.settingsDict = {
@@ -53,6 +55,9 @@ class Handler:
         self.setPlotstyle()
         self.igorseconds = 2082844800
         self.dateformat = "%d.%m.%Y %H:%M:%S"
+        
+        self.aboutWindow: Gtk.AboutDialog = builder.get_object("aboutDialog")
+        self.aboutWindow.set_version(__version__)
 
     def setPlotstyle(self):
         plt.style.use(settings['general']['plotstyle'])
@@ -75,6 +80,12 @@ class Handler:
     def on_mainwindow_destroy(self, *args):
         self.write_settings()
         Gtk.main_quit()
+
+    def on_buttonAbout_clicked(self, *args):
+        self.aboutWindow.present()
+    
+    def on_aboutDialog_response(self, dialog, response):
+        dialog.hide()
 
     def on_selection_changed(self, folder_chooser):
         settings['file']['path'] = folder_chooser.get_filename()
