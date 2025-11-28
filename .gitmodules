@@ -1,0 +1,3 @@
+[submodule "nanonis_load"]
+	path = nanonis_load
+	url = https://github.com/S73f4n/nanonis_load
