@@ -23,7 +23,7 @@ You can then run NanoSpector.py from within that environment.
 
 ### Linux
 
-If you want to run the python file directly make sure you have a working installation of GTK3 and PyGObject (https://gnome.pages.gitlab.gnome.org/pygobject/getting_started.html).
+If you want to run the python file directly make sure you have a working installation of GTK3 and [PyGObject](https://gnome.pages.gitlab.gnome.org/pygobject/getting_started.html).
 Other dependencies are installed with the following pip command:
 ```
 pip install scipy pyaml pandas matplotlib
