@@ -550,7 +550,7 @@ class Handler:
                 try:
                     saveddate = datetime.strptime(data.header['Saved Date'], self.dateformat)
                     outfile.write("X Variable saveddate = "+str(saveddate.replace(tzinfo=timezone.utc).timestamp()+self.igorseconds)+"\n")
-                    outfile.write("X Note "+wave+" \"Saved Date: "+data.header['Saved Date'] +"\\n"+'\\n'.join(self.cleanHeader(data))+"\"\n")
+                    outfile.write("X Note "+wave+" \"Saved Date: "+data.header['Saved Date'] +"\\n"+'\\n'.join(self.cleanHeader(getHeaderLabels(data.header,"spectrum")))+"\"\n")
                 except (TypeError, ValueError):
                     pass
                 outfile.write("X SetDataFolder ::")
@@ -582,7 +582,7 @@ class Handler:
                 outfile.write("X Setscale d, 0,0, \""+unit+"\", "+igorFile+"\n")
                 outfile.write("X Setscale/I x, 0,"+str(data.x_range)+", \"m\", "+igorFile+"\n")
                 outfile.write("X Setscale/I y, 0,"+str(data.y_range)+", \"m\", "+igorFile+"\n")
-                outfile.write("X Note "+igorFile+" \"Saved Date: "+data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] +"\\n"+'\\n'.join(self.cleanHeader(data))+"\"\n")
+                outfile.write("X Note "+igorFile+" \"Saved Date: "+data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] +"\\n"+'\\n'.join(self.cleanHeader(getHeaderLabels(data.header,"sxm")))+"\"\n")
 
         elif settings['general']['exportformat'] == "ASCII":
             outpath = os.path.join(settings['file']['path'],"export",filename.replace(os.path.splitext(filename)[1],".csv")) 
@@ -617,8 +617,8 @@ class Handler:
                 reshaped_data = data.data[rows[i]].reshape(-1, data.data[rows[i]].shape[2]).T
                 np.savetxt(exportfile, reshaped_data, delimiter=",")
 
-    def cleanHeader(self,headerData):
-        return [x.replace("$","").replace("{","").replace("}","") for x in getHeaderLabels(headerData)]
+    def cleanHeader(self,headerLabels):
+        return [x.replace("$","").replace("{","").replace("}","") for x in headerLabels]
 
     def initSettingsWindow(self):
         plotstyleGtk = Gtk.Builder.get_object(builder, "setGeneralPlotstyle")
