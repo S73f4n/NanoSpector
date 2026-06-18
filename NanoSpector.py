@@ -193,7 +193,10 @@ class Handler:
                             average = ch[:bracketPos] + "[bwd] " + ch[bracketPos:]
                         else:
                             average = None
-                        didv.Plot(data, channel=ch, axes=ax,legend=False,average=average,logabs=settings['buttons']['logplot'],multiply=(offsetX*(len(self.datastore)-countIndex)))
+                        if isinstance(data,nanonis_load.didv.Spectrum):
+                            didv.Plot(data, channel=ch, axes=ax,legend=False,average=average,logabs=settings['buttons']['logplot'],multiply=(offsetX*(len(self.datastore)-countIndex)))
+                        elif isinstance(data,createc_load.vert.Spectrum):
+                            vert.Plot(data, channel=ch, axes=ax,legend=False,average=average,logabs=settings['buttons']['logplot'],multiply=(offsetX*(len(self.datastore)-countIndex)))
                     ax.autoscale(enable=True,axis='both')
                     if settings['buttons']['logplot']:
                         try: 

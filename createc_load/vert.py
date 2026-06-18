@@ -211,13 +211,18 @@ class Plot:
                 spec_data[channel] = multiply + spec_data[channel]
             if logabs:
                 spec_data[channel] = abs(spec_data[channel])
+
             plot_args = dict(
-                x=spec_data.columns[0],
-                y=channel,
-                ax=self.ax,
-                legend=False,
-                label=spectrum_label,
-            )
+                    x=spec_data.columns[0],
+                    y=channel,
+                    ax=self.ax,
+                    legend=False,
+                    label=spectrum_label,
+                )
+
+            if self._is_unique(spec_data[spec_data.columns[0]]):
+                plot_args["x"] = spec_data.columns[1]
+
             if bias_shift != 0:
                 spec_data.iloc[:, 0] -= bias_shift
             spec_data.plot(**plot_args)
@@ -268,3 +273,7 @@ class Plot:
 
     def ylim(self, y_min, y_max):
         self.ax.set_ylim(y_min, y_max)
+
+    def _is_unique(self, s):
+        arr = s.to_numpy()
+        return (arr[0] == arr).all()
