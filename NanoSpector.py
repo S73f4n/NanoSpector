@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import gi
 import nanonis_load
+import createc_load
 from nanonis_load import didv, sxm, grid
+from createc_load import vert
 import yaml
 import shutil
 import os
@@ -119,8 +121,10 @@ class Handler:
         files = []
         # treeiter = store.append(glob.glob(filepath + "/*.VERT"))
         subDir = settings['file']['path']
+        extensionList = settings['spec']['extension'].split(',')+settings['image']['extension'].split(',')+settings['grid']['extension'].split(',')
+        extensionList = [x.strip(' ') for x in extensionList]
         try:
-            files += [os.path.join(subDir, file) for file in os.listdir(subDir) if os.path.isfile(os.path.join(subDir, file)) and (file.endswith(settings['spec']['extension']) or file.endswith(settings['image']['extension']) or file.endswith(settings['grid']['extension']))]
+            files += [os.path.join(subDir, file) for file in os.listdir(subDir) if os.path.isfile(os.path.join(subDir, file)) and (file.endswith(tuple(extensionList)))]
             for filename in sorted(files, key=os.path.getmtime, reverse=True):
                 treeiter = store.append([os.path.basename(filename)])
         except FileNotFoundError:
@@ -160,7 +164,9 @@ class Handler:
                         except AttributeError:
                             ax.set_prop_cycle('color',list(tc.tol_cset(settings['spec']['cmap'])))
             for countIndex, data in enumerate(self.datastore):
-                if isinstance(data,nanonis_load.didv.Spectrum) and [sxm for sxm in self.datastore if isinstance(sxm,nanonis_load.sxm.Sxm)] == []:
+
+                # Display Spectrum from Nanonis DAT
+                if (isinstance(data,nanonis_load.didv.Spectrum) and [sxm for sxm in self.datastore if isinstance(sxm,nanonis_load.sxm.Sxm)] == []) or isinstance(data,createc_load.vert.Spectrum):
                     builder.get_object('sliderLabel').set_text("Y offset")
                     if self.selectedRows == []:
                         if "Z" in data._filename:
@@ -231,6 +237,8 @@ class Handler:
                             fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header['Saved Date'], fontsize='medium')
                         legendLabels = getHeaderLabels(data.header,"spectrum") 
                         handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
+
+                # Display Image from SXM file
                 if isinstance(data,nanonis_load.sxm.Sxm):
                     builder.get_object('sliderLabel').set_text("Contrast")
                     if self.selectedRows == []:
@@ -326,8 +334,19 @@ class Handler:
         self.datastore = []
         for thisFile in files:
             filename = os.path.join(settings['file']['path'],thisFile)
-            if filename.endswith(settings['spec']['extension']):
-                self.datastore.append(didv.Spectrum(filename))
+            try: 
+                with open(filename, encoding="utf-8", errors="ignore") as f:
+                    fLine = f.readline()
+            except FileNotFoundError:
+                print("File does not exist!")
+            if filename.endswith(tuple(settings['spec']['extension'])):
+                if "Experiment" in fLine: 
+                    self.datastore.append(didv.Spectrum(filename))
+                elif "[ParVERT" in fLine:
+                    self.datastore.append(vert.Spectrum(filename))
+                else:
+                    print("File not supported")
+                    return 0
             elif filename.endswith(settings['image']['extension']):
                 self.datastore.append(sxm.Sxm(filename))
             elif filename.endswith(settings['grid']['extension']):
