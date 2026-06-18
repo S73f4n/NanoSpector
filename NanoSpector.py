@@ -211,6 +211,7 @@ class Handler:
                     ax.xaxis.set_major_formatter(formatter1)
                     ax.yaxis.set_major_formatter(formatter1)
                     plotname = data._filename
+                    print(os.path.basename(plotname))
                     try:
                         Gtk.Builder.get_object(builder, 'label_comment').set_text("Comment: " + data.header['Comment01'])
                     except KeyError:
@@ -218,6 +219,18 @@ class Handler:
                     self.setHeaderText(data)
                     alpha = 1
                     loc = 'best'
+
+                    try: 
+                        filedate = data.header['Saved Date']
+                    except KeyError:
+                        try:
+                            dtformat = 'A%y%m%d.%H%M%S.VERT'
+                            savedate = datetime.strptime(os.path.basename(plotname),dtformat)
+                            outformat = '%d.%m.%Y %H:%M:%S'
+                            filedate = datetime.strftime(savedate,outformat)
+                        except:
+                            pass
+
                     if len(self.datastore) > 1:
                         selectedNums = [re.findall(r"\d+", didv._filename)[-1] for didv in self.datastore if isinstance(didv,nanonis_load.didv.Spectrum)]
                         basename = re.sub(r'\d+$', '', os.path.splitext(os.path.basename(plotname))[0])
@@ -232,12 +245,12 @@ class Handler:
                         legendLabels = selected_rows.copy() 
                         handles = None
                         if settings['buttons']['showtitle']:
-                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header['Saved Date'], fontsize='medium')
+                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + filedate, fontsize='medium')
                         if settings['buttons']['infobox']:
                             ax.annotate('\n'.join(getHeaderLabels(data.header,"spectrum")),xy=(0.015,0.8),fontsize='small',xycoords='axes fraction',bbox=dict(alpha=0.7, facecolor='#eeeeee', edgecolor='#bcbcbc', linewidth=0.5,pad=3))
                     else:
                         if settings['buttons']['showtitle']:
-                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header['Saved Date'], fontsize='medium')
+                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + filedate, fontsize='medium')
                         legendLabels = getHeaderLabels(data.header,"spectrum") 
                         handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
 

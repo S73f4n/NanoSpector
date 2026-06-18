@@ -181,7 +181,10 @@ def getHeaderLabels(header, dtype):
                 prec = headerVal["precision"]
             except KeyError:
                 prec = 4
-            labels.append(headerVal["symbol"] + " = "+ formatSI(value,precision=prec) + unit)
+            try:
+                labels.append(headerVal["symbol"] + " = "+ formatSI(value,precision=prec) + unit)
+            except ValueError:
+                pass
         except KeyError:
             pass
     return labels
