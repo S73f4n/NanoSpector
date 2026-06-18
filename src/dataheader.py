@@ -53,6 +53,12 @@ spectrum = {
         "unit": "",
         "symbol": ""
     },
+    "BiasVoltage / BiasVolt.[mV]": {
+        "unitType": "direct",
+        "unit": "V",
+        "symbol": "$V$",
+        "factor": 1e-3,
+    },
     "Bias>Bias (V)" : {
         "unitType": "direct",
         "unit": "V",
@@ -68,6 +74,12 @@ spectrum = {
         "unitType": "direct",
         "unit": "V",
         "symbol": "$V_{mod}$"
+    },
+    "LockinAmpl": {
+        "unitType": "direct",
+        "unit": "Vpp",
+        "symbol": "$V_{mod}$",
+        "factor": 1e-3
     },
     "f_res (Hz)": {
         "unitType": "direct",
@@ -182,14 +194,18 @@ def getHeaderLabels(header, dtype):
             except KeyError:
                 prec = 4
             try:
-                labels.append(headerVal["symbol"] + " = "+ formatSI(value,precision=prec) + unit)
+                factor = headerVal["factor"]
+            except KeyError:
+                factor = 1
+            try:
+                labels.append(headerVal["symbol"] + " = "+ formatSI(value,precision=prec,factor=factor) + unit)
             except ValueError:
                 pass
         except KeyError:
             pass
     return labels
 
-def formatSI(value, precision=4):
+def formatSI(value, precision=4,factor=1):
     prefixes = {
         9: "G",   # giga
         6: "M",   # mega
@@ -204,6 +220,7 @@ def formatSI(value, precision=4):
     if type(value) == str:
         value = float(value.replace(',','.'))
     if value != 0:
+        value *= factor
         exponent = int(np.floor(np.log10(np.abs(value))))
         exponent = (exponent // 3) * 3  # Round to the nearest multiple of 3
         scaled_value = value / 10**exponent
