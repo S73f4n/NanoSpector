@@ -211,7 +211,6 @@ class Handler:
                     ax.xaxis.set_major_formatter(formatter1)
                     ax.yaxis.set_major_formatter(formatter1)
                     plotname = data._filename
-                    print(os.path.basename(plotname))
                     try:
                         Gtk.Builder.get_object(builder, 'label_comment').set_text("Comment: " + data.header['Comment01'])
                     except KeyError:
