@@ -3,7 +3,7 @@ import gi
 import nanonis_load
 import createc_load
 from nanonis_load import didv, sxm, grid
-from createc_load import vert
+from createc_load import vert, datimg
 import yaml
 import shutil
 import os
@@ -304,6 +304,44 @@ class Handler:
                     handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
                     if save:
                         self.save_sxm(data)
+
+
+                # Display Image from DAT images file
+                if isinstance(data,createc_load.datimg.DatImg):
+                    builder.get_object('sliderLabel').set_text("Contrast")
+                    if self.selectedRows == []:
+                        selected_rows.append(settings['image']['defaultch'])
+                    else:
+                        selected_rows = self.selectedRows
+                    # data.crop_missing_data(channel=selected_rows[0])
+                    if "Current" in selected_rows[0]:
+                        cmap = settings['image']['cmapI']
+                    elif "LI" in selected_rows[0]: 
+                        cmap = settings['image']['cmapdIdV']
+                    else:
+                        cmap = settings['image']['cmap']
+
+                    if "(m)" in selected_rows[0]:
+                        fixzero = True
+                    else: 
+                        fixzero = False
+
+                    alpha = 0.4
+                    loc = 'lower right'
+                    plotname = data.filename
+
+                    try:
+                        self.sxmplot = datimg.Plot(data, direction=direction, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,reverse=reverse,axes=ax)
+                    except ValueError:
+                        self.sxmplot = datimg.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,reverse=reverse,axes=ax)
+                    
+
+                    if settings['buttons']['showtitle']:
+                        fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + '\n{:g} × {:g} nm'.format(data.x_range,data.y_range), fontsize='small')
+                    fig.axes[0].axis('off')            
+                    self.setHeaderText(data)
+
+
                 if isinstance(data,nanonis_load.grid.Grid):
                     plotname = data.filename
                     self.setHeaderText(data)
@@ -354,16 +392,14 @@ class Handler:
                     fLine = f.readline()
             except FileNotFoundError:
                 print("File does not exist!")
-            if filename.endswith(tuple(settings['spec']['extension'])):
-                if "Experiment" in fLine: 
-                    self.datastore.append(didv.Spectrum(filename))
-                elif "[ParVERT" in fLine:
-                    self.datastore.append(vert.Spectrum(filename))
-                else:
-                    print("File not supported")
-                    return 0
-            elif filename.endswith(settings['image']['extension']):
+            if filename.endswith(tuple(settings['spec']['extension'])) and "Experiment" in fLine:
+                self.datastore.append(didv.Spectrum(filename))
+            elif filename.endswith(tuple(settings['spec']['extension'])) and "[ParVERT" in fLine:
+                self.datastore.append(vert.Spectrum(filename))
+            elif filename.endswith(tuple(settings['image']['extension'])) and filename.endswith(".sxm"):
                 self.datastore.append(sxm.Sxm(filename))
+            elif filename.endswith(tuple(settings['image']['extension'])) and "[Paramet32" in fLine:
+                self.datastore.append(datimg.DatImg(filename))
             elif filename.endswith(settings['grid']['extension']):
                 self.datastore.append(grid.Grid(filename))
             else:

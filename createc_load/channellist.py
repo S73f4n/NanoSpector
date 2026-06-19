@@ -37,6 +37,19 @@ param30chlist = {
     "Top DAC0 (Å)": 4096,
 }
 
+dat32chlist = {
+    "Z (m)":            1,
+    "Current (A)":      2,
+    "ADC1 (V)":         4,
+    "ADC2 (V)":         8,
+    "ADC3 (V)":         16,
+    "dI/dV (V)":        32,
+    "d2I/dV2 (V)":      64,
+    "Freq. Shift (Hz)": 128, 
+    "Damping (V)":      256, 
+    "Amplitude (V)":    512, 
+}
+
 dacUnits = {
         "Bias (V)":         "V",
         "Z (nm)":         "ADCZ",
