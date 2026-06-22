@@ -89,7 +89,7 @@ class Spectrum:
         ADCtoV = 20.0 / 2 ** DACtype
         ADCtoI = 20.0 / 2 ** DACtype / 10 ** (float(self.header["Gainpreamp / GainPre 10^"]) - 12) * 10 ** (-12)
         try:
-            ADCtoAA = 20.0 / 2 ** DACtype * float(self.header["ZPiezoconst / ZPiezoconst"]) * float(self.header["GainZ / GainZ"])
+            ADCtoAA = float(self.header["ZPiezoconst / ZPiezoconst"]) / 1000 * 0.0000000001
         except KeyError:
             try:
                 ADCtoAA = 20.0 / 2 ** DACtype * float(self.header["ZPiezoconst"]) * float(self.header["GainZ / GainZ"])
