@@ -72,10 +72,21 @@ class DatImg:
             self.data[chname] = [
                 np.nan_to_num(
                     np.flipud(
-                        self.img_array_list[idx].reshape(256,256)
+                        self.img_array_list[idx].reshape(
+                            int(self.x_pixels),int(self.y_pixels)
+                            )
                     )
                 )
             ]
+            self.data[chname].append(
+                np.nan_to_num(
+                    np.flipud(
+                        self.img_array_list[int(idx+self.channels/2)].reshape(
+                            int(self.x_pixels),int(self.y_pixels)
+                        )
+                    )
+                )
+            )
             
 
     def _bin2meta_dict(self):
@@ -278,7 +289,7 @@ class Plot:
 
         self.data = sxm_data
 
-        image_data = np.copy(sxm_data.data[channel][0])
+        image_data = np.copy(sxm_data.data[channel][direction])
         avg_dat = image_data[~np.isnan(image_data)].mean()
         image_data[np.isnan(image_data)] = avg_dat
         image_data = np.ma.masked_where(image_data == 0.0, image_data)
