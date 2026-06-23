@@ -26,7 +26,11 @@ class Spectrum:
                 header_lines += 1
                 file_line = file_line.split("=")
                 if len(file_line) > 1:
-                    self.header[file_line[0]] = file_line[1].strip()
+                    keywords = file_line[0].split(' / ')[0].strip().lower()
+                    # self.header[file_line[0]] = file_line[1].strip()
+                    self.header[keywords] = file_line[1].strip()
+            self.header.pop("/", None) 
+            self.header.pop("", None) 
             # self._fix_header()
             if attribute is not None:
                 self.header["attribute"] = attribute
@@ -35,6 +39,8 @@ class Spectrum:
         # self.data = pd.read_csv(
         #     filename, sep="\t", header=header_lines, skip_blank_lines=False
         # )
+
+        self._extracted_meta()
 
         self.data = pd.read_csv(
             filename, 
@@ -49,6 +55,25 @@ class Spectrum:
         self.data = self.data.dropna(axis=1,how="all")
 
         self._make_channel_names()
+
+    def _extracted_meta(self):
+        """
+        Assign meta data to easily readable properties.
+        One can expand these at will, one may use the method meta_key() to see what keys are available
+
+        Returns
+        -------
+        None : None
+            It just populates all the self.properties
+        """
+        self.dactype = float(self.header['dac-type'].replace("bit",""))
+        self.gainpreamp = float(self.header['gainpreamp'])
+        self.xPiezoConst = float(self.header['xpiezoconst'])
+        self.yPiezoConst = float(self.header['ypiezoconst'])
+        self.zPiezoConst = float(self.header['zpiezoconst'])
+        self.bias = float(self.header['biasvoltage'])
+        self.current = float(self.header['fblogiset'])
+        self.channels = float(self.header['channels'])
 
     def _make_channel_names(self):
         columnnames = []
@@ -85,14 +110,13 @@ class Spectrum:
         self._set_data_units()
 
     def _set_data_units(self):
-        DACtype = float(self.header["DAC-Type"].replace("bit",""))
-        ADCtoV = 20.0 / 2 ** DACtype
-        ADCtoI = 20.0 / 2 ** DACtype / 10 ** (float(self.header["Gainpreamp / GainPre 10^"]) - 12) * 10 ** (-12)
+        ADCtoV = 20.0 / 2 ** self.dactype
+        ADCtoI = 20.0 / 2 ** self.dactype / 10 ** (self.gainpreamp - 12) * 10 ** (-12)
         try:
-            ADCtoAA = float(self.header["ZPiezoconst / ZPiezoconst"]) / 1000 * 0.0000000001
+            ADCtoAA = self.zPiezoConst / 1000 * 0.0000000001
         except KeyError:
             try:
-                ADCtoAA = 20.0 / 2 ** DACtype * float(self.header["ZPiezoconst"]) * float(self.header["GainZ / GainZ"])
+                ADCtoAA = 20.0 / 2 ** self.dactype * self.zPiezoConst * float(self.header["gainz"])
             except KeyError:
                 pass
 

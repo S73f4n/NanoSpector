@@ -53,7 +53,7 @@ spectrum = {
         "unit": "",
         "symbol": ""
     },
-    "BiasVoltage / BiasVolt.[mV]": {
+    "biasvoltage": {
         "unitType": "direct",
         "unit": "V",
         "symbol": "$V$",
@@ -75,7 +75,7 @@ spectrum = {
         "unit": "V",
         "symbol": "$V_{mod}$"
     },
-    "LockinAmpl": {
+    "lockinampl": {
         "unitType": "direct",
         "unit": "Vpp",
         "symbol": "$V_{mod}$",
