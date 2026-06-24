@@ -313,10 +313,10 @@ class Handler:
                         selected_rows.append(settings['image']['defaultch'])
                     else:
                         selected_rows = self.selectedRows
-                    # data.crop_missing_data(channel=selected_rows[0])
+                    data.crop_missing_data(channel=selected_rows[0])
                     if "Current" in selected_rows[0]:
                         cmap = settings['image']['cmapI']
-                    elif "LI" in selected_rows[0]: 
+                    elif "dI/dV" in selected_rows[0]: 
                         cmap = settings['image']['cmapdIdV']
                     else:
                         cmap = settings['image']['cmap']
@@ -329,6 +329,9 @@ class Handler:
                     alpha = 0.4
                     loc = 'lower right'
                     plotname = data.filename
+
+                    if cmap == 'default':
+                        cmap = 'gray'
 
                     try:
                         self.sxmplot = datimg.Plot(data, direction=direction, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,reverse=reverse,axes=ax)
@@ -398,7 +401,7 @@ class Handler:
                 self.datastore.append(vert.Spectrum(filename))
             elif filename.endswith(tuple(settings['image']['extension'])) and filename.endswith(".sxm"):
                 self.datastore.append(sxm.Sxm(filename))
-            elif filename.endswith(tuple(settings['image']['extension'])) and "[Paramet32" in fLine:
+            elif filename.endswith(tuple(settings['image']['extension'])) and ("[Paramet32" in fLine or "[Paramco32"):
                 self.datastore.append(datimg.DatImg(filename))
             elif filename.endswith(settings['grid']['extension']):
                 self.datastore.append(grid.Grid(filename))
