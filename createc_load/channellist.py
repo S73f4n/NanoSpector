@@ -1,3 +1,8 @@
+createcConstants = {
+    "data_bin_offset":              16384, # which is 128 * 128
+    "dat_img_pixel_data_npdtype":   "<f4", #little endian 32-bit float for .dat file
+}
+
 
 param32chlist = {
     "Current (A)" :     1, 

@@ -1,8 +1,11 @@
 
 import pandas as pd
 from .channellist import param30chlist, param32chlist, dacUnits, dat32chlist
+from .channellist import createcConstants as cgc
 import os
 import yaml
+
+import scipy.signal
 
 import re
 import zlib
@@ -17,31 +20,7 @@ from matplotlib import cm
 
 from .utils.misc import XY2D
 
-this_dir = os.path.dirname(__file__)
-cgc_file = os.path.join(this_dir, 'Createc_global_const.yaml')
-with open(cgc_file, 'rt') as f:
-    cgc = yaml.safe_load(f.read())
 
-def dat_header(filename):
-
-        header = {}
-        if filename is None:
-            return
-        with open(filename, "r", errors="ignore") as file_id:
-            version = file_id.readline().strip()
-            header_lines = 2
-            while True:
-                file_line = file_id.readline().strip()
-                if file_line == "DATA":
-                    # self.params = file_id.readline().split()
-                    break
-                header_lines += 1
-                file_line = file_line.split("=")
-                if len(file_line) > 1:
-                    header[file_line[0]] = file_line[1].strip()
-            # self._fix_header()
-
-        return version, header
 
 class DatImg:
 
@@ -49,6 +28,7 @@ class DatImg:
         self.filename = filename
         self.data = {}
         self.header = dict()
+        self.y_mask = None
 
         self._meta_binary, self._data_binary = self._read_binary()
 
@@ -59,14 +39,6 @@ class DatImg:
 
 
         self._read_img()
-
-        # imgs are numpy arrays, with rows with only zeros cropped off
-        self.imgs = [self._crop_img(arr) for arr in self.img_array_list]
-        # assert(len(set(img.shape for img in self.imgs)) <= 1)
-        # Pixels = namedtuple('Pixels', ['y', 'x'])
-        self.img_pixels = XY2D(y=self.imgs[0].shape[0],
-                               x=self.imgs[0].shape[1])  # size in (y, x)
-
 
         for idx, chname in enumerate(self._make_channel_names()):
             self.data[chname] = [
@@ -152,7 +124,7 @@ class DatImg:
         with open(self.filename, "rb") as f:
             file_binary = f.read()
 
-        return file_binary[:cgc['g_file_data_bin_offset']], file_binary[cgc['g_file_data_bin_offset']:]
+        return file_binary[:cgc['data_bin_offset']], file_binary[cgc['data_bin_offset']:]
 
     def _read_img(self):
         """
@@ -170,7 +142,7 @@ class DatImg:
         except zlib.error:
             # else if it is not compressed, then do nothing
             decompressed_data = self._data_binary
-        img_array = np.frombuffer(decompressed_data, np.dtype(cgc['g_file_dat_img_pixel_data_npdtype']))
+        img_array = np.frombuffer(decompressed_data, np.dtype(cgc['dat_img_pixel_data_npdtype']))
         img_array = np.reshape(img_array[1: self.xPixel * self.yPixel * self.channels + 1],
                                (self.channels * self.yPixel, self.xPixel))
         for i in range(self.channels):
@@ -192,6 +164,17 @@ class DatImg:
             Cropped image
         """
         return arr[~np.all(arr == 0, axis=1)]
+
+
+    def crop_missing_data(self, channel: str, direction: int = 0):
+        r"""
+        Sets self.y_mask to exclude missing data in the y-direction.
+        """
+        channel_data = self.data[channel][direction % 2]
+        if self.y_mask is None:
+            self.y_mask = ~(channel_data == 0.0).any(axis=1)
+        else:
+            self.y_mask = self.y_mask & (~(channel_data == 0.0).any(axis=1))
 
     @property
     def offset(self):
@@ -293,6 +276,8 @@ class Plot:
         avg_dat = image_data[~np.isnan(image_data)].mean()
         image_data[np.isnan(image_data)] = avg_dat
         image_data = np.ma.masked_where(image_data == 0.0, image_data)
+        if (flatten == True) and (subtract_plane == False):
+            image_data[self.data.y_mask]=scipy.signal.detrend(image_data[self.data.y_mask])
 
         if axes is not None:
             self.ax = axes
