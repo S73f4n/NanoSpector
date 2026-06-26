@@ -78,10 +78,6 @@ class Handler:
         self.fileFilter = store.filter_new()
         self.fileFilter.set_visible_func(self.fileFilter_function)
         Gtk.Builder.get_object(builder,"file_list_view").set_model(self.fileFilter)
-        self.direction_changed_handler_id = switchDirection.connect(
-            "notify::active",
-            self.on_direction_changed,
-        )
 
     def on_mainwindow_destroy(self, *args):
         self.write_settings()
@@ -146,9 +142,11 @@ class Handler:
         for btn in settings['buttons']:
             settings['buttons'][btn] = Gtk.Builder.get_object(builder, "button_"+btn).get_active()
         offsetXslider = Gtk.Builder.get_object(builder, "adjOffset").get_value()
+
+        switchDirection = Gtk.Builder.get_object(builder,"switch_direction")
         if direction == 0:
-            Gtk.Builder.get_object(builder, "switch_direction").set_state(False)
-            Gtk.Builder.get_object(builder, "switch_direction").set_active(False)
+            switchDirection.set_state(False)
+            switchDirection.set_active(False)
         try:
             self.sxmplot.colorbar.remove()
         except:
@@ -344,9 +342,8 @@ class Handler:
                         self.sxmplot = datimg.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,overrange=settings['buttons']['overrange'],reverse=reverse,axes=ax)
                     except IndexError:
                         self.sxmplot = datimg.Plot(data, direction=0, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,overrange=settings['buttons']['overrange'],reverse=reverse,axes=ax)
-                        with switchDirection.handler_block(self.direction_changed_handler_id):
-                            switchDirection.set_active(False)
-                            switchDirection.set_state(False)
+                        switchDirection.set_active(False)
+                        switchDirection.set_state(False)
                     
 
                     if settings['buttons']['showtitle']:
@@ -905,7 +902,6 @@ swtoolbar = builder.get_object('scrolledwindow2')
 specswtoolbar = builder.get_object('specScrolledWindow2')
 headerWindow = builder.get_object('headerWindow')
 settingsDialog = builder.get_object('settingsDialog')
-switchDirection = builder.get_object("switch_direction")
 
 
 # fig = Figure(figsize=(4,3), dpi=100)
