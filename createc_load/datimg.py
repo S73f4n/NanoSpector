@@ -265,7 +265,8 @@ class Plot:
         cover: float = 1,
         cbar: bool = False,
         reverse: bool = False,
-        cmap= "gray",
+        cmap = "gray",
+        overrange: bool = False,
         rasterized=True,
         axes=None
     ):
@@ -303,17 +304,18 @@ class Plot:
             cmap = plt.get_cmap(cmap)
         cmap = plt.get_cmap(cmap)
         cmap.set_bad(color='#dddddd')
-        cmap.set_over(color='#ff0000')
-        cmap.set_under(color="#0000ff")
-        # vmin, vmax = self.central_percentile_limits(cover=cover)
+        if overrange == True:
+            cmap.set_over(color='#ff0000')
+            cmap.set_under(color="#0000ff")
+        vmin, vmax = self.central_percentile_limits(cover=cover)
         self.im_plot = self.ax.imshow(
             image_data,
             origin="lower",
             # extent=(0, sxm_data.x_range, 0, sxm_data.y_range),
             cmap=cmap,
             rasterized=rasterized,
-            # vmin=vmin,
-            # vmax=vmax
+            vmin=vmin,
+            vmax=vmax
         )  # pcolormesh chops off last column and row here
         self.ax.set_aspect("equal")
         if cbar:

@@ -42,6 +42,7 @@ buttons:
   replace: false
   exportbias: true
   showtitle: true
+  overrange: false
 cmaps:
   - default
   - gray

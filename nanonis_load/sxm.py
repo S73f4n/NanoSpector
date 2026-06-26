@@ -913,6 +913,7 @@ class Plot:
         cover: float = 1,
         cbar: bool = False,
         reverse: bool = False,
+        overrange: bool = False,
         cmap=util.get_w_cmap(),
         rasterized=True,
         axes=None
@@ -970,8 +971,9 @@ class Plot:
             cmap = plt.get_cmap(cmap)
         cmap = plt.get_cmap(cmap)
         cmap.set_bad(color='#dddddd')
-        cmap.set_over(color='#ff0000')
-        cmap.set_under(color="#0000ff")
+        if overrange == True:
+            cmap.set_over(color='#ff0000')
+            cmap.set_under(color="#0000ff")
         vmin, vmax = self.central_percentile_limits(cover=cover)
         self.im_plot = self.ax.imshow(
             image_data,
