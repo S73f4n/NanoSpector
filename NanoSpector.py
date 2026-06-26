@@ -78,6 +78,10 @@ class Handler:
         self.fileFilter = store.filter_new()
         self.fileFilter.set_visible_func(self.fileFilter_function)
         Gtk.Builder.get_object(builder,"file_list_view").set_model(self.fileFilter)
+        self.direction_changed_handler_id = switchDirection.connect(
+            "notify::active",
+            self.on_direction_changed,
+        )
 
     def on_mainwindow_destroy(self, *args):
         self.write_settings()
@@ -144,6 +148,7 @@ class Handler:
         offsetXslider = Gtk.Builder.get_object(builder, "adjOffset").get_value()
         if direction == 0:
             Gtk.Builder.get_object(builder, "switch_direction").set_state(False)
+            Gtk.Builder.get_object(builder, "switch_direction").set_active(False)
         try:
             self.sxmplot.colorbar.remove()
         except:
@@ -275,12 +280,12 @@ class Handler:
                     loc = 'lower right'
                     plotname = data.filename
                     if cmap == 'default':
-                        self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,reverse=reverse,axes=ax)
+                        self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,overrange=settings['buttons']['overrange'],reverse=reverse,axes=ax)
                     else:
                         try:
-                            self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,reverse=reverse,axes=ax)
+                            self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,overrange=settings['buttons']['overrange'],reverse=reverse,axes=ax)
                         except ValueError:
-                            self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,reverse=reverse,axes=ax)
+                            self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,overrange=settings['buttons']['overrange'],reverse=reverse,axes=ax)
                     if fft: 
                         self.sxmplot.fft(windowFilter=settings['fft']['window'],level=settings['fft']['level'])
                         if settings['buttons']['showtitle']:
@@ -334,9 +339,14 @@ class Handler:
                         cmap = 'gray'
 
                     try:
-                        self.sxmplot = datimg.Plot(data, direction=direction, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,reverse=reverse,axes=ax)
+                        self.sxmplot = datimg.Plot(data, direction=direction, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,overrange=settings['buttons']['overrange'],reverse=reverse,axes=ax)
                     except ValueError:
-                        self.sxmplot = datimg.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,reverse=reverse,axes=ax)
+                        self.sxmplot = datimg.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,overrange=settings['buttons']['overrange'],reverse=reverse,axes=ax)
+                    except IndexError:
+                        self.sxmplot = datimg.Plot(data, direction=0, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,overrange=settings['buttons']['overrange'],reverse=reverse,axes=ax)
+                        with switchDirection.handler_block(self.direction_changed_handler_id):
+                            switchDirection.set_active(False)
+                            switchDirection.set_state(False)
                     
 
                     if settings['buttons']['showtitle']:
@@ -482,7 +492,7 @@ class Handler:
         # except:
         #     pass
         ax.cla()
-        if state:
+        if switch.get_active():
             Gtk.Builder.get_object(builder, "label_direction").set_text("bwd")
             self.plot_data(direction=1)
         else:
@@ -895,6 +905,8 @@ swtoolbar = builder.get_object('scrolledwindow2')
 specswtoolbar = builder.get_object('specScrolledWindow2')
 headerWindow = builder.get_object('headerWindow')
 settingsDialog = builder.get_object('settingsDialog')
+switchDirection = builder.get_object("switch_direction")
+
 
 # fig = Figure(figsize=(4,3), dpi=100)
 # ax = fig.add_subplot()

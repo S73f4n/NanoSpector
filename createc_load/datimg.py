@@ -50,15 +50,16 @@ class DatImg:
                     )
                 )
             ]
-            self.data[chname].append(
-                np.nan_to_num(
-                    np.flipud(
-                        self.img_array_list[int(idx+self.channels/2)].reshape(
-                            int(self.x_pixels),int(self.y_pixels)
+            if not self.channels == len(self._make_channel_names()):
+                self.data[chname].append(
+                    np.nan_to_num(
+                        np.flipud(
+                            self.img_array_list[int(idx+self.channels/2)].reshape(
+                                int(self.x_pixels),int(self.y_pixels)
+                            )
                         )
                     )
                 )
-            )
             
 
     def _bin2meta_dict(self):
