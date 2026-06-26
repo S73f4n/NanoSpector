@@ -250,6 +250,57 @@ class DatImg:
         return np.array([self.x_pixels, self.y_pixels])
 
 
+    def subtract_plane(self, channel: str, direction: int = 0) -> np.ndarray:
+        """
+        Returns the specified channel and direction of the data with a plane subtracted.
+        """
+        return subtract_plane(self.data[channel][direction])
+
+
+def subtract_plane(data: np.ndarray) -> np.ndarray:
+    """
+    Returns the input but with a plane subtracted from the entire array.
+    The input MUST be a 2D array.
+
+    Parameters
+    ----------
+    data : np.ndarray
+        2D numpy array containing data.
+
+    Returns
+    -------
+    output : ndarray
+        The data with a fitted 2D plane subtracted from it.
+    """
+
+    if len(data.shape) != 2:
+        raise ValueError("Error: input array is not 2-dimensional.")
+
+    data = np.ma.masked_where(data == 0, data)
+    try:
+        data = np.ma.getdata(data[~data.mask.any(axis=1)])
+    except:
+        data = np.ma.getdata(data)
+
+    x_dim = data.shape[1]
+    y_dim = data.shape[0]
+
+    X, Y = np.meshgrid(np.arange(0, x_dim), np.arange(0, y_dim))
+    flattened_X = X.flatten()
+    flattened_Y = Y.flatten()
+    flattened_data = data.flatten()
+
+    A = np.c_[
+        flattened_X, flattened_Y, np.ones(len(flattened_X))
+    ]  # Puts flattened_X, flattened_Y, and a column of ones into the columns of a matrix A
+    C, _, _, _ = scipy.linalg.lstsq(
+        A, flattened_data
+    )  # Finds the least squares solution to Ax = flattened_data where x contains the coefficients of the plane equation
+
+    Z = C[0] * X + C[1] * Y + C[2]  # Feeds X and Y into the fitted plane equation
+
+    return data - Z
+
 
 class Plot:
 
@@ -290,6 +341,10 @@ class Plot:
         y_range = sxm_data.y_range
         x_pixels = sxm_data.x_pixels
         y_pixels = sxm_data.y_pixels
+
+
+        if subtract_plane == True:
+            image_data[self.data.y_mask] = sxm_data.subtract_plane(channel, direction)
         if zero:
             try:
                 image_data = image_data - np.min(image_data)
@@ -320,3 +375,54 @@ class Plot:
         self.ax.set_aspect("equal")
         if cbar:
             self.fig.colorbar(self.im_plot, ax=self.ax)
+
+
+    def central_percentile_limits(self, cover=1.0, *, ignore_nan=True, mask=None, eps=1e-15):
+        """
+        Return (vmin, vmax) capturing the central `cover` fraction of values in `a`.
+
+        Parameters
+        ----------
+        a : array-like
+            Image / matrix values.
+        cover : float in (0, 1]
+            Fraction of the histogram to keep. Example: 0.98 keeps the central 98%
+            (clips 1% on each tail). 1.0 means no clipping.
+        ignore_nan : bool
+            If True, ignore NaNs when computing percentiles.
+        mask : array-like of bool, optional
+            If provided, only use values where mask is True.
+        eps : float
+            Tiny expansion added if vmin == vmax to avoid zero range.
+
+        Returns
+        -------
+        (vmin, vmax) : tuple of floats
+        """
+        a = np.asanyarray(self.image_data)
+
+        if mask is not None:
+            a = a[mask]
+
+        # Flatten and filter finite values
+        a = a.ravel()
+        if ignore_nan:
+            a = a[np.isfinite(a)]
+
+        if a.size == 0:
+            raise ValueError("No finite data to compute percentile limits.")
+
+        low_q = (1 - cover) * 50.0
+        high_q = 100.0 - low_q
+
+        # Percentiles are unitless—works regardless of the data's physical units.
+        pfunc = np.nanpercentile if ignore_nan else np.percentile
+        vmin, vmax = pfunc(a, [low_q, high_q])
+
+        if not np.isfinite(vmin): vmin = np.min(a)
+        if not np.isfinite(vmax): vmax = np.max(a)
+        if vmin == vmax:
+            vmin -= eps
+            vmax += eps
+
+        return float(vmin), float(vmax)
