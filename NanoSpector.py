@@ -343,6 +343,8 @@ class Handler:
                         fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + '\n{:g} × {:g} nm'.format(data.x_range,data.y_range), fontsize='small')
                     fig.axes[0].axis('off')            
                     self.setHeaderText(data)
+                    legendLabels = getHeaderLabels(data.header,dtype="createc") 
+                    handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
 
 
                 if isinstance(data,nanonis_load.grid.Grid):

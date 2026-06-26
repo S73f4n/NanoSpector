@@ -47,6 +47,39 @@ sxmCC = {
     },
 }
 
+createcCC = {
+    "biasvoltage": {
+        "unitType": "direct",
+        "unit": "V",
+        "symbol": "$V$",
+        "factor": 1e-3,
+    },
+    "sec/line:": {
+        "unitType": "direct",
+        "unit": "s",
+        "symbol": "$t$",
+    },
+    "setpoint": {
+        "unitType": "direct",
+        "unit": "A",
+        "symbol": "$I$",
+    },
+}
+
+createcCH = {
+    "biasvoltage": {
+        "unitType": "direct",
+        "unit": "V",
+        "symbol": "$V$",
+        "factor": 1e-3,
+    },
+    "sec/line:": {
+        "unitType": "direct",
+        "unit": "s",
+        "symbol": "$t$",
+    },
+}
+
 spectrum = {
     "": {
         "unitType": "direct",
@@ -160,7 +193,12 @@ grid = {
 
 def getHeaderLabels(header, dtype):
     labels = []
-    if dtype == "sxm":
+    if dtype == "createc":
+        if header["fboff"] == '1':
+            headerDict = createcCH
+        else:
+            headerDict = createcCC
+    elif dtype == "sxm":
         if header[":Z-Controller>Controller status:"][0] == "ON":
             headerDict = sxmCH
         elif header[":Z-Controller>Controller status:"][0] == "OFF":
