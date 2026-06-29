@@ -232,7 +232,7 @@ class Handler:
                     try:
                         Gtk.Builder.get_object(builder, 'label_comment').set_text("Comment: " + data.header['Comment01'])
                     except KeyError:
-                        Gtk.Builder.get_object(builder, 'label_comment').set_text("Comment")
+                        Gtk.Builder.get_object(builder, 'label_comment').set_text("")
                     self.setHeaderText(data)
                     alpha = 1
                     loc = 'best'
