@@ -431,7 +431,7 @@ class Handler:
                 self.datastore.append(vert.Spectrum(filename))
             elif filename.endswith(tuple(settings['image']['extension'])) and filename.endswith(".sxm"):
                 self.datastore.append(sxm.Sxm(filename))
-            elif filename.endswith(tuple(settings['image']['extension'])) and ("[Paramet32" in fLine or "[Paramco32"):
+            elif filename.endswith(tuple(settings['image']['extension'])) and ("[Paramet32" in fLine or "[Paramco32" in fLine):
                 self.datastore.append(datimg.DatImg(filename))
             elif filename.endswith(settings['grid']['extension']):
                 self.datastore.append(grid.Grid(filename))
