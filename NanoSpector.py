@@ -170,6 +170,9 @@ class Handler:
 
                 # Display Spectrum from Nanonis DAT
                 if (isinstance(data,nanonis_load.didv.Spectrum) and [sxm for sxm in self.datastore if isinstance(sxm,nanonis_load.sxm.Sxm)] == []) or isinstance(data,createc_load.vert.Spectrum):
+
+                    Gtk.Builder.get_object(builder, "expander_spec").set_expanded(True)
+                    Gtk.Builder.get_object(builder, "expander_img").set_expanded(False)
                     builder.get_object('sliderLabel').set_text("Y offset")
                     if self.selectedRows == []:
                         if "Z" in data._filename:
@@ -261,6 +264,8 @@ class Handler:
 
                 # Display Image from SXM file
                 if isinstance(data,nanonis_load.sxm.Sxm):
+                    Gtk.Builder.get_object(builder, "expander_spec").set_expanded(False)
+                    Gtk.Builder.get_object(builder, "expander_img").set_expanded(True)
                     builder.get_object('sliderLabel').set_text("Contrast")
                     if self.selectedRows == []:
                         selected_rows.append(settings['image']['defaultch'])
@@ -314,6 +319,8 @@ class Handler:
 
                 # Display Image from DAT images file
                 if isinstance(data,createc_load.datimg.DatImg):
+                    Gtk.Builder.get_object(builder, "expander_spec").set_expanded(False)
+                    Gtk.Builder.get_object(builder, "expander_img").set_expanded(True)
                     builder.get_object('sliderLabel').set_text("Contrast")
                     if self.selectedRows == []:
                         selected_rows.append(settings['image']['defaultch'])
@@ -358,6 +365,8 @@ class Handler:
 
 
                 if isinstance(data,nanonis_load.grid.Grid):
+                    Gtk.Builder.get_object(builder, "expander_spec").set_expanded(False)
+                    Gtk.Builder.get_object(builder, "expander_img").set_expanded(True)
                     plotname = data.filename
                     self.setHeaderText(data)
                     if self.selectedRows == []:
