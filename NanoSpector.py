@@ -144,6 +144,9 @@ class Handler:
         offsetXslider = Gtk.Builder.get_object(builder, "adjOffset").get_value()
         switchDirection = Gtk.Builder.get_object(builder,"switch_direction")
 
+        if not reverse:
+            Gtk.Builder.get_object(builder, "switch_rev").set_state(False)
+            Gtk.Builder.get_object(builder, "switch_rev").set_active(False)
         if direction == 0:
             switchDirection.set_state(False)
             switchDirection.set_active(False)
@@ -607,20 +610,35 @@ class Handler:
         ax.cla()
         fig.canvas.draw()
     
-    def on_button_reverse_clicked(self, button):
-        try:
-            if self.datastore is not None and len(self.datastore) > 1:
-                self.datastore.reverse()
-        except:
-            pass
-        try:
-            if self.selectedRows is not None and len(self.selectedRows) > 1:
-             self.selectedRows.reverse()
-        except:
-            pass
-        
-        ax.cla()
-        self.plot_data(reverse=True)
+    def on_button_reverse_clicked(self, switch, state):
+        if switch.get_active():
+            try:
+                if self.datastore is not None and len(self.datastore) > 1:
+                    self.datastore.reverse()
+            except:
+                pass
+            try:
+                if self.selectedRows is not None and len(self.selectedRows) > 1:
+                    self.selectedRows.reverse()
+            except:
+                pass
+            
+            ax.cla()
+            self.plot_data(reverse=True)
+
+        else:
+            try:
+                if self.datastore is not None and len(self.datastore) > 1:
+                    self.datastore.reverse()
+            except:
+                pass
+            try:
+                if self.selectedRows is not None and len(self.selectedRows) > 1:
+                    self.selectedRows.reverse()
+            except:
+                pass
+            ax.cla()
+            self.plot_data(reverse=False)
     
     def cleanIgorName(self, folder):
         folder = folder.replace(folder.split(".")[-1], "")
