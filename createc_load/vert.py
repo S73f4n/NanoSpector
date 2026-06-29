@@ -108,6 +108,15 @@ class Spectrum:
         self.data.columns = columnnames[:self.data.shape[1]] + extra_names
         self.data.drop(columns=extra_names,inplace=True)
         self._set_data_units()
+        self._split_bwd()
+        
+    def _split_bwd(self, suffix=" [bwd]"):
+        mid = len(self.data) // 2
+
+        first_half = self.data.iloc[:mid].reset_index(drop=True)
+        second_half = self.data.iloc[mid:].iloc[::-1].reset_index(drop=True).add_suffix(suffix)
+
+        self.data = pd.concat([first_half, second_half], axis=1)
 
     def _set_data_units(self):
         ADCtoV = 20.0 / 2 ** self.dactype

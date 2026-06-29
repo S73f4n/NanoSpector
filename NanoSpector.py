@@ -142,8 +142,8 @@ class Handler:
         for btn in settings['buttons']:
             settings['buttons'][btn] = Gtk.Builder.get_object(builder, "button_"+btn).get_active()
         offsetXslider = Gtk.Builder.get_object(builder, "adjOffset").get_value()
-
         switchDirection = Gtk.Builder.get_object(builder,"switch_direction")
+
         if direction == 0:
             switchDirection.set_state(False)
             switchDirection.set_active(False)
@@ -192,8 +192,11 @@ class Handler:
                     offsetX = np.mean(self.datastore[0].data[selected_rows[0]]) * offsetXslider*10*len(selected_rows)
                     for ch in selected_rows:
                         if settings['buttons']['average']:
-                            bracketPos = ch.find('(')
-                            average = ch[:bracketPos] + "[bwd] " + ch[bracketPos:]
+                            if isinstance(data,nanonis_load.didv.Spectrum):
+                                bracketPos = ch.find('(')
+                                average = ch[:bracketPos] + "[bwd] " + ch[bracketPos:]
+                            else:
+                                average = ch + " [bwd]"
                         else:
                             average = None
                         if isinstance(data,nanonis_load.didv.Spectrum):
@@ -226,12 +229,12 @@ class Handler:
                         filedate = data.header['Saved Date']
                     except KeyError:
                         try:
-                            dtformat = 'A%y%m%d.%H%M%S.VERT'
+                            dtformat = 'A%y%m%d.%H%M%S' +  os.path.splitext(os.path.basename(plotname))[1]
                             savedate = datetime.strptime(os.path.basename(plotname),dtformat)
                             outformat = '%d.%m.%Y %H:%M:%S'
                             filedate = datetime.strftime(savedate,outformat)
                         except:
-                            pass
+                            filedate = ''
 
                     if len(self.datastore) > 1:
                         selectedNums = [re.findall(r"\d+", didv._filename)[-1] for didv in self.datastore if isinstance(didv,nanonis_load.didv.Spectrum)]
@@ -608,12 +611,12 @@ class Handler:
 
     def cleanWaveName(self,rows,filename):
         try:
-            specno = re.search(r'\d+',filename).group()
+            specno = re.search(r'\d+$',filename).group()
         except AttributeError:
             specno = ""
         units = [re.search(r"\((\w+)\)", wave).group(1) for wave in rows]
         ch = [re.sub(r"\((\w+)\)", '', wave) for wave in rows]
-        ch = [wave.replace(".","_").replace("-","").replace("+","p").replace(" ","").replace("[","").replace("]","").replace("(","").replace(")","")+specno for wave in ch]
+        ch = [wave.replace(".","_").replace("-","").replace("+","p").replace(" ","").replace("[","").replace("]","").replace("(","").replace(")","").replace("/","")+specno for wave in ch]
         return dict(zip(ch, units))
 
     def export(self,rows,data,filepath):
@@ -770,6 +773,15 @@ class Handler:
                     plotname = data._filename
                     if settings['buttons']['exportbias'] and 'Bias calc (V)' in data.data.keys() and 'Bias calc (V)' not in selected_rows:
                         selected_rows.insert(0,'Bias calc (V)')
+                    self.export(selected_rows,data,plotname)
+                elif isinstance(data,createc_load.vert.Spectrum):
+                    if self.selectedRows == []:
+                        selected_rows.append(settings['spec']['defaultch'])
+                    else:
+                        selected_rows = self.selectedRows
+                    plotname = data._filename
+                    if settings['buttons']['exportbias'] and 'Bias (V)' in data.data.keys() and 'Bias (V)' not in selected_rows:
+                        selected_rows.insert(0,'Bias (V)')
                     self.export(selected_rows,data,plotname)
                 elif isinstance(data,nanonis_load.sxm.Sxm):
                     if self.selectedRows == []:
