@@ -555,8 +555,11 @@ class Handler:
             # Get the text from the model
             item = model[iter][0]
             # Check if the filter text is present in the item
-            return self.filter_text.lower() in item.lower()
-    
+            keywords = [word.casefold() for word in self.filter_text.split(";") if word.strip()]
+            if not keywords:
+                return True
+            return any(keyword in item.lower() for keyword in keywords)    
+
     def fileFilter_function(self, model, iter, data):
         if self.fileFilter_text == "":
             return True
@@ -838,7 +841,12 @@ class Handler:
         
     def on_button_filter_clicked(self,button):
         entry = Gtk.Builder.get_object(builder, "entry_filter_text")
-        entry.set_text(button.get_label())
+        text = button.get_label()
+        if text == "dI/dV":
+            entry.set_text("dI/dV; Demod")
+        else:
+            entry.set_text(button.get_label())
+
         self.on_filter_text_changed(entry)
 
     def on_button_header_clicked(self,button):

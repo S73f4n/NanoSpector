@@ -683,15 +683,41 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="button_reverse">
-                                    <property name="label" translatable="yes">reverse</property>
+                                  <object class="GtkBox">
                                     <property name="visible">True</property>
-                                    <property name="can-focus">True</property>
-                                    <property name="receives-default">True</property>
-                                    <property name="tooltip-text" translatable="yes">reverse order of spectra in this plot</property>
-                                    <property name="halign">center</property>
-                                    <property name="valign">center</property>
-                                    <signal name="clicked" handler="on_button_reverse_clicked" swapped="no"/>
+                                    <property name="can-focus">False</property>
+                                    <child>
+                                      <object class="GtkLabel" id="label_direction1">
+                                        <property name="visible">True</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="label" translatable="yes">rev</property>
+                                        <property name="justify">center</property>
+                                        <property name="width-chars">5</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">0</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkSwitch" id="switch_rev">
+                                        <property name="visible">True</property>
+                                        <property name="can-focus">True</property>
+                                        <property name="halign">center</property>
+                                        <property name="valign">center</property>
+                                        <property name="margin-left">4</property>
+                                        <property name="margin-right">5</property>
+                                        <property name="margin-start">4</property>
+                                        <property name="margin-end">5</property>
+                                        <signal name="notify::active" handler="on_button_reverse_clicked" swapped="no"/>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -788,7 +814,7 @@
                             <property name="can-focus">False</property>
                             <child>
                               <object class="GtkButton" id="button_current">
-                                <property name="label" translatable="yes">Cur</property>
+                                <property name="label" translatable="yes">Current</property>
                                 <property name="width-request">80</property>
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
@@ -817,8 +843,8 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkButton" id="button_exc">
-                                <property name="label" translatable="yes">Exc</property>
+                              <object class="GtkButton" id="button_demod">
+                                <property name="label" translatable="yes">dI/dV</property>
                                 <property name="width-request">80</property>
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
@@ -832,8 +858,8 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkButton" id="button_demod">
-                                <property name="label" translatable="yes">Demod</property>
+                              <object class="GtkButton" id="button_exc">
+                                <property name="label" translatable="yes">Exc</property>
                                 <property name="width-request">80</property>
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
