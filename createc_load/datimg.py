@@ -228,11 +228,11 @@ class DatImg:
 
     @property
     def x_range(self):
-        return float(self.header["length x[a]"])
+        return float(self.header["length x[a]"])*0.1
 
     @property
     def y_range(self):
-        return float(self.header["length y[a]"])
+        return float(self.header["length y[a]"])*0.1
 
     @property
     def xy_range(self):
@@ -367,7 +367,7 @@ class Plot:
         self.im_plot = self.ax.imshow(
             image_data,
             origin="lower",
-            # extent=(0, sxm_data.x_range, 0, sxm_data.y_range),
+            extent=(0, sxm_data.x_range, 0, sxm_data.y_range),
             cmap=cmap,
             rasterized=rasterized,
             vmin=vmin,
@@ -427,3 +427,59 @@ class Plot:
             vmax += eps
 
         return float(vmin), float(vmax)
+
+
+    def add_spectra(self, spectra, labels=None, channel = "Bias calc (V)"):
+
+        try:
+            from . import vert
+        except ImportError:
+            try:
+                import vert
+            except ImportError:
+                from createc_load import vert
+
+        xconv = float(self.data.header["dacto[a]xy"]) * float(self.data.header["gainx"]) * 0.1 
+        yconv = float(self.data.header["dacto[a]xy"]) * float(self.data.header["gainy"]) * 0.1
+
+        scanoffx = float(self.data.header["scanrotoffx"])*xconv
+        scanoffy = float(self.data.header["scanrotoffy"])*yconv
+
+        theta = np.radians(float(self.data.header["rotation"]))
+        R = np.array(((np.cos(theta), -np.sin(theta)), (np.sin(theta), np.cos(theta))))
+        if labels is None:
+            labels = [""] * len(spectra)  # labels = range(1, len(spectra) + 1)
+        try:
+            spectra_iterator = iter(spectra)
+            label_iterator = iter(labels)
+        except TypeError:
+            spectra_iterator = iter([spectra])
+            label_iterator = iter([labels])
+        for spectrum_inst, label_inst in zip(spectra_iterator, label_iterator):
+
+            spectrum_to_center = (
+                spectrum_inst.x_pos - scanoffx,
+                spectrum_inst.y_pos - scanoffy
+            )
+            spectrum_to_center = R.dot(spectrum_to_center)
+            x = float(self.data.header["length x[a]"]) * 0.1 * 0.5 - spectrum_to_center[0]
+            y = spectrum_to_center[1] + float(self.data.header["length y[a]"]) * 0.1
+            print(x,y)
+            s_plt = self.ax.scatter(x, y, marker="x", color="red", picker=True)
+            lbl_plt = self.ax.text(x, y, label_inst, fontsize=10, color="red")
+
+            def picker_factory(spec_obj, scatter_plot):
+                def on_pick(event):
+                    if scatter_plot == event.artist:
+                        try:
+                            spec_obj.data[channel]
+                            vert.Plot(spec_obj, channel= channel)
+                        except KeyError:
+                            # err_detect = traceback.format_exc()
+                            # print(err_detect)
+                            vert.Plot(spec_obj, channel= channel)
+
+                return on_pick
+
+            pick_caller = picker_factory(spectrum_inst, s_plt)
+            self.fig.canvas.mpl_connect("pick_event", pick_caller)

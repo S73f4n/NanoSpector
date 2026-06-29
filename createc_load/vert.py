@@ -154,6 +154,21 @@ class Spectrum:
         #     self.gate = self.header["Gate (V)"]
         pass
 
+    @property
+    def x_pos(self):
+        xconv = float(self.header["dacto[a]xy"]) * float(self.header["gainx"]) * 0.1 
+        scanoffx = float(self.header["scanrotoffx"]) * xconv
+        x = scanoffx - float(self.params[1]) * xconv 
+        return x
+
+    @property
+    def y_pos(self):
+        yconv = float(self.header["dacto[a]xy"]) * float(self.header["gainy"]) * 0.1
+        scanoffy = float(self.header["scanrotoffy"]) * yconv
+        y = scanoffy - float(self.params[2]) * yconv
+        return y
+
+
 
 class Plot:
     r"""

@@ -172,7 +172,7 @@ class Handler:
             for countIndex, data in enumerate(self.datastore):
 
                 # Display Spectrum from Nanonis DAT
-                if (isinstance(data,nanonis_load.didv.Spectrum) and [sxm for sxm in self.datastore if isinstance(sxm,nanonis_load.sxm.Sxm)] == []) or isinstance(data,createc_load.vert.Spectrum):
+                if (isinstance(data,nanonis_load.didv.Spectrum) and [sxm for sxm in self.datastore if isinstance(sxm,nanonis_load.sxm.Sxm)] == []) or (isinstance(data,createc_load.vert.Spectrum) and [datimg for datimg in self.datastore if isinstance(datimg,createc_load.datimg.DatImg)] == []):
 
                     Gtk.Builder.get_object(builder, "expander_spec").set_expanded(True)
                     Gtk.Builder.get_object(builder, "expander_img").set_expanded(False)
@@ -253,7 +253,10 @@ class Handler:
 
                     if len(self.datastore) > 1:
                         selectedNums = [re.findall(r"\d+", didv._filename)[-1] for didv in self.datastore if isinstance(didv,nanonis_load.didv.Spectrum)]
-                        basename = re.sub(r'\d+$', '', os.path.splitext(os.path.basename(plotname))[0])
+                        basename = re.sub(r'\d+', '', os.path.splitext(os.path.basename(plotname))[0])
+                        if selectedNums == []:
+                            selectedNums = [re.findall(r"\d+", vert._filename)[-1] for vert in self.datastore if isinstance(vert,createc_load.vert.Spectrum)]
+                            basename = re.sub(r'\d+$', '', os.path.splitext(os.path.basename(plotname))[0])
                         if settings['buttons']['showtitle']:
                             if len(selectedNums) > 5:
                                 fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "\n" + basename + selectedNums[0] + "-" + selectedNums[-1],fontsize='medium')
@@ -312,9 +315,9 @@ class Handler:
                         didvData = [didv for didv in self.datastore if isinstance(didv,nanonis_load.didv.Spectrum)]
                         didvLabel = [re.findall(r"\d+", didv._filename)[-1].lstrip('0') for didv in didvData] 
                         self.sxmplot.add_spectra(didvData,labels=didvLabel,channel=settings['spec']['defaultch'])
-                        if settings['buttons']['showtitle']:
-                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n{:g} × {:g} nm'.format(data.x_range,data.y_range), fontsize='small')
-                        fig.axes[0].axis('off')            
+                    if settings['buttons']['showtitle']:
+                        fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n{:g} × {:g} nm'.format(data.x_range,data.y_range), fontsize='small')
+                    # fig.axes[0].axis('off')            
                     self.setHeaderText(data)
                     # try:
                     #     self.sxmplot.colorbar.ax.yaxis.set_major_formatter(formatter1)
@@ -366,11 +369,20 @@ class Handler:
                         self.sxmplot = datimg.Plot(data, direction=0, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,overrange=settings['buttons']['overrange'],reverse=reverse,axes=ax)
                         switchDirection.set_active(False)
                         switchDirection.set_state(False)
+                    if fft: 
+                        self.sxmplot.fft(windowFilter=settings['fft']['window'],level=settings['fft']['level'])
+                        if settings['buttons']['showtitle']:
+                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + " (FFT) \n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0], fontsize='small')
+                    else:
+                        didvData = [didv for didv in self.datastore if isinstance(didv,createc_load.vert.Spectrum)]
+                        didvLabel = [re.findall(r"\d+", didv._filename)[-1] for didv in didvData] 
+                        if len(didvData)>0:
+                            self.sxmplot.add_spectra(didvData,labels=didvLabel,channel=settings['spec']['defaultch'])
                     
 
                     if settings['buttons']['showtitle']:
                         fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + '\n{:g} × {:g} nm'.format(data.x_range,data.y_range), fontsize='small')
-                    fig.axes[0].axis('off')            
+                    # fig.axes[0].axis('off')            
                     self.setHeaderText(data)
                     legendLabels = getHeaderLabels(data.header,dtype="createc") 
                     handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
