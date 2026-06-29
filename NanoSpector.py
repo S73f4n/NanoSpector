@@ -205,6 +205,10 @@ class Handler:
                                 average = ch[:bracketPos] + "[bwd] " + ch[bracketPos:]
                             else:
                                 average = ch + " [bwd]"
+                            try:
+                                data.data.loc[:,average]
+                            except KeyError:
+                                average = None
                         else:
                             average = None
                         if isinstance(data,nanonis_load.didv.Spectrum):
