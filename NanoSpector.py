@@ -181,6 +181,11 @@ class Handler:
                         else:
                             selected_rows.clear()
                             selected_rows.append(settings['spec']['defaultch'])
+                        try:
+                            data.data.loc[:,selected_rows[0]]
+                        except KeyError:
+                            selected_rows.clear()
+                            selected_rows.append(data.data.keys()[1])
                     else:
                         selected_rows = self.selectedRows
                     yaxislabel = self.replaceLabel(selected_rows[0])
