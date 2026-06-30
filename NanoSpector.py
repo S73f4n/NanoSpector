@@ -747,7 +747,7 @@ class Handler:
                 outfile.write("X Setscale d, 0,0, \""+unit+"\", "+igorFile+"\n")
                 outfile.write("X Setscale/I x, 0,"+str(data.x_range)+", \"m\", "+igorFile+"\n")
                 outfile.write("X Setscale/I y, 0,"+str(data.y_range)+", \"m\", "+igorFile+"\n")
-                outfile.write("X Note "+igorFile+" \"Saved Date: "+data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] +"\\n"+'\\n'.join(self.cleanHeader(getHeaderLabels(data.header,"sxm")))+"\"\n")
+                outfile.write("X Note "+igorFile+" \"Channel: "+rows[0]+"\\n"+'\\n'.join(self.cleanHeader(getHeaderLabels(data.header,"createc")))+"\"\n")
 
         elif settings['general']['exportformat'] == "ASCII":
             outpath = os.path.join(settings['file']['path'],"export",filename.replace(os.path.splitext(filename)[1],".csv")) 

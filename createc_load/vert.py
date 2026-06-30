@@ -4,6 +4,8 @@ from .channellist import param30chlist, param32chlist, dacUnits
 import matplotlib
 import matplotlib.animation
 import matplotlib.pyplot as plt
+import os
+from datetime import datetime
 
 import numpy as np
 from matplotlib import cm
@@ -43,6 +45,7 @@ class Spectrum:
         # )
 
         self._extracted_meta()
+        self._make_saved_date()
 
         self.data = pd.read_csv(
             filename, 
@@ -111,6 +114,12 @@ class Spectrum:
         self.data.drop(columns=extra_names,inplace=True)
         self._set_data_units()
         self._split_bwd()
+
+    def _make_saved_date(self):
+        dtformat = 'A%y%m%d.%H%M%S' +  os.path.splitext(os.path.basename(self._filename))[1]
+        savedate = datetime.strptime(os.path.basename(self._filename),dtformat)
+        outformat = '%d.%m.%Y %H:%M:%S'
+        self.header["Saved Date"] = datetime.strftime(savedate,outformat)
         
     def _split_bwd(self, suffix=" [bwd]"):
         mid = len(self.data) // 2
