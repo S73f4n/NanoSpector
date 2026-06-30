@@ -29,7 +29,7 @@ from PIL import Image
 
 import src.tol_colors as tc
 
-from src.dataheader import getHeaderLabels
+from src.dataheader import getHeaderLabels, formatSI
 
 __version__ = "2.0.1"
 
@@ -316,7 +316,7 @@ class Handler:
                         didvLabel = [re.findall(r"\d+", didv._filename)[-1].lstrip('0') for didv in didvData] 
                         self.sxmplot.add_spectra(didvData,labels=didvLabel,channel=settings['spec']['defaultch'])
                     if settings['buttons']['showtitle']:
-                        fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n{:g} × {:g} nm'.format(data.x_range,data.y_range), fontsize='small')
+                        fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n' + formatSI(data.x_range*1e-9) +'m × ' + formatSI(data.y_range*1e-9) + 'm', fontsize='small')
                     fig.axes[0].axis('off')            
                     self.setHeaderText(data)
                     # try:
@@ -381,7 +381,7 @@ class Handler:
                     
 
                     if settings['buttons']['showtitle']:
-                        fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + '\n{:g} × {:g} nm'.format(data.x_range,data.y_range), fontsize='small')
+                        fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + '\n' + formatSI(data.x_range) +'m × ' + formatSI(data.y_range) + 'm', fontsize='small')
                     fig.axes[0].axis('off')            
                     self.setHeaderText(data)
                     legendLabels = getHeaderLabels(data.header,dtype="createc") 

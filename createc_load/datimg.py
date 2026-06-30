@@ -20,7 +20,7 @@ from matplotlib import cm
 
 from .utils.misc import XY2D
 
-
+ANGSTROMTONM = 1e-10
 
 class DatImg:
 
@@ -165,7 +165,7 @@ class DatImg:
             ADCtoI = 20.0 / 2 ** self.dactype / 10 ** (self.chgainpreamp - 12) * 10 ** (-12)
         else:
             ADCtoI = 20.0 / 2 ** self.dactype / 10 ** (self.gainpreamp - 12) * 10 ** (-12)
-        ADCtoZ = float(self.dactoz) * float(self.gainz) * 1e-10
+        ADCtoZ = float(self.dactoz) * float(self.gainz) * ANGSTROMTONM
 
         for ch in self.data.keys():
             try:
@@ -203,6 +203,10 @@ class DatImg:
         """
         return arr[~np.all(arr == 0, axis=1)]
 
+    def get_data(self, channel: str, direction: int = 0) -> np.ndarray:
+
+        return self.data[channel][direction % 2]
+
 
     def crop_missing_data(self, channel: str, direction: int = 0):
         r"""
@@ -229,8 +233,8 @@ class DatImg:
         # x_piezo_const = np.float(self.header['xpiezoconst'])
         # y_piezo_const = np.float(self.header['ypiezoconst'])
 
-        x_offset *= float(self.dactoxy) * float(self.gainx) * 0.1
-        y_offset *= float(self.dactoxy) * float(self.gainx) * 0.1
+        x_offset *= float(self.dactoxy) * float(self.gainx) * ANGSTROMTONM
+        y_offset *= float(self.dactoxy) * float(self.gainx) * ANGSTROMTONM
 
         # Offset = namedtuple('Offset', ['y', 'x'])
         return (x_offset, y_offset)
@@ -265,11 +269,11 @@ class DatImg:
 
     @property
     def x_range(self):
-        return float(self.header["length x[a]"])*0.1
+        return float(self.header["length x[a]"])*ANGSTROMTONM
 
     @property
     def y_range(self):
-        return float(self.header["length y[a]"])*0.1
+        return float(self.header["length y[a]"])*ANGSTROMTONM
 
     @property
     def xy_range(self):

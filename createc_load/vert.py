@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
 
+ANGSTROMTONM = 1e-10
+
 class Spectrum:
     def __init__(self, filename=None, attribute=None):
 
@@ -122,7 +124,7 @@ class Spectrum:
         ADCtoV = 20.0 / 2 ** self.dactype
         ADCtoI = 20.0 / 2 ** self.dactype / 10 ** (self.gainpreamp - 12) * 10 ** (-12)
         try:
-            ADCtoAA = self.zPiezoConst / 1000 * 0.0000000001
+            ADCtoAA = self.zPiezoConst / 1000 * ANGSTROMTONM
         except KeyError:
             try:
                 ADCtoAA = 20.0 / 2 ** self.dactype * self.zPiezoConst * float(self.header["gainz"])
@@ -156,14 +158,14 @@ class Spectrum:
 
     @property
     def x_pos(self):
-        xconv = float(self.header["dacto[a]xy"]) * float(self.header["gainx"]) * 0.1 
+        xconv = float(self.header["dacto[a]xy"]) * float(self.header["gainx"]) * ANGSTROMTONM 
         scanoffx = float(self.header["scanrotoffx"]) * xconv
         x = scanoffx - float(self.params[1]) * xconv 
         return x
 
     @property
     def y_pos(self):
-        yconv = float(self.header["dacto[a]xy"]) * float(self.header["gainy"]) * 0.1
+        yconv = float(self.header["dacto[a]xy"]) * float(self.header["gainy"]) * ANGSTROMTONM
         scanoffy = float(self.header["scanrotoffy"]) * yconv
         y = scanoffy - float(self.params[2]) * yconv
         return y
