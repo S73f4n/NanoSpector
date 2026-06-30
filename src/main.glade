@@ -365,7 +365,8 @@
                         <property name="orientation">vertical</property>
                         <child>
                           <object class="GtkButton" id="button_fft">
-                            <property name="label" translatable="yes">FFT</property>
+                            <property name="label" translatable="yes">Show FFT</property>
+                            <property name="width-request">120</property>
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                             <property name="receives-default">True</property>
@@ -387,6 +388,7 @@
                         <child>
                           <object class="GtkButton" id="button_savefig">
                             <property name="label" translatable="yes">Save plot</property>
+                            <property name="width-request">120</property>
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                             <property name="receives-default">True</property>
@@ -407,7 +409,8 @@
                         </child>
                         <child>
                           <object class="GtkButton" id="button_export">
-                            <property name="label" translatable="yes">Export</property>
+                            <property name="label" translatable="yes">Export data</property>
+                            <property name="width-request">120</property>
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                             <property name="receives-default">True</property>
@@ -426,7 +429,8 @@
                         </child>
                         <child>
                           <object class="GtkButton" id="button_header">
-                            <property name="label" translatable="yes">Header</property>
+                            <property name="label" translatable="yes">Show header</property>
+                            <property name="width-request">120</property>
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                             <property name="receives-default">True</property>
