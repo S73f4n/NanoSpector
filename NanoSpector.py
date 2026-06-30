@@ -724,6 +724,35 @@ class Handler:
             outpath = os.path.join(settings['file']['path'],"export",filename.replace(os.path.splitext(filename)[1],".csv")) 
             np.savetxt(outpath, exportdata, delimiter=",")
 
+    def exportdatimg(self,rows,data,filepath):
+        os.makedirs(os.path.join(settings['file']['path'],"export"), exist_ok=True)
+        filename = os.path.basename(filepath)
+        
+        # Apply flatten and plane to export data
+        if settings["buttons"]["flatten"]:
+            exportdata = signal.detrend(data.get_data(rows[0]))
+        elif settings["buttons"]["plane"]:
+            exportdata = datimg.subtract_plane(data.get_data(rows[0]))
+        else:
+            exportdata = data.get_data(rows[0])
+        
+        if settings['general']['exportformat'] == "IgorPro":
+            outpath = os.path.join(settings['file']['path'],"export",filename.replace(os.path.splitext(filename)[1],".itx")) 
+            igorFile = self.cleanIgorName(filename)
+            unit = re.search(r"\((\w+)\)", rows[0]).group(1)
+            with open(outpath, "w") as outfile:
+                outfile.write("IGOR\nWAVES/D/N=("+str(data.x_pixels)+","+str(data.y_pixels)+") "+igorFile+ "\nBEGIN\n")
+                np.savetxt(outfile, np.transpose(exportdata), delimiter="\t")
+                outfile.write("END\n")
+                outfile.write("X Setscale d, 0,0, \""+unit+"\", "+igorFile+"\n")
+                outfile.write("X Setscale/I x, 0,"+str(data.x_range)+", \"m\", "+igorFile+"\n")
+                outfile.write("X Setscale/I y, 0,"+str(data.y_range)+", \"m\", "+igorFile+"\n")
+                outfile.write("X Note "+igorFile+" \"Saved Date: "+data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] +"\\n"+'\\n'.join(self.cleanHeader(getHeaderLabels(data.header,"sxm")))+"\"\n")
+
+        elif settings['general']['exportformat'] == "ASCII":
+            outpath = os.path.join(settings['file']['path'],"export",filename.replace(os.path.splitext(filename)[1],".csv")) 
+            np.savetxt(outpath, exportdata, delimiter=",")
+
     def exportgrid(self,rows,data,filepath):
         filename = os.path.basename(filepath)
         basename = os.path.splitext(filename)[0]
@@ -841,6 +870,13 @@ class Handler:
                         selected_rows = self.selectedRows
                     plotname = data.filename
                     self.exportsxm(selected_rows,data,plotname)
+                elif isinstance(data,createc_load.datimg.DatImg):
+                    if self.selectedRows == []:
+                        selected_rows.append(settings['image']['defaultch'])
+                    else:
+                        selected_rows = self.selectedRows
+                    plotname = data.filename
+                    self.exportdatimg(selected_rows,data,plotname)
                 elif isinstance(data, nanonis_load.grid.Grid):
                     if self.selectedRows == []:
                         selected_rows.append(settings['grid']['defaultch'])
