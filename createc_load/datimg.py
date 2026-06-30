@@ -110,6 +110,11 @@ class DatImg:
         self.zPiezoConst = float(self.header['zpiezoconst'])
         self.bias = float(self.header['biasvoltage'])
         self.current = float(self.header['fblogiset'])
+        self.dactoxy = float(self.header['dacto[a]xy'])
+        self.dactoz = float(self.header['dacto[a]z'])
+        self.gainx = float(self.header['gainx'])
+        self.gainy = float(self.header['gainy'])
+        self.gainz = float(self.header['gainz'])
 
     def _make_channel_names(self):
         columnnames = []
@@ -192,11 +197,11 @@ class DatImg:
         # x_piezo_const = np.float(self.header['xpiezoconst'])
         # y_piezo_const = np.float(self.header['ypiezoconst'])
 
-        x_offset = -x_offset * cgc['g_XY_volt'] * self.xPiezoConst / 2 ** cgc['g_XY_bits']
-        y_offset = -y_offset * cgc['g_XY_volt'] * self.yPiezoConst / 2 ** cgc['g_XY_bits']
+        x_offset *= float(self.dactoxy) * float(self.gainx) * 0.1
+        y_offset *= float(self.dactoxy) * float(self.gainx) * 0.1
 
         # Offset = namedtuple('Offset', ['y', 'x'])
-        return XY2D(y=y_offset, x=x_offset)
+        return (x_offset, y_offset)
 
     @property
     def size(self):
@@ -439,11 +444,7 @@ class Plot:
             except ImportError:
                 from createc_load import vert
 
-        xconv = float(self.data.header["dacto[a]xy"]) * float(self.data.header["gainx"]) * 0.1 
-        yconv = float(self.data.header["dacto[a]xy"]) * float(self.data.header["gainy"]) * 0.1
-
-        scanoffx = float(self.data.header["scanrotoffx"])*xconv
-        scanoffy = float(self.data.header["scanrotoffy"])*yconv
+        x_offset, y_offset = self.data.offset
 
         theta = np.radians(float(self.data.header["rotation"]))
         R = np.array(((np.cos(theta), -np.sin(theta)), (np.sin(theta), np.cos(theta))))
@@ -458,13 +459,12 @@ class Plot:
         for spectrum_inst, label_inst in zip(spectra_iterator, label_iterator):
 
             spectrum_to_center = (
-                spectrum_inst.x_pos - scanoffx,
-                spectrum_inst.y_pos - scanoffy
+                spectrum_inst.x_pos - x_offset,
+                spectrum_inst.y_pos - y_offset
             )
             spectrum_to_center = R.dot(spectrum_to_center)
-            x = float(self.data.header["length x[a]"]) * 0.1 * 0.5 - spectrum_to_center[0]
-            y = spectrum_to_center[1] + float(self.data.header["length y[a]"]) * 0.1
-            print(x,y)
+            x = float(self.data.x_range) * 0.5 - spectrum_to_center[0]
+            y = spectrum_to_center[1] + float(self.data.y_range) 
             s_plt = self.ax.scatter(x, y, marker="x", color="red", picker=True)
             lbl_plt = self.ax.text(x, y, label_inst, fontsize=10, color="red")
 
