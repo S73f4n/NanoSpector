@@ -213,7 +213,7 @@
     </columns>
     <data>
       <row>
-        <col id="0" translatable="yes">dummy (1)</col>
+        <col id="0" translatable="yes">Bias (V)</col>
       </row>
     </data>
   </object>

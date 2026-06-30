@@ -12,7 +12,7 @@ image:
   cmapI: viridis
   cmapdIdV: magma
   defaultch: Z (m)
-  extension: .sxm
+  extension: .sxm, .dat
 spec:
   cmap: default
   defaultch: Current (A)
