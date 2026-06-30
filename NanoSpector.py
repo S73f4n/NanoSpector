@@ -317,7 +317,7 @@ class Handler:
                         self.sxmplot.add_spectra(didvData,labels=didvLabel,channel=settings['spec']['defaultch'])
                     if settings['buttons']['showtitle']:
                         fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n{:g} × {:g} nm'.format(data.x_range,data.y_range), fontsize='small')
-                    # fig.axes[0].axis('off')            
+                    fig.axes[0].axis('off')            
                     self.setHeaderText(data)
                     # try:
                     #     self.sxmplot.colorbar.ax.yaxis.set_major_formatter(formatter1)
@@ -382,7 +382,7 @@ class Handler:
 
                     if settings['buttons']['showtitle']:
                         fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + '\n{:g} × {:g} nm'.format(data.x_range,data.y_range), fontsize='small')
-                    # fig.axes[0].axis('off')            
+                    fig.axes[0].axis('off')            
                     self.setHeaderText(data)
                     legendLabels = getHeaderLabels(data.header,dtype="createc") 
                     handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
