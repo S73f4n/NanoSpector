@@ -57,8 +57,8 @@ dat32chlist = {
 
 dacUnits = {
         "Bias (V)":         "V",
-        "Z (nm)":         "ADCZ",
-        "X (nm)":            "V",
+        "Z (m)":         "ADCZ",
+        "X (m)":            "V",
         "unknown":       "",
         "Current (A)":      "ADCI",
         "dI/dV (V)":        "ADCV",

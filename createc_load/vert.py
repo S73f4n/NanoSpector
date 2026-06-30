@@ -81,11 +81,11 @@ class Spectrum:
             channellist = param32chlist
 
             if self.params[6] == 3:
-                columnnames = ["Bias (V)", "Z (nm)", "X (nm)"]
+                columnnames = ["Bias (V)", "Z (m)", "X (nm)"]
             elif self.params[6] == 2:
-                columnnames = ["Bias (V)", "Z (nm)"]
+                columnnames = ["Bias (V)", "Z (m)"]
             else:
-                columnnames = ["Bias (V)", "Z (nm)", "unknown"]
+                columnnames = ["Bias (V)", "Z (m)", "unknown"]
 
             for channel in channellist:
                 if int(self.params[3]) & channellist[channel] > 0:
@@ -94,7 +94,7 @@ class Spectrum:
         elif self.version == "[ParVERT30]":
             channellist = param30chlist
 
-            columnnames = ["Bias (V)", "Z (nm)"]
+            columnnames = ["Bias (V)", "Z (m)"]
             for channel in channellist:
                 if int(self.params[3]) & channellist[channel] > 0:
                     columnnames.append(channel)
