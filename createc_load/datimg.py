@@ -1,6 +1,6 @@
 
 import pandas as pd
-from .channellist import param30chlist, param32chlist, dacUnits, dat32chlist
+from .channellist import param30chlist, param32chlist, dacUnitsdat, dat32chlist
 from .channellist import createcConstants as cgc
 import os
 import yaml
@@ -60,6 +60,8 @@ class DatImg:
                         )
                     )
                 )
+
+        self._set_data_units()
             
 
     def _bin2meta_dict(self):
@@ -94,6 +96,9 @@ class DatImg:
         """
         self.file_version = self.header['file_version']
         self.file_version = ''.join(e for e in self.file_version if e.isalnum())
+        self.dactype = float(self.header['dac-type'].replace("bit",""))
+        self.gainpreamp = float(self.header['gainpreamp'])
+        self.chgainpreamp = float(self.header['chmodegainpreamp'])
         self.xPixel = int(self.header['num.x'])
         self.yPixel = int(self.header['num.y'])
         self.channels = int(self.header['channels'])
@@ -153,6 +158,33 @@ class DatImg:
                                (self.channels * self.yPixel, self.xPixel))
         for i in range(self.channels):
             self.img_array_list.append(img_array[self.yPixel * i:self.yPixel * (i + 1)])
+
+    def _set_data_units(self):
+        ADCtoV = 20.0 / 2 ** self.dactype
+        if self.chmode == 1:
+            ADCtoI = 20.0 / 2 ** self.dactype / 10 ** (self.chgainpreamp - 12) * 10 ** (-12)
+        else:
+            ADCtoI = 20.0 / 2 ** self.dactype / 10 ** (self.gainpreamp - 12) * 10 ** (-12)
+        ADCtoZ = float(self.dactoz) * float(self.gainz) * 1e-10
+
+        for ch in self.data.keys():
+            try:
+                if dacUnitsdat[ch] == "ADCI":
+                    factor = ADCtoI
+                elif dacUnitsdat[ch] == "ADCV":
+                    factor = ADCtoV
+                elif dacUnitsdat [ch] == "Topography":
+                    factor = ADCtoZ
+                elif dacUnitsdat[ch] == "V":
+                    factor = 1e-3
+                else:
+                    factor = 1
+                
+                self.data[ch] = [x*factor for x in self.data[ch]]
+            except KeyError:
+                print(f"Channel {ch} not defined!")
+
+
 
     @staticmethod
     def _crop_img(arr):
