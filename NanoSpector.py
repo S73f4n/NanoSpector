@@ -315,9 +315,9 @@ class Handler:
                         didvData = [didv for didv in self.datastore if isinstance(didv,nanonis_load.didv.Spectrum)]
                         didvLabel = [re.findall(r"\d+", didv._filename)[-1].lstrip('0') for didv in didvData] 
                         self.sxmplot.add_spectra(didvData,labels=didvLabel,channel=settings['spec']['defaultch'])
-                    if settings['buttons']['showtitle']:
-                        fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n' + formatSI(data.x_range*1e-9) +'m × ' + formatSI(data.y_range*1e-9) + 'm', fontsize='small')
-                    fig.axes[0].axis('off')            
+                        if settings['buttons']['showtitle']:
+                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n' + formatSI(data.x_range*1e-9) +'m × ' + formatSI(data.y_range*1e-9) + 'm', fontsize='small')
+                        fig.axes[0].axis('off')            
                     self.setHeaderText(data)
                     # try:
                     #     self.sxmplot.colorbar.ax.yaxis.set_major_formatter(formatter1)
@@ -372,17 +372,15 @@ class Handler:
                     if fft: 
                         self.sxmplot.fft(windowFilter=settings['fft']['window'],level=settings['fft']['level'])
                         if settings['buttons']['showtitle']:
-                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + " (FFT) \n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0], fontsize='small')
+                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + " (FFT)", fontsize='small')
                     else:
                         didvData = [didv for didv in self.datastore if isinstance(didv,createc_load.vert.Spectrum)]
                         didvLabel = [re.findall(r"\d+", didv._filename)[-1] for didv in didvData] 
                         if len(didvData)>0:
                             self.sxmplot.add_spectra(didvData,labels=didvLabel,channel=settings['spec']['defaultch'])
-                    
-
-                    if settings['buttons']['showtitle']:
-                        fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + '\n' + formatSI(data.x_range) +'m × ' + formatSI(data.y_range) + 'm', fontsize='small')
-                    fig.axes[0].axis('off')            
+                        if settings['buttons']['showtitle']:
+                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + '\n' + formatSI(data.x_range) +'m × ' + formatSI(data.y_range) + 'm', fontsize='small')
+                        fig.axes[0].axis('off')            
                     self.setHeaderText(data)
                     legendLabels = getHeaderLabels(data.header,dtype="createc") 
                     handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)

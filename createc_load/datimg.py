@@ -519,3 +519,32 @@ class Plot:
 
             pick_caller = picker_factory(spectrum_inst, s_plt)
             self.fig.canvas.mpl_connect("pick_event", pick_caller)
+
+    def fft(self, windowFilter='None',level=20):
+        
+        self.ax.cla()
+        self.fft_fig = self.ax.figure
+        # self.ax = self.fft_fig.add_subplot(111)
+        
+        if windowFilter == 'None':
+            image = self.image_data 
+        else:
+            hanning_window = getattr(np, windowFilter.lower())(self.image_data.shape[0])[:, np.newaxis] * np.blackman(self.image_data.shape[1])
+            image = self.image_data * hanning_window
+        fft_array = np.fft.fft2(image)
+        fft_array = np.fft.fftshift(fft_array)
+        fft_array = np.abs(fft_array)
+        max_fft = np.log(1+ np.mean(fft_array)) * level
+        fft_x = -np.pi/(self.data.x_range*1e9/self.data.x_pixels)
+        fft_y = np.pi/(self.data.y_range*1e9/self.data.y_pixels)
+        self.fft_plot = self.ax.imshow(np.log(1+fft_array), extent = [fft_x, -fft_x, -fft_y, fft_y], origin = 'lower',vmax=max_fft)
+        self.ax.set_xlabel("nm$^{-1}$")
+        self.ax.set_ylabel("nm$^{-1}$")
+        # self.fft_fig.colorbar(self.fft_plot, ax = self.ax)
+        # self.fft_clim(0,max_fft)
+
+    def fft_clim(self, c_min, c_max):
+        self.fft_plot.set_clim(c_min, c_max)
+
+    def fft_colormap(self, cmap):
+        self.fft_plot.set_cmap(cmap)
