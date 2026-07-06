@@ -5,6 +5,7 @@ import matplotlib
 import matplotlib.animation
 import matplotlib.pyplot as plt
 import os
+import re
 from datetime import datetime
 
 import numpy as np
@@ -116,8 +117,14 @@ class Spectrum:
         self._split_bwd()
 
     def _make_saved_date(self):
-        dtformat = 'A%y%m%d.%H%M%S' +  os.path.splitext(os.path.basename(self._filename))[1]
-        savedate = datetime.strptime(os.path.basename(self._filename),dtformat)
+        basename = os.path.basename(self._filename)
+
+        match = re.match(r"^A(\d{6})\.(\d{6})", basename)
+        if not match:
+            raise ValueError(f"Invalid filename format: {basename}")
+
+        savedate = datetime.strptime("".join(match.groups()), "%y%m%d%H%M%S")
+
         outformat = '%d.%m.%Y %H:%M:%S'
         self.header["Saved Date"] = datetime.strftime(savedate,outformat)
         
