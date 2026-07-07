@@ -290,7 +290,7 @@ class Handler:
                     handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
                     if save:
                         self.save_sxm(data)
-                if isinstance(data,nanonis_load.grid.Grid):
+                if isinstance(data,nanonis_load.grid.older_Grid):
                     plotname = data.filename
                     self.setHeaderText(data)
                     if self.selectedRows == []:
@@ -340,7 +340,7 @@ class Handler:
             elif filename.endswith(settings['image']['extension']):
                 self.datastore.append(sxm.Sxm(filename))
             elif filename.endswith(settings['grid']['extension']):
-                self.datastore.append(grid.Grid(filename))
+                self.datastore.append(grid.older_Grid(filename))
             else:
                 return 0
             self.setChannelList(self.datastore[-1].data.keys())
@@ -370,7 +370,7 @@ class Handler:
     
     def on_fig_click(self,event):
         if self.datastore is not None and len(self.datastore) > 0:
-            if isinstance(self.datastore[0],nanonis_load.grid.Grid):
+            if isinstance(self.datastore[0],nanonis_load.grid.older_Grid):
                 gData = self.datastore[0]
                 specAx.cla()
                 gData.click = (event.xdata, event.ydata)
@@ -425,7 +425,7 @@ class Handler:
     
     def on_slider_changed(self,button):
         if self.datastore is not None and len(self.datastore) > 0:
-            if isinstance(self.datastore[0],nanonis_load.grid.Grid):
+            if isinstance(self.datastore[0],nanonis_load.grid.older_Grid):
                 self.datastore[0].update_bias(button.get_value())
             else: 
                 ax.cla()
@@ -705,7 +705,7 @@ class Handler:
                         selected_rows = self.selectedRows
                     plotname = data.filename
                     self.exportsxm(selected_rows,data,plotname)
-                elif isinstance(data, nanonis_load.grid.Grid):
+                elif isinstance(data, nanonis_load.grid.older_Grid):
                     if self.selectedRows == []:
                         selected_rows.append(settings['grid']['defaultch'])
                     else:
