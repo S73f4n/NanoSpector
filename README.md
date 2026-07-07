@@ -38,7 +38,7 @@ The “Save plot” button saves a .png image in the export subfolder of your wo
 The file extensions NanoSpector is looking for, the default channels and colormaps can be changed from the settings window. FFT settings allow you to change the window function that is applied to the image before calculating the FFT as well as the cut-off level of the finial FFT plot. All settings are conveniently saved in a single YAML file (settings.yaml). Some settings are not changeable via the GUI and can be edited in the settings file directly, e.g., available color maps and axis labels. Make sure NanoSpector is not running when you edit the file. 
 
 ## Support
-If you have problems with NanoSpector or find a bug you can message me at st.schulte@fz-juelich.de.
+If you have problems with NanoSpector or find a bug you can message me.
 Is NanoSpector working for you and helping you in your research? Drop a message, too!
 
 _"Nanonis" is a trademark of SPECS Surface Nano Analysis GmbH. NanoSpector is an independent project and is not affiliated with or endorsed by the owner of the Nanonis trademark._
