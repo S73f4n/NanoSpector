@@ -24,6 +24,14 @@ param32chlist = {
     "ADC5 (V)":         65536,
     "ADC6 (V)":         131072,
     "ADC7 (V)":         262144,
+    "Not used 2^19":                       524288,
+    "Z-Topography":                        1048576,
+    "Potentiometry Voltage Signal":         2097152,
+    "Potentiometry Current Signal":         4194304,
+    "Aux3":                                536870912,
+    "Aux4":                                1073741824,
+    "SignalBias":                          2147483648,
+
 }
 
 param30chlist = {
@@ -50,9 +58,28 @@ dat32chlist = {
     "ADC3 (V)":         16,
     "dI/dV (V)":        32,
     "d2I/dV2 (V)":      64,
-    "Freq. Shift (Hz)": 128, 
-    "Damping (V)":      256, 
-    "Amplitude (V)":    512, 
+    "Freq. Shift (Hz)": 128,
+    "Damping (V)":      256,
+    "Amplitude (V)":    512,
+    "Bias Dac":         1024,
+    "Aux1":             2048,
+    "Aux2":             4096,
+    "ADC4 (V)":         32768,
+    "ADC5 (V)":         65536,
+    "ADC6 (V)":         131072,
+    "ADC7 (V)":         262144,
+    "PotiVolt":         1048576,
+    "PotiCurrent":      2097152,
+    "PIDOutval":        4194304,
+    "Aux3":             1073741824,
+    "Aux4":             2147483648,
+    "dI/dV Y (V)":        4294967296,
+    "d2I/dV2 Y (V)":    8589934592,
+    "Countrate1":       72057594037927936,
+    "Countrate2":       144115188075855872,
+    "Countrate3":       288230376151711744,
+    "Countrate4":       576460752303423488,
+    "Vert.Marker":      2305843009213693952,
 }
 
 dacUnits = {
@@ -105,4 +132,5 @@ dacUnitsdat = {
         "ADC5 (V)":         "ADCV",
         "ADC6 (V)":         "ADCV",
         "ADC7 (V)":         "ADCV",
+        "PIDOutval":        "ADCV",
     }
