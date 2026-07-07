@@ -234,7 +234,14 @@ class Handler:
                 if isinstance(data,nanonis_load.sxm.Sxm):
                     builder.get_object('sliderLabel').set_text("Contrast")
                     if self.selectedRows == []:
-                        selected_rows.append(settings['image']['defaultch'])
+                        try: 
+                            if data.header[':Z-Controller>Controller status:'] == ['OFF']:
+                                selected_rows.append('Current (A)')
+                            else:
+                                selected_rows.append(settings['image']['defaultch'])
+                        except KeyError:
+                            selected_rows.append(settings['image']['defaultch'])
+
                     else:
                         selected_rows = self.selectedRows
                     if "Current" in selected_rows[0]:
