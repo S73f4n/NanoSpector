@@ -47,11 +47,50 @@ sxmCC = {
     },
 }
 
+createcCC = {
+    "biasvoltage": {
+        "unitType": "direct",
+        "unit": "V",
+        "symbol": "$V$",
+        "factor": 1e-3,
+    },
+    "sec/line:": {
+        "unitType": "direct",
+        "unit": "s",
+        "symbol": "$t$",
+    },
+    "setpoint": {
+        "unitType": "direct",
+        "unit": "A",
+        "symbol": "$I$",
+    },
+}
+
+createcCH = {
+    "biasvoltage": {
+        "unitType": "direct",
+        "unit": "V",
+        "symbol": "$V$",
+        "factor": 1e-3,
+    },
+    "sec/line:": {
+        "unitType": "direct",
+        "unit": "s",
+        "symbol": "$t$",
+    },
+}
+
 spectrum = {
     "": {
         "unitType": "direct",
         "unit": "",
         "symbol": ""
+    },
+    "biasvoltage": {
+        "unitType": "direct",
+        "unit": "V",
+        "symbol": "$V$",
+        "factor": 1e-3,
     },
     "Bias>Bias (V)" : {
         "unitType": "direct",
@@ -68,6 +107,12 @@ spectrum = {
         "unitType": "direct",
         "unit": "V",
         "symbol": "$V_{mod}$"
+    },
+    "lockinampl": {
+        "unitType": "direct",
+        "unit": "Vpp",
+        "symbol": "$V_{mod}$",
+        "factor": 1e-3
     },
     "f_res (Hz)": {
         "unitType": "direct",
@@ -148,7 +193,12 @@ grid = {
 
 def getHeaderLabels(header, dtype):
     labels = []
-    if dtype == "sxm":
+    if dtype == "createc":
+        if header["fboff"] == '1':
+            headerDict = createcCH
+        else:
+            headerDict = createcCC
+    elif dtype == "sxm":
         if header[":Z-Controller>Controller status:"][0] == "ON":
             headerDict = sxmCH
         elif header[":Z-Controller>Controller status:"][0] == "OFF":
@@ -181,12 +231,19 @@ def getHeaderLabels(header, dtype):
                 prec = headerVal["precision"]
             except KeyError:
                 prec = 4
-            labels.append(headerVal["symbol"] + " = "+ formatSI(value,precision=prec) + unit)
+            try:
+                factor = headerVal["factor"]
+            except KeyError:
+                factor = 1
+            try:
+                labels.append(headerVal["symbol"] + " = "+ formatSI(value,precision=prec,factor=factor) + unit)
+            except ValueError:
+                pass
         except KeyError:
             pass
     return labels
 
-def formatSI(value, precision=4):
+def formatSI(value, precision=4,factor=1):
     prefixes = {
         9: "G",   # giga
         6: "M",   # mega
@@ -201,6 +258,7 @@ def formatSI(value, precision=4):
     if type(value) == str:
         value = float(value.replace(',','.'))
     if value != 0:
+        value *= factor
         exponent = int(np.floor(np.log10(np.abs(value))))
         exponent = (exponent // 3) * 3  # Round to the nearest multiple of 3
         scaled_value = value / 10**exponent

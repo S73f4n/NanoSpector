@@ -1,23 +1,23 @@
 general:
-  plotstyle: 'bmh'
-  exportformat: 'ASCII'
+  plotstyle: "bmh"
+  exportformat: "ASCII"
   exportformats:
-  - ASCII
-  - IgorPro
+    - ASCII
+    - IgorPro
 file:
   name: Bias-Spectroscopy00001.dat
   path: C:/
 image:
-  cmap: gray 
+  cmap: gray
   cmapI: viridis
-  cmapdIdV: magma 
+  cmapdIdV: magma
   defaultch: Z (m)
-  extension: .sxm
+  extension: .sxm, .dat
 spec:
   cmap: default
   defaultch: Current (A)
   defaultchZ: Current (A)
-  extension: .dat
+  extension: .dat, .VERT
 grid:
   extension: .3ds
   defaultch: Current (A)
@@ -27,10 +27,10 @@ fft:
   level: 20
   window: Hanning
   windows:
-  - None
-  - Hanning
-  - Hamming
-  - Blackman
+    - None
+    - Hanning
+    - Hamming
+    - Blackman
 buttons:
   infobox: true
   flatten: true
@@ -42,47 +42,48 @@ buttons:
   replace: false
   exportbias: true
   showtitle: true
+  overrange: false
 cmaps:
-- default
-- gray
-- viridis
-- plasma
-- inferno
-- magma
-- cividis
-- cool
-- hot
-- afmhot
-- jet
-- bright
-- vibrant
-- high-contrast
-- muted
-- medium-contrast
-- pale
-- dark
-- light
-- Set1
-- Paired
-- Dark2
-- tab10
-- tab20
-- gray_r
-- viridis_r
-- plasma_r
-- inferno_r
-- magma_r
-- cividis_r
-- cool_r
-- hot_r
-- afmhot_r
-- jet_r
+  - default
+  - gray
+  - viridis
+  - plasma
+  - inferno
+  - magma
+  - cividis
+  - cool
+  - hot
+  - afmhot
+  - jet
+  - bright
+  - vibrant
+  - high-contrast
+  - muted
+  - medium-contrast
+  - pale
+  - dark
+  - light
+  - Set1
+  - Paired
+  - Dark2
+  - tab10
+  - tab20
+  - gray_r
+  - viridis_r
+  - plasma_r
+  - inferno_r
+  - magma_r
+  - cividis_r
+  - cool_r
+  - hot_r
+  - afmhot_r
+  - jet_r
 csets:
-- Set1
-- Paired
-- Dark2
-- tab10
-- tab20
+  - Set1
+  - Paired
+  - Dark2
+  - tab10
+  - tab20
 label:
   Bias calc (V): V (V)
   Current (A): I (A)

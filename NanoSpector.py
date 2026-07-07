@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import gi
 import nanonis_load.nanonis_load as nanonis_load
+import createc_load
 from nanonis_load.nanonis_load import didv, sxm, grid
+from createc_load import vert, datimg
 import yaml
 import shutil
 import os
@@ -27,7 +29,7 @@ from PIL import Image
 
 import src.tol_colors as tc
 
-from src.dataheader import getHeaderLabels
+from src.dataheader import getHeaderLabels, formatSI
 
 __version__ = "2.0.1"
 
@@ -119,8 +121,10 @@ class Handler:
         files = []
         # treeiter = store.append(glob.glob(filepath + "/*.VERT"))
         subDir = settings['file']['path']
+        extensionList = settings['spec']['extension'].split(',')+settings['image']['extension'].split(',')+settings['grid']['extension'].split(',')
+        extensionList = [x.strip(' ') for x in extensionList]
         try:
-            files += [os.path.join(subDir, file) for file in os.listdir(subDir) if os.path.isfile(os.path.join(subDir, file)) and (file.endswith(settings['spec']['extension']) or file.endswith(settings['image']['extension']) or file.endswith(settings['grid']['extension']))]
+            files += [os.path.join(subDir, file) for file in os.listdir(subDir) if os.path.isfile(os.path.join(subDir, file)) and (file.endswith(tuple(extensionList)))]
             for filename in sorted(files, key=os.path.getmtime, reverse=True):
                 treeiter = store.append([os.path.basename(filename)])
         except FileNotFoundError:
@@ -138,8 +142,14 @@ class Handler:
         for btn in settings['buttons']:
             settings['buttons'][btn] = Gtk.Builder.get_object(builder, "button_"+btn).get_active()
         offsetXslider = Gtk.Builder.get_object(builder, "adjOffset").get_value()
+        switchDirection = Gtk.Builder.get_object(builder,"switch_direction")
+
+        if not reverse:
+            Gtk.Builder.get_object(builder, "switch_rev").set_state(False)
+            Gtk.Builder.get_object(builder, "switch_rev").set_active(False)
         if direction == 0:
-            Gtk.Builder.get_object(builder, "switch_direction").set_state(False)
+            switchDirection.set_state(False)
+            switchDirection.set_active(False)
         try:
             self.sxmplot.colorbar.remove()
         except:
@@ -160,7 +170,12 @@ class Handler:
                         except AttributeError:
                             ax.set_prop_cycle('color',list(tc.tol_cset(settings['spec']['cmap'])))
             for countIndex, data in enumerate(self.datastore):
-                if isinstance(data,nanonis_load.didv.Spectrum) and [sxm for sxm in self.datastore if isinstance(sxm,nanonis_load.sxm.Sxm)] == []:
+
+                # Display Spectrum from Nanonis DAT
+                if (isinstance(data,nanonis_load.didv.Spectrum) and [sxm for sxm in self.datastore if isinstance(sxm,nanonis_load.sxm.Sxm)] == []) or (isinstance(data,createc_load.vert.Spectrum) and [datimg for datimg in self.datastore if isinstance(datimg,createc_load.datimg.DatImg)] == []):
+
+                    Gtk.Builder.get_object(builder, "expander_spec").set_expanded(True)
+                    Gtk.Builder.get_object(builder, "expander_img").set_expanded(False)
                     builder.get_object('sliderLabel').set_text("Y offset")
                     if self.selectedRows == []:
                         if "Z" in data._filename:
@@ -169,6 +184,11 @@ class Handler:
                         else:
                             selected_rows.clear()
                             selected_rows.append(settings['spec']['defaultch'])
+                        try:
+                            data.data.loc[:,selected_rows[0]]
+                        except KeyError:
+                            selected_rows.clear()
+                            selected_rows.append(data.data.keys()[1])
                     else:
                         selected_rows = self.selectedRows
                     yaxislabel = self.replaceLabel(selected_rows[0])
@@ -183,11 +203,21 @@ class Handler:
                     offsetX = np.mean(self.datastore[0].data[selected_rows[0]]) * offsetXslider*10*len(selected_rows)
                     for ch in selected_rows:
                         if settings['buttons']['average']:
-                            bracketPos = ch.find('(')
-                            average = ch[:bracketPos] + "[bwd] " + ch[bracketPos:]
+                            if isinstance(data,nanonis_load.didv.Spectrum):
+                                bracketPos = ch.find('(')
+                                average = ch[:bracketPos] + "[bwd] " + ch[bracketPos:]
+                            else:
+                                average = ch + " [bwd]"
+                            try:
+                                data.data.loc[:,average]
+                            except KeyError:
+                                average = None
                         else:
                             average = None
-                        didv.Plot(data, channel=ch, axes=ax,legend=False,average=average,logabs=settings['buttons']['logplot'],offsetY=(offsetX*(len(self.datastore)-countIndex)))
+                        if isinstance(data,nanonis_load.didv.Spectrum):
+                            didv.Plot(data, channel=ch, axes=ax,legend=False,average=average,logabs=settings['buttons']['logplot'],offsetY=(offsetX*(len(self.datastore)-countIndex)))
+                        elif isinstance(data,createc_load.vert.Spectrum):
+                            vert.Plot(data, channel=ch, axes=ax,legend=False,average=average,logabs=settings['buttons']['logplot'],multiply=(offsetX*(len(self.datastore)-countIndex)))
                     ax.autoscale(enable=True,axis='both')
                     if settings['buttons']['logplot']:
                         try: 
@@ -205,13 +235,28 @@ class Handler:
                     try:
                         Gtk.Builder.get_object(builder, 'label_comment').set_text("Comment: " + data.header['Comment01'])
                     except KeyError:
-                        Gtk.Builder.get_object(builder, 'label_comment').set_text("Comment")
+                        Gtk.Builder.get_object(builder, 'label_comment').set_text("")
                     self.setHeaderText(data)
                     alpha = 1
                     loc = 'best'
+
+                    try: 
+                        filedate = data.header['Saved Date']
+                    except KeyError:
+                        try:
+                            dtformat = 'A%y%m%d.%H%M%S' +  os.path.splitext(os.path.basename(plotname))[1]
+                            savedate = datetime.strptime(os.path.basename(plotname),dtformat)
+                            outformat = '%d.%m.%Y %H:%M:%S'
+                            filedate = datetime.strftime(savedate,outformat)
+                        except:
+                            filedate = ''
+
                     if len(self.datastore) > 1:
                         selectedNums = [re.findall(r"\d+", didv._filename)[-1] for didv in self.datastore if isinstance(didv,nanonis_load.didv.Spectrum)]
-                        basename = re.sub(r'\d+$', '', os.path.splitext(os.path.basename(plotname))[0])
+                        basename = re.sub(r'\d+', '', os.path.splitext(os.path.basename(plotname))[0])
+                        if selectedNums == []:
+                            selectedNums = [re.findall(r"\d+", vert._filename)[-1] for vert in self.datastore if isinstance(vert,createc_load.vert.Spectrum)]
+                            basename = re.sub(r'\d+$', '', os.path.splitext(os.path.basename(plotname))[0])
                         if settings['buttons']['showtitle']:
                             if len(selectedNums) > 5:
                                 fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "\n" + basename + selectedNums[0] + "-" + selectedNums[-1],fontsize='medium')
@@ -223,15 +268,19 @@ class Handler:
                         legendLabels = selected_rows.copy() 
                         handles = None
                         if settings['buttons']['showtitle']:
-                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header['Saved Date'], fontsize='medium')
+                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + filedate, fontsize='medium')
                         if settings['buttons']['infobox']:
                             ax.annotate('\n'.join(getHeaderLabels(data.header,"spectrum")),xy=(0.015,0.8),fontsize='small',xycoords='axes fraction',bbox=dict(alpha=0.7, facecolor='#eeeeee', edgecolor='#bcbcbc', linewidth=0.5,pad=3))
                     else:
                         if settings['buttons']['showtitle']:
-                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header['Saved Date'], fontsize='medium')
+                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + filedate, fontsize='medium')
                         legendLabels = getHeaderLabels(data.header,"spectrum") 
                         handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
+
+                # Display Image from SXM file
                 if isinstance(data,nanonis_load.sxm.Sxm):
+                    Gtk.Builder.get_object(builder, "expander_spec").set_expanded(False)
+                    Gtk.Builder.get_object(builder, "expander_img").set_expanded(True)
                     builder.get_object('sliderLabel').set_text("Contrast")
                     if self.selectedRows == []:
                         try: 
@@ -257,12 +306,12 @@ class Handler:
                     loc = 'lower right'
                     plotname = data.filename
                     if cmap == 'default':
-                        self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],cover=1.0-offsetXslider,reverse=reverse,axes=ax,cbar=False)
+                        self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],cover=1.0-offsetXslider,overrange=settings['buttons']['overrange'],reverse=reverse,axes=ax,cbar=False)
                     else:
                         try:
-                            self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],cover=1.0-offsetXslider,reverse=reverse,axes=ax,cbar=False)
+                            self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],cover=1.0-offsetXslider,overrange=settings['buttons']['overrange'],reverse=reverse,axes=ax,cbar=False)
                         except ValueError:
-                            self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],cover=1.0-offsetXslider,reverse=reverse,axes=ax,cbar=False)
+                            self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],cover=1.0-offsetXslider,overrange=settings['buttons']['overrange'],reverse=reverse,axes=ax,cbar=False)
                     if fft: 
                         self.sxmplot.fft(window_function=settings['fft']['window'],level=settings['fft']['level'],axes=ax)
                         if settings['buttons']['showtitle']:
@@ -272,7 +321,7 @@ class Handler:
                         didvLabel = [re.findall(r"\d+", didv._filename)[-1].lstrip('0') for didv in didvData] 
                         self.sxmplot.add_spectra(didvData,labels=didvLabel,channel=settings['spec']['defaultch'])
                         if settings['buttons']['showtitle']:
-                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n{:g} × {:g} nm'.format(data.x_range,data.y_range), fontsize='small')
+                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n' + formatSI(data.x_range*1e-9) +'m × ' + formatSI(data.y_range*1e-9) + 'm', fontsize='small')
                         fig.axes[0].axis('off')            
                         # fig.delaxes(self.sxmplot.cb.ax)
 
@@ -290,7 +339,65 @@ class Handler:
                     handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
                     if save:
                         self.save_sxm(data)
+
+
+                # Display Image from DAT images file
+                if isinstance(data,createc_load.datimg.DatImg):
+                    Gtk.Builder.get_object(builder, "expander_spec").set_expanded(False)
+                    Gtk.Builder.get_object(builder, "expander_img").set_expanded(True)
+                    builder.get_object('sliderLabel').set_text("Contrast")
+                    if self.selectedRows == []:
+                        selected_rows.append(settings['image']['defaultch'])
+                    else:
+                        selected_rows = self.selectedRows
+                    data.crop_missing_data(channel=selected_rows[0])
+                    if "Current" in selected_rows[0]:
+                        cmap = settings['image']['cmapI']
+                    elif "dI/dV" in selected_rows[0]: 
+                        cmap = settings['image']['cmapdIdV']
+                    else:
+                        cmap = settings['image']['cmap']
+
+                    if "(m)" in selected_rows[0]:
+                        fixzero = True
+                    else: 
+                        fixzero = False
+
+                    alpha = 0.4
+                    loc = 'lower right'
+                    plotname = data.filename
+
+                    if cmap == 'default':
+                        cmap = 'gray'
+
+                    try:
+                        self.sxmplot = datimg.Plot(data, direction=direction, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,overrange=settings['buttons']['overrange'],reverse=reverse,axes=ax)
+                    except ValueError:
+                        self.sxmplot = datimg.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,overrange=settings['buttons']['overrange'],reverse=reverse,axes=ax)
+                    except IndexError:
+                        self.sxmplot = datimg.Plot(data, direction=0, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,overrange=settings['buttons']['overrange'],reverse=reverse,axes=ax)
+                        switchDirection.set_active(False)
+                        switchDirection.set_state(False)
+                    if fft: 
+                        self.sxmplot.fft(windowFilter=settings['fft']['window'],level=settings['fft']['level'])
+                        if settings['buttons']['showtitle']:
+                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + " (FFT)", fontsize='small')
+                    else:
+                        didvData = [didv for didv in self.datastore if isinstance(didv,createc_load.vert.Spectrum)]
+                        didvLabel = [re.findall(r"\d+", didv._filename)[-1] for didv in didvData] 
+                        if len(didvData)>0:
+                            self.sxmplot.add_spectra(didvData,labels=didvLabel,channel=settings['spec']['defaultch'])
+                        if settings['buttons']['showtitle']:
+                            fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + '\n' + formatSI(data.x_range) +'m × ' + formatSI(data.y_range) + 'm', fontsize='small')
+                        fig.axes[0].axis('off')            
+                    self.setHeaderText(data)
+                    legendLabels = getHeaderLabels(data.header,dtype="createc") 
+                    handles = [mpl_patches.Rectangle((0, 0), 1, 1, fc="white", ec="white", lw=0, alpha=0)] * len(legendLabels)
+
+
                 if isinstance(data,nanonis_load.grid.older_Grid):
+                    Gtk.Builder.get_object(builder, "expander_spec").set_expanded(False)
+                    Gtk.Builder.get_object(builder, "expander_img").set_expanded(True)
                     plotname = data.filename
                     self.setHeaderText(data)
                     if self.selectedRows == []:
@@ -335,10 +442,19 @@ class Handler:
         self.datastore = []
         for thisFile in files:
             filename = os.path.join(settings['file']['path'],thisFile)
-            if filename.endswith(settings['spec']['extension']):
+            try: 
+                with open(filename, encoding="utf-8", errors="ignore") as f:
+                    fLine = f.readline()
+            except FileNotFoundError:
+                print("File does not exist!")
+            if filename.endswith(tuple(settings['spec']['extension'])) and "Experiment" in fLine:
                 self.datastore.append(didv.Spectrum(filename))
-            elif filename.endswith(settings['image']['extension']):
+            elif filename.endswith(tuple(settings['spec']['extension'])) and "[ParVERT" in fLine:
+                self.datastore.append(vert.Spectrum(filename))
+            elif filename.endswith(tuple(settings['image']['extension'])) and filename.endswith(".sxm"):
                 self.datastore.append(sxm.Sxm(filename))
+            elif filename.endswith(tuple(settings['image']['extension'])) and ("[Paramet32" in fLine or "[Paramco32" in fLine):
+                self.datastore.append(datimg.DatImg(filename))
             elif filename.endswith(settings['grid']['extension']):
                 self.datastore.append(grid.older_Grid(filename))
             else:
@@ -416,7 +532,7 @@ class Handler:
         # except:
         #     pass
         ax.cla()
-        if state:
+        if switch.get_active():
             Gtk.Builder.get_object(builder, "label_direction").set_text("bwd")
             self.plot_data(direction=1)
         else:
@@ -458,8 +574,11 @@ class Handler:
             # Get the text from the model
             item = model[iter][0]
             # Check if the filter text is present in the item
-            return self.filter_text.lower() in item.lower()
-    
+            keywords = [word.casefold() for word in self.filter_text.split(";") if word.strip()]
+            if not keywords:
+                return True
+            return any(keyword in item.lower() for keyword in keywords)    
+
     def fileFilter_function(self, model, iter, data):
         if self.fileFilter_text == "":
             return True
@@ -513,20 +632,35 @@ class Handler:
         ax.cla()
         fig.canvas.draw()
     
-    def on_button_reverse_clicked(self, button):
-        try:
-            if self.datastore is not None and len(self.datastore) > 1:
-                self.datastore.reverse()
-        except:
-            pass
-        try:
-            if self.selectedRows is not None and len(self.selectedRows) > 1:
-             self.selectedRows.reverse()
-        except:
-            pass
-        
-        ax.cla()
-        self.plot_data(reverse=True)
+    def on_button_reverse_clicked(self, switch, state):
+        if switch.get_active():
+            try:
+                if self.datastore is not None and len(self.datastore) > 1:
+                    self.datastore.reverse()
+            except:
+                pass
+            try:
+                if self.selectedRows is not None and len(self.selectedRows) > 1:
+                    self.selectedRows.reverse()
+            except:
+                pass
+            
+            ax.cla()
+            self.plot_data(reverse=True)
+
+        else:
+            try:
+                if self.datastore is not None and len(self.datastore) > 1:
+                    self.datastore.reverse()
+            except:
+                pass
+            try:
+                if self.selectedRows is not None and len(self.selectedRows) > 1:
+                    self.selectedRows.reverse()
+            except:
+                pass
+            ax.cla()
+            self.plot_data(reverse=False)
     
     def cleanIgorName(self, folder):
         folder = folder.replace(folder.split(".")[-1], "")
@@ -535,12 +669,12 @@ class Handler:
 
     def cleanWaveName(self,rows,filename):
         try:
-            specno = re.search(r'\d+',filename).group()
+            specno = re.search(r'\d+$',filename).group()
         except AttributeError:
             specno = ""
         units = [re.search(r"\((\w+)\)", wave).group(1) for wave in rows]
         ch = [re.sub(r"\((\w+)\)", '', wave) for wave in rows]
-        ch = [wave.replace(".","_").replace("-","").replace("+","p").replace(" ","").replace("[","").replace("]","").replace("(","").replace(")","")+specno for wave in ch]
+        ch = [wave.replace(".","_").replace("-","").replace("+","p").replace(" ","").replace("[","").replace("]","").replace("(","").replace(")","").replace("/","")+specno for wave in ch]
         return dict(zip(ch, units))
 
     def export(self,rows,data,filepath):
@@ -592,6 +726,35 @@ class Handler:
                 outfile.write("X Setscale/I x, 0,"+str(data.x_range)+", \"m\", "+igorFile+"\n")
                 outfile.write("X Setscale/I y, 0,"+str(data.y_range)+", \"m\", "+igorFile+"\n")
                 outfile.write("X Note "+igorFile+" \"Saved Date: "+data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] +"\\n"+'\\n'.join(self.cleanHeader(getHeaderLabels(data.header,"sxm")))+"\"\n")
+
+        elif settings['general']['exportformat'] == "ASCII":
+            outpath = os.path.join(settings['file']['path'],"export",filename.replace(os.path.splitext(filename)[1],".csv")) 
+            np.savetxt(outpath, exportdata, delimiter=",")
+
+    def exportdatimg(self,rows,data,filepath):
+        os.makedirs(os.path.join(settings['file']['path'],"export"), exist_ok=True)
+        filename = os.path.basename(filepath)
+        
+        # Apply flatten and plane to export data
+        if settings["buttons"]["flatten"]:
+            exportdata = signal.detrend(data.get_data(rows[0]))
+        elif settings["buttons"]["plane"]:
+            exportdata = datimg.subtract_plane(data.get_data(rows[0]))
+        else:
+            exportdata = data.get_data(rows[0])
+        
+        if settings['general']['exportformat'] == "IgorPro":
+            outpath = os.path.join(settings['file']['path'],"export",filename.replace(os.path.splitext(filename)[1],".itx")) 
+            igorFile = self.cleanIgorName(filename)
+            unit = re.search(r"\((\w+)\)", rows[0]).group(1)
+            with open(outpath, "w") as outfile:
+                outfile.write("IGOR\nWAVES/D/N=("+str(data.x_pixels)+","+str(data.y_pixels)+") "+igorFile+ "\nBEGIN\n")
+                np.savetxt(outfile, np.transpose(exportdata), delimiter="\t")
+                outfile.write("END\n")
+                outfile.write("X Setscale d, 0,0, \""+unit+"\", "+igorFile+"\n")
+                outfile.write("X Setscale/I x, 0,"+str(data.x_range)+", \"m\", "+igorFile+"\n")
+                outfile.write("X Setscale/I y, 0,"+str(data.y_range)+", \"m\", "+igorFile+"\n")
+                outfile.write("X Note "+igorFile+" \"Channel: "+rows[0]+"\\n"+'\\n'.join(self.cleanHeader(getHeaderLabels(data.header,"createc")))+"\"\n")
 
         elif settings['general']['exportformat'] == "ASCII":
             outpath = os.path.join(settings['file']['path'],"export",filename.replace(os.path.splitext(filename)[1],".csv")) 
@@ -698,6 +861,15 @@ class Handler:
                     if settings['buttons']['exportbias'] and 'Bias calc (V)' in data.data.keys() and 'Bias calc (V)' not in selected_rows:
                         selected_rows.insert(0,'Bias calc (V)')
                     self.export(selected_rows,data,plotname)
+                elif isinstance(data,createc_load.vert.Spectrum):
+                    if self.selectedRows == []:
+                        selected_rows.append(settings['spec']['defaultch'])
+                    else:
+                        selected_rows = self.selectedRows
+                    plotname = data._filename
+                    if settings['buttons']['exportbias'] and 'Bias (V)' in data.data.keys() and 'Bias (V)' not in selected_rows:
+                        selected_rows.insert(0,'Bias (V)')
+                    self.export(selected_rows,data,plotname)
                 elif isinstance(data,nanonis_load.sxm.Sxm):
                     if self.selectedRows == []:
                         selected_rows.append(settings['image']['defaultch'])
@@ -705,6 +877,13 @@ class Handler:
                         selected_rows = self.selectedRows
                     plotname = data.filename
                     self.exportsxm(selected_rows,data,plotname)
+                elif isinstance(data,createc_load.datimg.DatImg):
+                    if self.selectedRows == []:
+                        selected_rows.append(settings['image']['defaultch'])
+                    else:
+                        selected_rows = self.selectedRows
+                    plotname = data.filename
+                    self.exportdatimg(selected_rows,data,plotname)
                 elif isinstance(data, nanonis_load.grid.older_Grid):
                     if self.selectedRows == []:
                         selected_rows.append(settings['grid']['defaultch'])
@@ -717,7 +896,12 @@ class Handler:
         
     def on_button_filter_clicked(self,button):
         entry = Gtk.Builder.get_object(builder, "entry_filter_text")
-        entry.set_text(button.get_label())
+        text = button.get_label()
+        if text == "dI/dV":
+            entry.set_text("dI/dV; Demod")
+        else:
+            entry.set_text(button.get_label())
+
         self.on_filter_text_changed(entry)
 
     def on_button_header_clicked(self,button):
@@ -829,6 +1013,7 @@ swtoolbar = builder.get_object('scrolledwindow2')
 specswtoolbar = builder.get_object('specScrolledWindow2')
 headerWindow = builder.get_object('headerWindow')
 settingsDialog = builder.get_object('settingsDialog')
+
 
 # fig = Figure(figsize=(4,3), dpi=100)
 # ax = fig.add_subplot()

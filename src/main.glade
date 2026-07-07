@@ -103,9 +103,9 @@
     <property name="page-increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjOffset">
-    <property name="upper">1</property>
-    <property name="step-increment">0.01</property>
-    <property name="page-increment">0.10</property>
+    <property name="upper">0.999</property>
+    <property name="step-increment">0.001</property>
+    <property name="page-increment">0.01</property>
     <signal name="value-changed" handler="on_slider_changed" swapped="no"/>
   </object>
   <object class="GtkListStore" id="file_list">
@@ -213,7 +213,7 @@
     </columns>
     <data>
       <row>
-        <col id="0" translatable="yes">dummy (1)</col>
+        <col id="0" translatable="yes">Bias (V)</col>
       </row>
     </data>
   </object>
@@ -365,7 +365,8 @@
                         <property name="orientation">vertical</property>
                         <child>
                           <object class="GtkButton" id="button_fft">
-                            <property name="label" translatable="yes">FFT</property>
+                            <property name="label" translatable="yes">Show FFT</property>
+                            <property name="width-request">120</property>
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                             <property name="receives-default">True</property>
@@ -387,6 +388,7 @@
                         <child>
                           <object class="GtkButton" id="button_savefig">
                             <property name="label" translatable="yes">Save plot</property>
+                            <property name="width-request">120</property>
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                             <property name="receives-default">True</property>
@@ -407,7 +409,8 @@
                         </child>
                         <child>
                           <object class="GtkButton" id="button_export">
-                            <property name="label" translatable="yes">Export</property>
+                            <property name="label" translatable="yes">Export data</property>
+                            <property name="width-request">120</property>
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                             <property name="receives-default">True</property>
@@ -426,7 +429,8 @@
                         </child>
                         <child>
                           <object class="GtkButton" id="button_header">
-                            <property name="label" translatable="yes">Header</property>
+                            <property name="label" translatable="yes">Show header</property>
+                            <property name="width-request">120</property>
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                             <property name="receives-default">True</property>
@@ -450,14 +454,94 @@
                     </child>
                     <child>
                       <object class="GtkBox">
+                        <property name="width-request">110</property>
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="orientation">vertical</property>
                         <child>
-                          <object class="GtkLabel">
+                          <object class="GtkExpander" id="expander_spec">
                             <property name="visible">True</property>
-                            <property name="can-focus">False</property>
-                            <property name="label" translatable="yes">Spectra</property>
+                            <property name="can-focus">True</property>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="orientation">vertical</property>
+                                <child>
+                                  <object class="GtkCheckButton" id="button_index">
+                                    <property name="label" translatable="yes">x = index</property>
+                                    <property name="visible">True</property>
+                                    <property name="can-focus">True</property>
+                                    <property name="receives-default">False</property>
+                                    <property name="tooltip-text" translatable="yes">x axis is number of data points instead of bias</property>
+                                    <property name="draw-indicator">True</property>
+                                    <signal name="toggled" handler="on_index_changed" swapped="no"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkCheckButton" id="button_logplot">
+                                    <property name="label" translatable="yes">log(y)</property>
+                                    <property name="visible">True</property>
+                                    <property name="can-focus">True</property>
+                                    <property name="receives-default">False</property>
+                                    <property name="tooltip-text" translatable="yes">logarithmic y axis</property>
+                                    <property name="draw-indicator">True</property>
+                                    <signal name="toggled" handler="on_logplot_changed" swapped="no"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkCheckButton" id="button_average">
+                                    <property name="label" translatable="yes">average</property>
+                                    <property name="visible">True</property>
+                                    <property name="can-focus">True</property>
+                                    <property name="receives-default">False</property>
+                                    <property name="tooltip-text" translatable="yes">average fwd and bwd sweep for each curve (if present)</property>
+                                    <property name="draw-indicator">True</property>
+                                    <signal name="toggled" handler="on_logplot_changed" swapped="no"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">2</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkCheckButton" id="button_legend">
+                                    <property name="label" translatable="yes">legend</property>
+                                    <property name="visible">True</property>
+                                    <property name="can-focus">True</property>
+                                    <property name="receives-default">False</property>
+                                    <property name="tooltip-text" translatable="yes">whether to add a legend to the plot</property>
+                                    <property name="halign">start</property>
+                                    <property name="valign">center</property>
+                                    <property name="draw-indicator">True</property>
+                                    <signal name="toggled" handler="on_logplot_changed" swapped="no"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">3</property>
+                                  </packing>
+                                </child>
+                              </object>
+                            </child>
+                            <child type="label">
+                              <object class="GtkLabel">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="label" translatable="yes">Spectra</property>
+                              </object>
+                            </child>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -466,14 +550,108 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkCheckButton" id="button_index">
-                            <property name="label" translatable="yes">x = index</property>
+                          <object class="GtkExpander" id="expander_img">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
-                            <property name="receives-default">False</property>
-                            <property name="tooltip-text" translatable="yes">x axis is number of data points instead of bias</property>
-                            <property name="draw-indicator">True</property>
-                            <signal name="toggled" handler="on_index_changed" swapped="no"/>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="orientation">vertical</property>
+                                <child>
+                                  <object class="GtkCheckButton" id="button_flatten">
+                                    <property name="label" translatable="yes">flatten</property>
+                                    <property name="visible">True</property>
+                                    <property name="can-focus">True</property>
+                                    <property name="receives-default">False</property>
+                                    <property name="tooltip-text" translatable="yes">flatten image by subtracting linear fit of the rows</property>
+                                    <property name="draw-indicator">True</property>
+                                    <signal name="toggled" handler="on_logplot_changed" swapped="no"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkCheckButton" id="button_plane">
+                                    <property name="label" translatable="yes">plane</property>
+                                    <property name="visible">True</property>
+                                    <property name="can-focus">True</property>
+                                    <property name="receives-default">False</property>
+                                    <property name="tooltip-text" translatable="yes">plane level image</property>
+                                    <property name="draw-indicator">True</property>
+                                    <signal name="toggled" handler="on_logplot_changed" swapped="no"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkLabel">
+                                    <property name="visible">True</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="label" translatable="yes">scan direction</property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">2</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkBox">
+                                    <property name="visible">True</property>
+                                    <property name="can-focus">False</property>
+                                    <child>
+                                      <object class="GtkLabel" id="label_direction">
+                                        <property name="visible">True</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="label" translatable="yes">fwd</property>
+                                        <property name="justify">center</property>
+                                        <property name="width-chars">5</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">0</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkSwitch" id="switch_direction">
+                                        <property name="visible">True</property>
+                                        <property name="can-focus">True</property>
+                                        <property name="halign">center</property>
+                                        <property name="valign">center</property>
+                                        <property name="margin-start">4</property>
+                                        <property name="margin-end">5</property>
+                                        <signal name="notify::active" handler="on_direction_changed" swapped="no"/>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">3</property>
+                                  </packing>
+                                </child>
+                              </object>
+                            </child>
+                            <child type="label">
+                              <object class="GtkLabel">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="label" translatable="yes">Images</property>
+                              </object>
+                            </child>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -482,70 +660,89 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkCheckButton" id="button_logplot">
-                            <property name="label" translatable="yes">log(y)</property>
+                          <object class="GtkExpander">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
-                            <property name="receives-default">False</property>
-                            <property name="tooltip-text" translatable="yes">logarithmic y axis</property>
-                            <property name="draw-indicator">True</property>
-                            <signal name="toggled" handler="on_logplot_changed" swapped="no"/>
+                            <property name="expanded">True</property>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="orientation">vertical</property>
+                                <child>
+                                  <object class="GtkCheckButton" id="button_infobox">
+                                    <property name="label" translatable="yes">info box</property>
+                                    <property name="visible">True</property>
+                                    <property name="can-focus">True</property>
+                                    <property name="receives-default">False</property>
+                                    <property name="tooltip-text" translatable="yes">whether the infobox is shown</property>
+                                    <property name="active">True</property>
+                                    <property name="draw-indicator">True</property>
+                                    <signal name="toggled" handler="on_button_infobox_toggled" swapped="no"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkBox">
+                                    <property name="visible">True</property>
+                                    <property name="can-focus">False</property>
+                                    <child>
+                                      <object class="GtkLabel" id="label_direction1">
+                                        <property name="visible">True</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="label" translatable="yes">rev</property>
+                                        <property name="justify">center</property>
+                                        <property name="width-chars">5</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">0</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkSwitch" id="switch_rev">
+                                        <property name="visible">True</property>
+                                        <property name="can-focus">True</property>
+                                        <property name="halign">center</property>
+                                        <property name="valign">center</property>
+                                        <property name="margin-left">4</property>
+                                        <property name="margin-right">5</property>
+                                        <property name="margin-start">4</property>
+                                        <property name="margin-end">5</property>
+                                        <signal name="notify::active" handler="on_button_reverse_clicked" swapped="no"/>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                              </object>
+                            </child>
+                            <child type="label">
+                              <object class="GtkLabel">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="label" translatable="yes">General</property>
+                              </object>
+                            </child>
                           </object>
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">True</property>
                             <property name="position">2</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkCheckButton" id="button_average">
-                            <property name="label" translatable="yes">average</property>
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="receives-default">False</property>
-                            <property name="tooltip-text" translatable="yes">average fwd and bwd sweep for each curve (if present)</property>
-                            <property name="draw-indicator">True</property>
-                            <signal name="toggled" handler="on_logplot_changed" swapped="no"/>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">3</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkCheckButton" id="button_legend">
-                            <property name="label" translatable="yes">legend</property>
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="receives-default">False</property>
-                            <property name="tooltip-text" translatable="yes">whether to add a legend to the plot</property>
-                            <property name="halign">start</property>
-                            <property name="valign">center</property>
-                            <property name="draw-indicator">True</property>
-                            <signal name="toggled" handler="on_logplot_changed" swapped="no"/>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">4</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkButton" id="button_reverse">
-                            <property name="label" translatable="yes">reverse</property>
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="receives-default">True</property>
-                            <property name="tooltip-text" translatable="yes">reverse order of spectra in this plot</property>
-                            <property name="halign">center</property>
-                            <property name="valign">center</property>
-                            <signal name="clicked" handler="on_button_reverse_clicked" swapped="no"/>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">5</property>
                           </packing>
                         </child>
                       </object>
@@ -553,156 +750,6 @@
                         <property name="expand">False</property>
                         <property name="fill">True</property>
                         <property name="position">1</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkBox">
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                        <property name="orientation">vertical</property>
-                        <child>
-                          <object class="GtkLabel">
-                            <property name="visible">True</property>
-                            <property name="can-focus">False</property>
-                            <property name="label" translatable="yes">Images</property>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkCheckButton" id="button_flatten">
-                            <property name="label" translatable="yes">flatten</property>
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="receives-default">False</property>
-                            <property name="tooltip-text" translatable="yes">flatten image by subtracting linear fit of the rows</property>
-                            <property name="draw-indicator">True</property>
-                            <signal name="toggled" handler="on_logplot_changed" swapped="no"/>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkCheckButton" id="button_plane">
-                            <property name="label" translatable="yes">plane</property>
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="receives-default">False</property>
-                            <property name="tooltip-text" translatable="yes">plane level image</property>
-                            <property name="draw-indicator">True</property>
-                            <signal name="toggled" handler="on_logplot_changed" swapped="no"/>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">2</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkLabel">
-                            <property name="visible">True</property>
-                            <property name="can-focus">False</property>
-                            <property name="label" translatable="yes">scan direction</property>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">3</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkBox">
-                            <property name="visible">True</property>
-                            <property name="can-focus">False</property>
-                            <child>
-                              <object class="GtkLabel" id="label_direction">
-                                <property name="visible">True</property>
-                                <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">fwd</property>
-                                <property name="justify">center</property>
-                                <property name="width-chars">5</property>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">True</property>
-                                <property name="position">0</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkSwitch" id="switch_direction">
-                                <property name="visible">True</property>
-                                <property name="can-focus">True</property>
-                                <property name="halign">center</property>
-                                <property name="valign">center</property>
-                                <property name="margin-start">4</property>
-                                <property name="margin-end">5</property>
-                                <signal name="state-set" handler="on_direction_changed" swapped="no"/>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">True</property>
-                                <property name="position">1</property>
-                              </packing>
-                            </child>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">4</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkSeparator">
-                            <property name="visible">True</property>
-                            <property name="can-focus">False</property>
-                            <property name="margin-top">9</property>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">5</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkLabel">
-                            <property name="visible">True</property>
-                            <property name="can-focus">False</property>
-                            <property name="label" translatable="yes">General</property>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">6</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkCheckButton" id="button_infobox">
-                            <property name="label" translatable="yes">info box</property>
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="receives-default">False</property>
-                            <property name="tooltip-text" translatable="yes">whether the infobox is shown</property>
-                            <property name="active">True</property>
-                            <property name="draw-indicator">True</property>
-                            <signal name="toggled" handler="on_button_infobox_toggled" swapped="no"/>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">7</property>
-                          </packing>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">2</property>
                       </packing>
                     </child>
                     <child>
@@ -771,7 +818,7 @@
                             <property name="can-focus">False</property>
                             <child>
                               <object class="GtkButton" id="button_current">
-                                <property name="label" translatable="yes">Cur</property>
+                                <property name="label" translatable="yes">Current</property>
                                 <property name="width-request">80</property>
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
@@ -800,8 +847,8 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkButton" id="button_exc">
-                                <property name="label" translatable="yes">Exc</property>
+                              <object class="GtkButton" id="button_demod">
+                                <property name="label" translatable="yes">dI/dV</property>
                                 <property name="width-request">80</property>
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
@@ -815,8 +862,8 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkButton" id="button_demod">
-                                <property name="label" translatable="yes">Demod</property>
+                              <object class="GtkButton" id="button_exc">
+                                <property name="label" translatable="yes">Exc</property>
                                 <property name="width-request">80</property>
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
@@ -858,7 +905,8 @@
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
                                 <property name="adjustment">adjOffset</property>
-                                <property name="round-digits">2</property>
+                                <property name="round-digits">3</property>
+                                <property name="digits">2</property>
                               </object>
                               <packing>
                                 <property name="expand">True</property>
@@ -877,7 +925,7 @@
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
-                        <property name="position">3</property>
+                        <property name="position">2</property>
                       </packing>
                     </child>
                   </object>
@@ -1185,7 +1233,7 @@ export channel</property>
               </packing>
             </child>
             <child>
-              <!-- n-columns=2 n-rows=5 -->
+              <!-- n-columns=2 n-rows=6 -->
               <object class="GtkGrid">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
@@ -1311,6 +1359,30 @@ export channel</property>
                   <packing>
                     <property name="left-attach">1</property>
                     <property name="top-attach">4</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="label" translatable="yes">color range</property>
+                  </object>
+                  <packing>
+                    <property name="left-attach">0</property>
+                    <property name="top-attach">5</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkCheckButton" id="button_overrange">
+                    <property name="label" translatable="yes">mark out of range</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">False</property>
+                    <property name="draw-indicator">True</property>
+                  </object>
+                  <packing>
+                    <property name="left-attach">1</property>
+                    <property name="top-attach">5</property>
                   </packing>
                 </child>
               </object>

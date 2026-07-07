@@ -1,0 +1,75 @@
+#In the .dat file, the meta data comes first as encoded in ansi, there are in total 572 lines of meta data in the format of
+#key1 = value1
+#key2 = value2
+#...
+#
+#for example:
+#[Paramco32]
+#DAC-Type=20bit
+#Titel / Titel=LHeNew
+#Delta X / Delta X [Dac]=64
+#Delta Y / Delta Y [Dac]=64
+#Num.X / Num.X=256
+#Num.Y / Num.Y=256
+#...
+#
+#After this meta data, there comes the images in the binary form, one image after another. The first byte of the first image is at the offset 16384 for this version of .dat file.
+#Each pixel was saved with little endian 32-bit float
+#
+#7673 is the length of binary byte for useful meta data, after that there is no useful information until the images at 16384
+
+# .dat file
+g_file_data_bin_offset: 16384 # which is 128 * 128
+g_file_dat_img_pixel_data_npdtype: "<f4" #little endian 32-bit float for .dat file
+g_file_year_pre: 2000 # filename, data taken are in year range 2000~2099
+
+#.vert & .lat file
+g_file_spec_delimiter: '\t' # delimiter between numbers in file
+g_file_spec_index_header: ["idx"] # spec file index column header
+g_file_spec_vz_header:
+  ParVERT30:
+    v2: ["V", "Z"]
+    v3: ["V", "Z"]
+  ParVERT32:
+    v2: ["V", "Z"]
+    v3: ["V", "Z", "X"]
+g_file_spec_headers:
+  ParVERT30:
+    [
+      "I",
+      "dI/dV",
+      "d2I/dV2",
+      "ADC0",
+      "ADC1",
+      "ADC2",
+      "ADC3",
+      "NA01",
+      "NA02",
+      "NA03",
+      "di_q",
+      "di2_q",
+      "DAC0",
+    ]
+  ParVERT32:
+    [
+      "I",
+      "dI/dV",
+      "d2I/dV2",
+      "ADC0",
+      "ADC1",
+      "ADC2",
+      "ADC3",
+      "NA01",
+      "NA02",
+      "NA03",
+      "di_q",
+      "di2_q",
+      "DAC0",
+    ]
+
+# scanner movement in XY range
+g_XY_bits: 20 # 20 bits
+g_XY_volt: 200 # 200 volts
+g_preamp_gain: 9 # default gain
+
+g_max_size_bits: 4096
