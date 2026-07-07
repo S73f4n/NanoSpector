@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import gi
-import nanonis_load
-from nanonis_load import didv, sxm, grid
+import nanonis_load.nanonis_load as nanonis_load
+from nanonis_load.nanonis_load import didv, sxm, grid
 import yaml
 import shutil
 import os
@@ -237,29 +237,27 @@ class Handler:
                         selected_rows.append(settings['image']['defaultch'])
                     else:
                         selected_rows = self.selectedRows
-                    data.crop_missing_data(channel=selected_rows[0])
                     if "Current" in selected_rows[0]:
                         cmap = settings['image']['cmapI']
                     elif "LI" in selected_rows[0]: 
                         cmap = settings['image']['cmapdIdV']
                     else:
                         cmap = settings['image']['cmap']
+                    data.data[selected_rows[0]][direction] = np.ma.masked_where(data.data[selected_rows[0]][direction] == 0.0, data.data[selected_rows[0]][direction])
                     if "(m)" in selected_rows[0]:
-                        fixzero = True
-                    else: 
-                        fixzero = False
+                        data.data[selected_rows[0]][direction] = sxm.subtract_minimum(data.data[selected_rows[0]][direction])
                     alpha = 0.4
                     loc = 'lower right'
                     plotname = data.filename
                     if cmap == 'default':
-                        self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,reverse=reverse,axes=ax)
+                        self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],cover=1.0-offsetXslider,reverse=reverse,axes=ax,cbar=False)
                     else:
                         try:
-                            self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,reverse=reverse,axes=ax)
+                            self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],cmap=cmap,flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],cover=1.0-offsetXslider,reverse=reverse,axes=ax,cbar=False)
                         except ValueError:
-                            self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],zero=fixzero,cover=1.0-offsetXslider,reverse=reverse,axes=ax)
+                            self.sxmplot = sxm.Plot(data, direction=direction, channel=selected_rows[0],flatten=settings['buttons']['flatten'],subtract_plane=settings['buttons']['plane'],cover=1.0-offsetXslider,reverse=reverse,axes=ax,cbar=False)
                     if fft: 
-                        self.sxmplot.fft(windowFilter=settings['fft']['window'],level=settings['fft']['level'])
+                        self.sxmplot.fft(window_function=settings['fft']['window'],level=settings['fft']['level'],axes=ax)
                         if settings['buttons']['showtitle']:
                             fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + " (FFT) \n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0], fontsize='small')
                     else:
@@ -269,6 +267,10 @@ class Handler:
                         if settings['buttons']['showtitle']:
                             fig.axes[0].set_title(os.path.basename(os.path.dirname(plotname)) + "/" + os.path.basename(plotname) + "\n" + data.header[':REC_DATE:'][0] + " " +  data.header[':REC_TIME:'][0] + '\n{:g} × {:g} nm'.format(data.x_range,data.y_range), fontsize='small')
                         fig.axes[0].axis('off')            
+                        # fig.delaxes(self.sxmplot.cb.ax)
+
+                        # self.sxmplot.cb.remove()
+
                     self.setHeaderText(data)
                     # try:
                     #     self.sxmplot.colorbar.ax.yaxis.set_major_formatter(formatter1)
