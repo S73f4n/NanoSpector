@@ -31,7 +31,7 @@ import src.tol_colors as tc
 
 from src.dataheader import getHeaderLabels, formatSI
 
-__version__ = "2.0.1"
+__version__ = "3.0"
 
 class Handler:
     def __init__(self):
