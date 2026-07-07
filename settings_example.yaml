@@ -25,7 +25,7 @@ grid:
 fft:
   cmap: viridis
   level: 20
-  window: Hanning
+  window: Blackman
   windows:
     - None
     - Hanning
