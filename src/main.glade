@@ -785,6 +785,7 @@
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
                                 <property name="model">yaxis_list</property>
+                                <signal name="button-press-event" handler="on_yAxisTreeView_button_press_event" swapped="no"/>
                                 <child internal-child="selection">
                                   <object class="GtkTreeSelection" id="selection_yaxis">
                                     <property name="mode">multiple</property>
