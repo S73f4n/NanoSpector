@@ -501,7 +501,9 @@ class Handler:
         path = hit[0]
         selection = treeview.get_selection()
 
-        if selection.path_is_selected(path):
+        model, selected_paths = selection.get_selected_rows()
+
+        if len(selected_paths) == 1 and selection.path_is_selected(path):
             selection.unselect_path(path)
             ax.cla()
             specAx.cla()
