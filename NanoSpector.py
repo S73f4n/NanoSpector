@@ -112,7 +112,7 @@ class Handler:
     def on_selection_changed(self, folder_chooser):
         settings["file"]["path"] = folder_chooser.get_filename()
         self.open_folder()
-    
+
     def normalizeChName(self, name):
         return re.sub(r"\s*\[bwd\]\s*", " ", name).strip()
 
@@ -263,11 +263,13 @@ class Handler:
                         except KeyError:
                             selected_rows.clear()
                             selected_rows.append(data.data.keys()[1])
-                        if not settings['buttons']['average']:
+                        if not settings["buttons"]["average"]:
                             bwd_channels = selected_rows.copy()
                             for ch in bwd_channels:
                                 if "bwd" not in ch:
-                                    if (other := self.channelPairs.get(ch)) is not None and other not in selected_rows:
+                                    if (
+                                        other := self.channelPairs.get(ch)
+                                    ) is not None and other not in selected_rows:
                                         selected_rows.append(other)
                     else:
                         selected_rows = self.selectedRows
@@ -285,12 +287,12 @@ class Handler:
                         * offsetXslider
                         * 10
                         * len(selected_rows)
+                    )
 
                     average = None
 
-                    )
                     for ch in selected_rows:
-                        if settings['buttons']['average']:
+                        if settings["buttons"]["average"]:
                             if (other := self.channelPairs.get(ch)) is not None:
                                 average = other
                             try:
