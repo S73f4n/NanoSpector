@@ -47,6 +47,11 @@ class Handler:
         }
         self.settingsDropdown = {
             "general": {"plotstyle": "setGeneralPlotstyle"},
+            "image": {"background": "comboBox_bkg"},
+        }
+        self.settingsDropdownItems = {
+            "setGeneralPlotstyle": style.available,
+            "comboBox_bkg": ["none", "plane", "linear", "quadratic", "parabolic"],
         }
         self.settingsCmaps = {
             "image": {
@@ -1264,10 +1269,14 @@ class Handler:
         ]
 
     def initSettingsWindow(self):
-        plotstyleGtk = Gtk.Builder.get_object(builder, "setGeneralPlotstyle")
-        for ps in style.available:
-            plotstyleGtk.append_text(ps)
-        plotstyleGtk.set_active(style.available.index(settings["general"]["plotstyle"]))
+        for setType, setting in self.settingsDropdown.items():
+            for setName, gtkName in setting.items():
+                checkBox = Gtk.Builder.get_object(builder, gtkName)
+                checkBoxItems = self.settingsDropdownItems[gtkName]
+                for item in checkBoxItems:
+                    checkBox.append_text(item)
+                checkBox.set_active(checkBoxItems.index(settings[setType][setName]))
+
         for setType, setting in self.settingsBoxes.items():
             for setName, gtkName in setting.items():
                 for window in settings[setType][setName + "s"]:
