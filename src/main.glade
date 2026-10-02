@@ -466,6 +466,8 @@
                               <object class="GtkBox">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
+                                <property name="margin-top">5</property>
+                                <property name="margin-bottom">5</property>
                                 <property name="orientation">vertical</property>
                                 <child>
                                   <object class="GtkCheckButton" id="button_index">
@@ -557,6 +559,8 @@
                               <object class="GtkBox">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
+                                <property name="margin-top">5</property>
+                                <property name="margin-bottom">5</property>
                                 <property name="orientation">vertical</property>
                                 <child>
                                   <object class="GtkLabel">
@@ -615,6 +619,8 @@
                                   <object class="GtkSeparator">
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
+                                    <property name="margin-top">5</property>
+                                    <property name="margin-bottom">5</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -674,6 +680,8 @@
                               <object class="GtkBox">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
+                                <property name="margin-top">5</property>
+                                <property name="margin-bottom">5</property>
                                 <property name="orientation">vertical</property>
                                 <child>
                                   <object class="GtkCheckButton" id="button_infobox">
