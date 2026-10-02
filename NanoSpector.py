@@ -10,6 +10,7 @@ import os
 import io
 import re
 import warnings
+from copy import deepcopy
 from datetime import datetime, timezone
 
 gi.require_version("Gtk", "3.0")
@@ -170,6 +171,9 @@ class Handler:
             settings["buttons"][btn] = Gtk.Builder.get_object(
                 builder, "button_" + btn
             ).get_active()
+        settings["image"]["background"] = builder.get_object(
+            "comboBox_bkg"
+        ).get_active_text()
         offsetXslider = Gtk.Builder.get_object(builder, "adjOffset").get_value()
         switchDirection = Gtk.Builder.get_object(builder, "switch_direction")
 
@@ -395,13 +399,13 @@ class Handler:
                                 xy=(0.015, 0.8),
                                 fontsize="small",
                                 xycoords="axes fraction",
-                                bbox=dict(
-                                    alpha=0.7,
-                                    facecolor="#eeeeee",
-                                    edgecolor="#bcbcbc",
-                                    linewidth=0.5,
-                                    pad=3,
-                                ),
+                                bbox={
+                                    "alpha": 0.7,
+                                    "facecolor": "#eeeeee",
+                                    "edgecolor": "#bcbcbc",
+                                    "linewidth": 0.5,
+                                    "pad": 3,
+                                },
                             )
                     else:
                         if settings["buttons"]["showtitle"]:
@@ -425,6 +429,8 @@ class Handler:
                     Gtk.Builder.get_object(builder, "expander_spec").set_expanded(False)
                     Gtk.Builder.get_object(builder, "expander_img").set_expanded(True)
                     builder.get_object("sliderLabel").set_text("Contrast")
+                    bkgMethod = settings["image"]["background"]
+                    flatten = False
                     if self.selectedRows == []:
                         try:
                             if data.header[":Z-Controller>Controller status:"] == [
@@ -444,24 +450,39 @@ class Handler:
                         cmap = settings["image"]["cmapdIdV"]
                     else:
                         cmap = settings["image"]["cmap"]
-                    data.data[selected_rows[0]][direction] = np.ma.masked_where(
-                        data.data[selected_rows[0]][direction] == 0.0,
-                        data.data[selected_rows[0]][direction],
+
+                    # Start of image editing
+                    # Before masking or subtracting the minimum:
+                    plotData = deepcopy(data)
+                    channel = selected_rows[0]
+
+                    image = np.ma.masked_where(
+                        plotData.data[channel][direction] == 0.0,
+                        plotData.data[channel][direction],
                     )
-                    if "(m)" in selected_rows[0]:
-                        data.data[selected_rows[0]][direction] = sxm.subtract_minimum(
-                            data.data[selected_rows[0]][direction]
-                        )
+                    if "(m)" in channel:
+                        image = sxm.subtract_minimum(image)
+
+                    if bkgMethod == "parabolic":
+                        image = sxm.subtract_parabola(image)
+                    elif bkgMethod == "quadratic":
+                        image = sxm.subtract_quadratic_by_line(image)
+                    elif bkgMethod == "plane":
+                        image = sxm.subtract_plane(image)
+
+                    flatten = bkgMethod == "linear"
+                    plotData.data[channel][direction] = image
+
                     alpha = 0.4
                     loc = "lower right"
                     plotname = data.filename
                     if cmap == "default":
                         self.sxmplot = sxm.Plot(
-                            data,
+                            plotData,
                             direction=direction,
                             channel=selected_rows[0],
-                            flatten=settings["buttons"]["flatten"],
-                            subtract_plane=settings["buttons"]["plane"],
+                            flatten=flatten,
+                            subtract_plane=False,
                             cover=1.0 - offsetXslider,
                             overrange=settings["buttons"]["overrange"],
                             reverse=reverse,
@@ -471,12 +492,12 @@ class Handler:
                     else:
                         try:
                             self.sxmplot = sxm.Plot(
-                                data,
+                                plotData,
                                 direction=direction,
                                 channel=selected_rows[0],
                                 cmap=cmap,
-                                flatten=settings["buttons"]["flatten"],
-                                subtract_plane=settings["buttons"]["plane"],
+                                flatten=flatten,
+                                subtract_plane=False,
                                 cover=1.0 - offsetXslider,
                                 overrange=settings["buttons"]["overrange"],
                                 reverse=reverse,
@@ -485,11 +506,11 @@ class Handler:
                             )
                         except ValueError:
                             self.sxmplot = sxm.Plot(
-                                data,
+                                plotData,
                                 direction=direction,
                                 channel=selected_rows[0],
-                                flatten=settings["buttons"]["flatten"],
-                                subtract_plane=settings["buttons"]["plane"],
+                                flatten=flatten,
+                                subtract_plane=False,
                                 cover=1.0 - offsetXslider,
                                 overrange=settings["buttons"]["overrange"],
                                 reverse=reverse,
@@ -571,6 +592,7 @@ class Handler:
                     Gtk.Builder.get_object(builder, "expander_spec").set_expanded(False)
                     Gtk.Builder.get_object(builder, "expander_img").set_expanded(True)
                     builder.get_object("sliderLabel").set_text("Contrast")
+                    bkgMethod = settings["image"]["background"]
                     if self.selectedRows == []:
                         selected_rows.append(settings["image"]["defaultch"])
                     else:
@@ -583,11 +605,7 @@ class Handler:
                     else:
                         cmap = settings["image"]["cmap"]
 
-                    if "(m)" in selected_rows[0]:
-                        fixzero = True
-                    else:
-                        fixzero = False
-
+                    fixzero = False
                     alpha = 0.4
                     loc = "lower right"
                     plotname = data.filename
@@ -595,14 +613,36 @@ class Handler:
                     if cmap == "default":
                         cmap = "gray"
 
+                    # Start of image editing
+                    # Before masking or subtracting the minimum:
+                    plotData = deepcopy(data)
+                    channel = selected_rows[0]
+
+                    image = np.ma.masked_where(
+                        plotData.data[channel][direction] == 0.0,
+                        plotData.data[channel][direction],
+                    )
+                    if "(m)" in channel:
+                        image = datimg.subtract_minimum(image)
+
+                    if bkgMethod == "parabolic":
+                        image = datimg.subtract_parabola(image)
+                    elif bkgMethod == "quadratic":
+                        image = datimg.subtract_quadratic_by_line(image)
+                    elif bkgMethod == "plane":
+                        image = datimg.subtract_plane(image)
+
+                    flatten = bkgMethod == "linear"
+                    plotData.data[channel][direction] = image
+
                     try:
                         self.sxmplot = datimg.Plot(
-                            data,
+                            plotData,
                             direction=direction,
                             channel=selected_rows[0],
                             cmap=cmap,
-                            flatten=settings["buttons"]["flatten"],
-                            subtract_plane=settings["buttons"]["plane"],
+                            flatten=flatten,
+                            subtract_plane=False,
                             zero=fixzero,
                             cover=1.0 - offsetXslider,
                             overrange=settings["buttons"]["overrange"],
@@ -611,11 +651,11 @@ class Handler:
                         )
                     except ValueError:
                         self.sxmplot = datimg.Plot(
-                            data,
+                            plotData,
                             direction=direction,
                             channel=selected_rows[0],
-                            flatten=settings["buttons"]["flatten"],
-                            subtract_plane=settings["buttons"]["plane"],
+                            flatten=flatten,
+                            subtract_plane=False,
                             zero=fixzero,
                             cover=1.0 - offsetXslider,
                             overrange=settings["buttons"]["overrange"],
@@ -624,12 +664,12 @@ class Handler:
                         )
                     except IndexError:
                         self.sxmplot = datimg.Plot(
-                            data,
+                            plotData,
                             direction=0,
                             channel=selected_rows[0],
                             cmap=cmap,
-                            flatten=settings["buttons"]["flatten"],
-                            subtract_plane=settings["buttons"]["plane"],
+                            flatten=flatten,
+                            subtract_plane=False,
                             zero=fixzero,
                             cover=1.0 - offsetXslider,
                             overrange=settings["buttons"]["overrange"],
@@ -1091,9 +1131,9 @@ class Handler:
         filename = os.path.basename(filepath)
 
         # Apply flatten and plane to export data
-        if settings["buttons"]["flatten"]:
+        if settings["image"]["background"] == "linear":
             exportdata = signal.detrend(data.get_data(rows[0]))
-        elif settings["buttons"]["plane"]:
+        elif settings["image"]["background"] == "plane":
             exportdata = sxm.subtract_plane(data.get_data(rows[0]))
         else:
             exportdata = data.get_data(rows[0])
@@ -1158,9 +1198,9 @@ class Handler:
         filename = os.path.basename(filepath)
 
         # Apply flatten and plane to export data
-        if settings["buttons"]["flatten"]:
+        if settings["image"]["background"] == "linear":
             exportdata = signal.detrend(data.get_data(rows[0]))
-        elif settings["buttons"]["plane"]:
+        elif settings["image"]["background"] == "plane":
             exportdata = datimg.subtract_plane(data.get_data(rows[0]))
         else:
             exportdata = data.get_data(rows[0])

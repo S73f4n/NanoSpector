@@ -13,6 +13,7 @@ image:
   cmapdIdV: magma
   defaultch: Z (m)
   extension: .sxm, .dat
+  background: none
 spec:
   cmap: default
   defaultch: Current (A)
@@ -33,8 +34,6 @@ fft:
     - Blackman
 buttons:
   infobox: true
-  flatten: true
-  plane: false
   index: false
   logplot: false
   legend: true
