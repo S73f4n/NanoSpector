@@ -1,50 +1,34 @@
 import numpy as np
 
 sxmCH = {
-    ":Bias>Bias (V):" : {
-        "unitType": "direct",
-        "unit": "V",
-        "symbol": "$V$"
-    },
-    ":Z-Controller>Setpoint:" : {
+    ":Bias>Bias (V):": {"unitType": "direct", "unit": "V", "symbol": "$V$"},
+    ":Z-Controller>Setpoint:": {
         "unitType": "eval",
         "unit": ":Z-Controller>Setpoint unit:",
-        "symbol": "$Z_{sp}$"
+        "symbol": "$Z_{sp}$",
     },
     ":Z-Controller>I gain:": {
         "unitType": "direct",
         "unit": "m/s",
-        "symbol": "$I_{FB}$"
+        "symbol": "$I_{FB}$",
     },
-    ":Scan>speed forw. (m/s):": {
-        "unitType": "direct",
-        "unit": "m/s",
-        "symbol": "$v$"
-    },
-    ":Oscillation Control>Amplitude Setpoint (m):": {
-        "unitType": "direct",
-        "unit": "m",
-        "symbol": "$A_{osc}$",
-    }
+    ":Scan>speed forw. (m/s):": {"unitType": "direct", "unit": "m/s", "symbol": "$v$"},
+    # ":Oscillation Control>Amplitude Setpoint (m):": {
+    #     "unitType": "direct",
+    #     "unit": "m",
+    #     "symbol": "$A_{osc}$",
+    # }
 }
 
 sxmCC = {
-    ":Bias>Bias (V):" : {
-        "unitType": "direct",
-        "unit": "V",
-        "symbol": "$V$"
-    },
-    ":Z-Controller>Z (m):" :{
+    ":Bias>Bias (V):": {"unitType": "direct", "unit": "V", "symbol": "$V$"},
+    ":Z-Controller>Z (m):": {
         "unitType": "direct",
         "unit": "m",
         "symbol": "$Z$",
-        "precision": 6
+        "precision": 6,
     },
-    ":Scan>speed forw. (m/s):": {
-        "unitType": "direct",
-        "unit": "m/s",
-        "symbol": "$v$"
-    },
+    ":Scan>speed forw. (m/s):": {"unitType": "direct", "unit": "m/s", "symbol": "$v$"},
 }
 
 createcCC = {
@@ -81,55 +65,30 @@ createcCH = {
 }
 
 spectrum = {
-    "": {
-        "unitType": "direct",
-        "unit": "",
-        "symbol": ""
-    },
+    "": {"unitType": "direct", "unit": "", "symbol": ""},
     "biasvoltage": {
         "unitType": "direct",
         "unit": "V",
         "symbol": "$V$",
         "factor": 1e-3,
     },
-    "Bias>Bias (V)" : {
-        "unitType": "direct",
-        "unit": "V",
-        "symbol": "$V$"
-    },
-    "Z (m)": {
-        "unitType": "direct",
-        "unit": "m",
-        "symbol": "$Z$",
-        "precision": 6
-    },
-    "Lock-in>Amplitude": {
-        "unitType": "direct",
-        "unit": "V",
-        "symbol": "$V_{mod}$"
-    },
+    "Bias>Bias (V)": {"unitType": "direct", "unit": "V", "symbol": "$V$"},
+    "Z (m)": {"unitType": "direct", "unit": "m", "symbol": "$Z$", "precision": 6},
+    "Lock-in>Amplitude": {"unitType": "direct", "unit": "V", "symbol": "$V_{mod}$"},
     "lockinampl": {
         "unitType": "direct",
         "unit": "Vpp",
         "symbol": "$V_{mod}$",
-        "factor": 1e-3
+        "factor": 1e-3,
     },
     "f_res (Hz)": {
         "unitType": "direct",
         "unit": "Hz",
         "symbol": "$f_0$",
-        "precision" : 10
+        "precision": 10,
     },
-    "Q": {
-        "unitType": "direct",
-        "unit": "",
-        "symbol": "$Q$"
-    },
-    "Phase (deg)": {
-        "unitType": "direct",
-        "unit": "°",
-        "symbol": "$\\Phi$"
-    },
+    "Q": {"unitType": "direct", "unit": "", "symbol": "$Q$"},
+    "Phase (deg)": {"unitType": "direct", "unit": "°", "symbol": "$\\Phi$"},
     "Oscillation Control>Amplitude Setpoint (m)": {
         "unitType": "direct",
         "unit": "m",
@@ -138,52 +97,30 @@ spectrum = {
     "Sample period (ms)": {
         "unitType": "direct",
         "unit": "ms",
-        "symbol": "$t_{sample}$"
+        "symbol": "$t_{sample}$",
     },
-
 }
 
 spectrumZ = {
-    "Z-Controller>Setpoint" : {
+    "Z-Controller>Setpoint": {
         "unitType": "eval",
         "unit": "Z-Controller>Setpoint unit",
-        "symbol": "$Z_{sp}$"
+        "symbol": "$Z_{sp}$",
     }
 }
 
 grid = {
-    "Bias>Bias (V)" : {
-        "unitType": "direct",
-        "unit": "V",
-        "symbol": "$V$"
-    },
-    "Z (m)": {
-        "unitType": "direct",
-        "unit": "m",
-        "symbol": "$Z$",
-        "precision": 6
-    },
-    "Lock-in>Amplitude": {
-        "unitType": "direct",
-        "unit": "V",
-        "symbol": "$V_{mod}$"
-    },
+    "Bias>Bias (V)": {"unitType": "direct", "unit": "V", "symbol": "$V$"},
+    "Z (m)": {"unitType": "direct", "unit": "m", "symbol": "$Z$", "precision": 6},
+    "Lock-in>Amplitude": {"unitType": "direct", "unit": "V", "symbol": "$V_{mod}$"},
     "f_res (Hz)": {
         "unitType": "direct",
         "unit": "Hz",
         "symbol": "$f_0$",
-        "precision" : 10
+        "precision": 10,
     },
-    "Q": {
-        "unitType": "direct",
-        "unit": "",
-        "symbol": "$Q$"
-    },
-    "Phase (deg)": {
-        "unitType": "direct",
-        "unit": "°",
-        "symbol": "$\\Phi$"
-    },
+    "Q": {"unitType": "direct", "unit": "", "symbol": "$Q$"},
+    "Phase (deg)": {"unitType": "direct", "unit": "°", "symbol": "$\\Phi$"},
     "Oscillation Control>Amplitude Setpoint (m)": {
         "unitType": "direct",
         "unit": "m",
@@ -191,10 +128,11 @@ grid = {
     },
 }
 
+
 def getHeaderLabels(header, dtype):
     labels = []
     if dtype == "createc":
-        if header["fboff"] == '1':
+        if header["fboff"] == "1":
             headerDict = createcCH
         else:
             headerDict = createcCC
@@ -215,7 +153,7 @@ def getHeaderLabels(header, dtype):
                 headerDict.update(spectrumZ)
     else:
         headerDict = {}
- 
+
     for headerKey, headerVal in headerDict.items():
         try:
             value = header[headerKey]
@@ -236,27 +174,33 @@ def getHeaderLabels(header, dtype):
             except KeyError:
                 factor = 1
             try:
-                labels.append(headerVal["symbol"] + " = "+ formatSI(value,precision=prec,factor=factor) + unit)
+                labels.append(
+                    headerVal["symbol"]
+                    + " = "
+                    + formatSI(value, precision=prec, factor=factor)
+                    + unit
+                )
             except ValueError:
                 pass
         except KeyError:
             pass
     return labels
 
-def formatSI(value, precision=4,factor=1):
+
+def formatSI(value, precision=4, factor=1):
     prefixes = {
-        9: "G",   # giga
-        6: "M",   # mega
-        3: "k",   # kilo
-        0: "",    # no prefix
+        9: "G",  # giga
+        6: "M",  # mega
+        3: "k",  # kilo
+        0: "",  # no prefix
         -3: "m",  # milli
         -6: "µ",  # micro
         -9: "n",  # nano
-        -12: "p", # pico
-        -15: "f", # femto
+        -12: "p",  # pico
+        -15: "f",  # femto
     }
     if type(value) == str:
-        value = float(value.replace(',','.'))
+        value = float(value.replace(",", "."))
     if value != 0:
         value *= factor
         exponent = int(np.floor(np.log10(np.abs(value))))
