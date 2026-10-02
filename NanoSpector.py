@@ -72,6 +72,7 @@ class Handler:
         self.datastore = []
         self.gifStore = []
         self.selectedRows = []
+        self.channelPairs = {}
         self.read_settings()
         self.initSettingsWindow()
         self.setPlotstyle()
@@ -111,20 +112,32 @@ class Handler:
     def on_selection_changed(self, folder_chooser):
         settings["file"]["path"] = folder_chooser.get_filename()
         self.open_folder()
+    
+    def normalizeChName(self, name):
+        return re.sub(r"\s*\[bwd\]\s*", " ", name).strip()
 
     def setChannelList(self, channelList):
         selection = Gtk.Builder.get_object(builder, "selection_yaxis")
         selection.handler_block_by_func(self.on_selection_yaxis_changed)
         # selection.unselect_all()
         ylistData = [list(row)[0] for row in yaxisList]
+        groups = {}
         if len(ylistData) == len(channelList):
             refreshList = not all(row in ylistData for row in channelList)
         else:
             refreshList = True
         if refreshList:
             yaxisList.clear()
+            self.channelPairs = {}
             for ch in channelList:
                 model = yaxisList.append([ch])
+                key = self.normalizeChName(ch)
+                groups.setdefault(key, []).append(ch)
+            for ch in groups.values():
+                if len(ch) == 2:
+                    a, b = ch
+                    self.channelPairs[a] = b
+                    self.channelPairs[b] = a
             self.selectedRows = []
         selection.handler_unblock_by_func(self.on_selection_yaxis_changed)
 
@@ -250,6 +263,12 @@ class Handler:
                         except KeyError:
                             selected_rows.clear()
                             selected_rows.append(data.data.keys()[1])
+                        if not settings['buttons']['average']:
+                            bwd_channels = selected_rows.copy()
+                            for ch in bwd_channels:
+                                if "bwd" not in ch:
+                                    if (other := self.channelPairs.get(ch)) is not None and other not in selected_rows:
+                                        selected_rows.append(other)
                     else:
                         selected_rows = self.selectedRows
                     yaxislabel = self.replaceLabel(selected_rows[0])
@@ -266,20 +285,18 @@ class Handler:
                         * offsetXslider
                         * 10
                         * len(selected_rows)
+
+                    average = None
+
                     )
                     for ch in selected_rows:
-                        if settings["buttons"]["average"]:
-                            if isinstance(data, nanonis_load.didv.Spectrum):
-                                bracketPos = ch.find("(")
-                                average = ch[:bracketPos] + "[bwd] " + ch[bracketPos:]
-                            else:
-                                average = ch + " [bwd]"
+                        if settings['buttons']['average']:
+                            if (other := self.channelPairs.get(ch)) is not None:
+                                average = other
                             try:
                                 data.data.loc[:, average]
                             except KeyError:
                                 average = None
-                        else:
-                            average = None
                         if isinstance(data, nanonis_load.didv.Spectrum):
                             didv.Plot(
                                 data,
@@ -835,6 +852,26 @@ class Handler:
             for yiter in yaxisIter:
                 self.selectedRows.append(yaxisModel[yiter][0])
         self.plot_data()
+
+    def on_yAxisTreeView_button_press_event(self, treeview, event):
+        if event.button != 1:
+            return False
+        hit = treeview.get_path_at_pos(int(event.x), int(event.y))
+        if hit is None:
+            return False
+        path = hit[0]
+        selection = treeview.get_selection()
+
+        model, selected_paths = selection.get_selected_rows()
+
+        if len(selected_paths) == 1 and selection.path_is_selected(path):
+            selection.unselect_path(path)
+            ax.cla()
+            specAx.cla()
+            self.selectedRows = []
+            self.plot_data()
+            return True
+        return False
 
     def on_file_selected(self, selection):
         model, treeiter = selection.get_selected_rows()
