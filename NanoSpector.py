@@ -13,7 +13,7 @@ import warnings
 from copy import deepcopy
 from datetime import datetime, timezone
 
-gi.require_version("Gtk", "3.1")
+gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
 
 import matplotlib.pyplot as plt
@@ -32,7 +32,7 @@ import src.tol_colors as tc
 
 from src.dataheader import getHeaderLabels, formatSI
 
-__version__ = "3.0"
+__version__ = "3.1"
 
 
 class Handler:

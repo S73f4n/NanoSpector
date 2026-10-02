@@ -1,0 +1,170 @@
+#!/usr/bin/env python3
+
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, Gdk, GObject
+import math
+
+
+class RangeSlider(Gtk.DrawingArea):
+    __gsignals__ = {
+        "value-changed": (
+            GObject.SignalFlags.RUN_FIRST,
+            None,
+            (float, float),
+        )
+    }
+
+    def __init__(self, minimum=0, maximum=100):
+        super().__init__()
+
+        self.minimum = minimum
+        self.maximum = maximum
+
+        self.lower = minimum + (maximum - minimum) * 0.25
+        self.upper = minimum + (maximum - minimum) * 0.75
+
+        self.handle_radius = 8
+        self.margin = 15
+
+        self.dragging = None
+
+        self.set_size_request(300, 40)
+
+        self.add_events(
+            Gdk.EventMask.BUTTON_PRESS_MASK
+            | Gdk.EventMask.BUTTON_RELEASE_MASK
+            | Gdk.EventMask.POINTER_MOTION_MASK
+        )
+
+        self.connect("draw", self.on_draw)
+        self.connect("button-press-event", self.on_press)
+        self.connect("button-release-event", self.on_release)
+        self.connect("motion-notify-event", self.on_motion)
+
+    # --------------------------------------------------------
+
+    def value_to_x(self, value):
+        width = self.get_allocated_width() - 2 * self.margin
+        return self.margin + (
+            (value - self.minimum)
+            / (self.maximum - self.minimum)
+        ) * width
+
+    def x_to_value(self, x):
+        width = self.get_allocated_width() - 2 * self.margin
+
+        x = max(self.margin, min(
+            self.get_allocated_width() - self.margin,
+            x))
+
+        return self.minimum + (
+            (x - self.margin) / width
+        ) * (self.maximum - self.minimum)
+
+    # --------------------------------------------------------
+
+    def on_draw(self, widget, cr):
+
+        w = self.get_allocated_width()
+        h = self.get_allocated_height()
+        cy = h / 2
+
+        x1 = self.value_to_x(self.lower)
+        x2 = self.value_to_x(self.upper)
+
+        # background track
+        cr.set_source_rgb(0.75, 0.75, 0.75)
+        cr.set_line_width(4)
+        cr.move_to(self.margin, cy)
+        cr.line_to(w - self.margin, cy)
+        cr.stroke()
+
+        # selected range
+        cr.set_source_rgb(0.2, 0.5, 0.9)
+        cr.set_line_width(6)
+        cr.move_to(x1, cy)
+        cr.line_to(x2, cy)
+        cr.stroke()
+
+        # handles
+        for x in (x1, x2):
+            cr.set_source_rgb(1, 1, 1)
+            cr.arc(x, cy, self.handle_radius, 0, math.tau)
+            cr.fill_preserve()
+
+            cr.set_source_rgb(0.25, 0.25, 0.25)
+            cr.set_line_width(2)
+            cr.stroke()
+
+    # --------------------------------------------------------
+
+    def on_press(self, widget, event):
+
+        cy = self.get_allocated_height() / 2
+
+        d_lower = math.hypot(
+            event.x - self.value_to_x(self.lower),
+            event.y - cy)
+
+        d_upper = math.hypot(
+            event.x - self.value_to_x(self.upper),
+            event.y - cy)
+
+        if d_lower < self.handle_radius + 4:
+            self.dragging = "lower"
+
+        elif d_upper < self.handle_radius + 4:
+            self.dragging = "upper"
+
+    def on_release(self, *args):
+        self.dragging = None
+
+    def on_motion(self, widget, event):
+
+        if self.dragging is None:
+            return
+
+        value = self.x_to_value(event.x)
+
+        if self.dragging == "lower":
+            self.lower = min(value, self.upper)
+
+        elif self.dragging == "upper":
+            self.upper = max(value, self.lower)
+
+        self.queue_draw()
+        self.emit("value-changed", self.lower, self.upper)
+
+
+class Window(Gtk.Window):
+    def __init__(self):
+        super().__init__(title="Range Slider Demo")
+        self.set_border_width(20)
+
+        box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            spacing=10)
+
+        self.add(box)
+
+        self.label = Gtk.Label()
+
+        slider = RangeSlider(0, 100)
+        slider.connect("value-changed", self.changed)
+
+        box.pack_start(slider, False, False, 0)
+        box.pack_start(self.label, False, False, 0)
+
+        self.changed(slider, slider.lower, slider.upper)
+
+    def changed(self, slider, low, high):
+        self.label.set_text(
+            f"Selected range: {low:.1f} – {high:.1f}"
+        )
+
+
+win = Window()
+win.connect("destroy", Gtk.main_quit)
+win.show_all()
+Gtk.main()
