@@ -32,7 +32,7 @@ import src.tol_colors as tc
 
 from src.dataheader import getHeaderLabels, formatSI
 
-__version__ = "3.1"
+__version__ = "3.1.1beta"
 
 
 class Handler:
@@ -179,7 +179,9 @@ class Handler:
                 label = label.replace(key, value)
         return label
 
-    def plot_data(self, fft=None, save=False, direction=0, reverse=False):
+    def plot_data(
+        self, fft=None, save=False, direction=0, reverse=False, lineaverage=False
+    ):
         for btn in settings["buttons"]:
             settings["buttons"][btn] = Gtk.Builder.get_object(
                 builder, "button_" + btn
@@ -505,6 +507,7 @@ class Handler:
                             cover=1.0 - offsetXslider,
                             overrange=settings["buttons"]["overrange"],
                             reverse=reverse,
+                            average_line=lineaverage,
                             axes=ax,
                             cbar=False,
                         )
@@ -520,6 +523,7 @@ class Handler:
                                 cover=1.0 - offsetXslider,
                                 overrange=settings["buttons"]["overrange"],
                                 reverse=reverse,
+                                average_line=lineaverage,
                                 axes=ax,
                                 cbar=False,
                             )
@@ -533,6 +537,7 @@ class Handler:
                                 cover=1.0 - offsetXslider,
                                 overrange=settings["buttons"]["overrange"],
                                 reverse=reverse,
+                                average_line=lineaverage,
                                 axes=ax,
                                 cbar=False,
                             )
@@ -1041,6 +1046,12 @@ class Handler:
     def on_button_clear_clicked(self, button):
         ax.cla()
         fig.canvas.draw()
+
+    def on_button_lineaverage_toggled(self, button):
+        switch = Gtk.Builder.get_object(builder, "switch_direction")
+        state = button.get_active()
+        switch.set_sensitive(not state)
+        self.plot_data(lineaverage=state)
 
     def on_button_reverse_clicked(self, switch, state):
         if switch.get_active():
